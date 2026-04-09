@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Roomie Signup</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Signup</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="signupUser()">Sign Up</button>
+  <p>Already have an account? <a href="login.html">Login</a></p>
+
+  <script type="module">
+    import { auth, createUserWithEmailAndPassword } from "./firebase.js";
+
+    window.signupUser = async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("Account created!");
+        window.location.href = "index.html";
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+  </script>
+</body>
+</html>
