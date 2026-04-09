@@ -1,179 +1,86 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Roomie</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #f5f7fb;
-    }
-
-    /* NAVBAR */
-    .navbar {
-      background: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-
-    .navbar h2 {
-      color: #1d4ed8;
-      margin: 0;
-    }
-
-    .nav-buttons button {
-      margin-left: 10px;
-      padding: 8px 12px;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-
-    .primary {
-      background: #1d4ed8;
-      color: white;
-    }
-
-    .secondary {
-      background: #e5e7eb;
-    }
-
-    /* CONTAINER */
-    .container {
-      padding: 20px;
-    }
-
-    /* FILTER */
-    .filter {
-      margin-bottom: 20px;
-    }
-
-    select {
-      padding: 8px;
-    }
-
-    /* ROOM GRID */
-    .rooms {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-    }
-
-    /* CARD */
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      transition: 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-    }
-
-    .card h3 {
-      margin: 0 0 5px 0;
-    }
-
-    .location {
-      color: #6b7280;
-      font-size: 14px;
-    }
-
-    .price {
-      color: #16a34a;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .owner {
-      font-size: 12px;
-      color: gray;
-      margin-top: 5px;
-    }
-
-  </style>
+  <title>Home</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- NAVBAR -->
-  <div class="navbar">
-    <h2>Roomie</h2>
+<div class="navbar">
+  <h2>Roomie</h2>
 
-    <div class="nav-buttons">
-      <button class="primary" onclick="go()">+ List Room</button>
-      <button class="secondary" onclick="logout()">Logout</button>
-    </div>
+  <div>
+    <a href="list-room.html"><button class="primary">Post</button></a>
+    <a href="roommate.html"><button class="secondary">Roommates</button></a>
+    <a href="profile.html"><button class="secondary">Profile</button></a>
   </div>
+</div>
 
-  <div class="container">
+<div class="container">
 
-    <!-- FILTER -->
-    <div class="filter">
-      <label>Filter by location:</label>
-      <select id="filterLocation" onchange="loadRooms()">
-        <option value="">All Locations</option>
-        <option value="Campus A">Campus A</option>
-        <option value="Campus B">Campus B</option>
-      </select>
-    </div>
+  <input id="search" placeholder="Search rooms..." oninput="filterRooms()">
 
-    <!-- ROOMS -->
-    <div class="rooms" id="rooms"></div>
+  <input id="locationFilter" placeholder="Location" oninput="filterRooms()">
+  <input id="maxPrice" type="number" placeholder="Max Price" oninput="filterRooms()">
 
-  </div>
+  <div class="rooms" id="rooms"></div>
 
-  <script type="module">
-    import { auth, db, collection, getDocs } from "./firebase.js";
-    import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+</div>
 
-    const container = document.getElementById("rooms");
+<script type="module">
+import { db, collection, getDocs } from "./firebase.js";
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        location.href = "login.html";
-      } else {
-        loadRooms();
-      }
-    });
+let allRooms = [];
 
-    async function loadRooms() {
-      const filter = document.getElementById("filterLocation").value;
-      const snapshot = await getDocs(collection(db, "rooms"));
+async function load() {
+  const snap = await getDocs(collection(db, "rooms"));
 
-      container.innerHTML = "";
+  allRooms = [];
+  snap.forEach(d => allRooms.push({ id: d.id, ...d.data() }));
 
-      snapshot.forEach(doc => {
-        const r = doc.data();
+  render(allRooms);
+}
 
-        if (filter && r.location !== filter) return;
+function render(data) {
+  const box = document.getElementById("rooms");
+  box.innerHTML = "";
 
-        const div = document.createElement("div");
-        div.classList.add("card");
+  data.forEach(r => {
+    box.innerHTML += `
+      <div class="card">
 
-        div.innerHTML = `
-          <h3>${r.title}</h3>
-          <p>${r.description}</p>
-          <p class="location">${r.location}</p>
-          <p class="price">₦${r.price}</p>
-          <p class="owner">${r.owner}</p>
-        `;
+        <img src="${r.imageURL || 'https://via.placeholder.com/400'}"
+        style="width:100%;height:160px;object-fit:cover;border-radius:12px">
 
-        container.appendChild(div);
-      });
-    }
+        <h3>${r.title}</h3>
+        <p>📍 ${r.location}</p>
+        <p>${r.description}</p>
+        <h3>₦${r.price}</h3>
 
-    window.go = () => location.href = "list-room.html";
+        <button onclick="openRoom('${r.id}')" class="primary">View</button>
+      </div>
+    `;
+  });
+}
 
-    window.logout = async () => {
-      await signOut(auth);
-      location.href = "index.html";
-    };
-  </script>
+window.filterRooms = () => {
+  const text = search.value.toLowerCase();
+  const loc = locationFilter.value.toLowerCase();
+  const max = Number(maxPrice.value || 999999999);
+
+  render(allRooms.filter(r =>
+    r.title.toLowerCase().includes(text) &&
+    r.location.toLowerCase().includes(loc) &&
+    r.price <= max
+  ));
+};
+
+window.openRoom = (id) => {
+  location.href = "room.html?id=" + id;
+};
+
+load();
+</script>
 
 </body>
 </html>
