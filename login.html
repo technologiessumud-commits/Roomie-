@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Roomie Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Login</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="loginUser()">Login</button>
+  <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+
+  <script type="module">
+    import { auth, signInWithEmailAndPassword } from "./firebase.js";
+
+    window.loginUser = async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("Logged in!");
+        window.location.href = "index.html";
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+  </script>
+</body>
+</html>
