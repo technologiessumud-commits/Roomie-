@@ -1,48 +1,179 @@
 <!DOCTYPE html>
 <html>
-<head><title>Home</title></head>
+<head>
+  <title>Roomie</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #f5f7fb;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      background: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .navbar h2 {
+      color: #1d4ed8;
+      margin: 0;
+    }
+
+    .nav-buttons button {
+      margin-left: 10px;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .primary {
+      background: #1d4ed8;
+      color: white;
+    }
+
+    .secondary {
+      background: #e5e7eb;
+    }
+
+    /* CONTAINER */
+    .container {
+      padding: 20px;
+    }
+
+    /* FILTER */
+    .filter {
+      margin-bottom: 20px;
+    }
+
+    select {
+      padding: 8px;
+    }
+
+    /* ROOM GRID */
+    .rooms {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    /* CARD */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card h3 {
+      margin: 0 0 5px 0;
+    }
+
+    .location {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .price {
+      color: #16a34a;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .owner {
+      font-size: 12px;
+      color: gray;
+      margin-top: 5px;
+    }
+
+  </style>
+</head>
 <body>
 
-<h2>Rooms</h2>
+  <!-- NAVBAR -->
+  <div class="navbar">
+    <h2>Roomie</h2>
 
-<button onclick="logout()">Logout</button>
-<button onclick="go()">List Room</button>
+    <div class="nav-buttons">
+      <button class="primary" onclick="go()">+ List Room</button>
+      <button class="secondary" onclick="logout()">Logout</button>
+    </div>
+  </div>
 
-<div id="rooms"></div>
+  <div class="container">
 
-<script type="module">
-import { auth, db, collection, getDocs } from "./firebase.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    <!-- FILTER -->
+    <div class="filter">
+      <label>Filter by location:</label>
+      <select id="filterLocation" onchange="loadRooms()">
+        <option value="">All Locations</option>
+        <option value="Campus A">Campus A</option>
+        <option value="Campus B">Campus B</option>
+      </select>
+    </div>
 
-const container = document.getElementById("rooms");
+    <!-- ROOMS -->
+    <div class="rooms" id="rooms"></div>
 
-async function loadRooms() {
-  const snapshot = await getDocs(collection(db, "rooms"));
-  container.innerHTML = "";
+  </div>
 
-  snapshot.forEach(doc => {
-    const r = doc.data();
-    container.innerHTML += `
-      <div>
-        <h3>${r.title}</h3>
-        <p>${r.description}</p>
-        <p>${r.location}</p>
-        <p>₦${r.price}</p>
-        <hr>
-      </div>
-    `;
-  });
-}
+  <script type="module">
+    import { auth, db, collection, getDocs } from "./firebase.js";
+    import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
-loadRooms();
+    const container = document.getElementById("rooms");
 
-window.go = () => location.href="list-room.html";
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        location.href = "login.html";
+      } else {
+        loadRooms();
+      }
+    });
 
-window.logout = async () => {
-  await signOut(auth);
-  location.href="index.html";
-};
-</script>
+    async function loadRooms() {
+      const filter = document.getElementById("filterLocation").value;
+      const snapshot = await getDocs(collection(db, "rooms"));
+
+      container.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const r = doc.data();
+
+        if (filter && r.location !== filter) return;
+
+        const div = document.createElement("div");
+        div.classList.add("card");
+
+        div.innerHTML = `
+          <h3>${r.title}</h3>
+          <p>${r.description}</p>
+          <p class="location">${r.location}</p>
+          <p class="price">₦${r.price}</p>
+          <p class="owner">${r.owner}</p>
+        `;
+
+        container.appendChild(div);
+      });
+    }
+
+    window.go = () => location.href = "list-room.html";
+
+    window.logout = async () => {
+      await signOut(auth);
+      location.href = "index.html";
+    };
+  </script>
 
 </body>
 </html>
