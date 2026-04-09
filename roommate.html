@@ -1,74 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Roommate - Roomie</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f5f7fb;
-      padding: 20px;
-      text-align: center;
-    }
-
-    .box {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      margin: auto;
-    }
-
-    select, textarea, button {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-    }
-  </style>
+  <title>Roommates</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="box">
-  <h2>Find a Roommate</h2>
+<div class="container">
+
+  <h2>Roommate System</h2>
 
   <select id="type">
-    <option value="need">I need a roommate</option>
-    <option value="have">I have a space</option>
+    <option value="need">Need roommate</option>
+    <option value="have">Have room</option>
   </select>
 
-  <textarea id="desc" placeholder="Describe your situation..."></textarea>
+  <input id="description" placeholder="Description">
+  <input id="location" placeholder="Location">
+  <input id="whatsapp" placeholder="WhatsApp">
 
-  <button onclick="postRoommate()">Post</button>
+  <button class="primary" onclick="post()">Post</button>
+
+  <div id="list"></div>
+
 </div>
 
 <script type="module">
 import { auth, db, collection, addDoc, getDocs } from "./firebase.js";
 
-window.postRoommate = async () => {
-  const type = document.getElementById("type").value;
-  const desc = document.getElementById("desc").value;
-
-  const userSnap = await getDocs(collection(db, "users"));
-
-  let uni = "";
-
-  userSnap.forEach(doc => {
-    const d = doc.data();
-    if (d.uid === auth.currentUser.uid) {
-      uni = d.university;
-    }
-  });
-
+window.post = async () => {
   await addDoc(collection(db, "roommates"), {
-    uid: auth.currentUser.uid,
-    email: auth.currentUser.email,
-    university: uni,
-    type,
-    description: desc
+    type: type.value,
+    description: description.value,
+    location: location.value,
+    whatsapp: whatsapp.value,
+    email: auth.currentUser.email
   });
 
-  alert("Posted!");
-  location.href = "home.html";
+  load();
 };
+
+async function load() {
+  const snap = await getDocs(collection(db, "roommates"));
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  snap.forEach(d => {
+    const r = d.data();
+
+    list.innerHTML += `
+      <div class="card">
+        <h3>${r.type}</h3>
+        <p>${r.description}</p>
+        <p>${r.location}</p>
+
+        <a href="https://wa.me/${r.whatsapp}">
+          <button class="primary">Chat</button>
+        </a>
+      </div>
+    `;
+  });
+}
+
+load();
 </script>
 
 </body>
