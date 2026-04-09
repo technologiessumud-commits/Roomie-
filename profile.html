@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container" id="profile"></div>
+
+<script type="module">
+import { auth, db, collection, getDocs } from "./firebase.js";
+
+async function load() {
+  const snap = await getDocs(collection(db, "users"));
+
+  snap.forEach(d => {
+    const u = d.data();
+
+    if (u.uid === auth.currentUser.uid) {
+      document.getElementById("profile").innerHTML = `
+        <div class="card">
+          <h2>${u.name}</h2>
+          <p>${u.email}</p>
+          <p>${u.phone}</p>
+          <p>${u.university}</p>
+        </div>
+      `;
+    }
+  });
+}
+
+load();
+</script>
+
+</body>
+</html>
