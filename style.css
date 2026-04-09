@@ -1,22 +1,59 @@
 body {
-  font-family: Arial, sans-serif;
-  margin: 50px;
-  text-align: center;
+  margin: 0;
+  font-family: Arial;
+  background: #f7f7f7;
 }
 
-input {
-  margin: 10px 0;
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.container {
+  padding: 20px;
+}
+
+.rooms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 15px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+input, textarea {
+  width: 100%;
   padding: 10px;
-  width: 200px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
 }
 
 button {
-  padding: 10px 20px;
-  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
 }
 
-a {
-  text-decoration: none;
-  color: blue;
+.primary {
+  background: #ff385c;
+  color: white;
+}
+
+.secondary {
+  background: #eee;
 }
