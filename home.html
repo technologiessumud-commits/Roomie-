@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head><title>Home</title></head>
+<body>
+
+<h2>Rooms</h2>
+
+<button onclick="logout()">Logout</button>
+<button onclick="go()">List Room</button>
+
+<div id="rooms"></div>
+
+<script type="module">
+import { auth, db, collection, getDocs } from "./firebase.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+const container = document.getElementById("rooms");
+
+async function loadRooms() {
+  const snapshot = await getDocs(collection(db, "rooms"));
+  container.innerHTML = "";
+
+  snapshot.forEach(doc => {
+    const r = doc.data();
+    container.innerHTML += `
+      <div>
+        <h3>${r.title}</h3>
+        <p>${r.description}</p>
+        <p>${r.location}</p>
+        <p>₦${r.price}</p>
+        <hr>
+      </div>
+    `;
+  });
+}
+
+loadRooms();
+
+window.go = () => location.href="list-room.html";
+
+window.logout = async () => {
+  await signOut(auth);
+  location.href="index.html";
+};
+</script>
+
+</body>
+</html>
