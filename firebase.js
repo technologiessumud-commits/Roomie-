@@ -1,19 +1,17 @@
 // ─── FIREBASE CONFIG ─────────────────────────────────────────
-// 🔧 REPLACE with your own Firebase project config from:
-//    Firebase Console → Project Settings → Your apps → Web app
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, query, where, orderBy, serverTimestamp }
+import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, query, where, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:        "roomie-f3103.firebaseapp.com",
+  projectId:         "roomie-f3103",
+  storageBucket:     "roomie-f3103.firebasestorage.app",
+  messagingSenderId: "896474185176",
+  appId:             "1:896474185176:web:0e4543682f594daf0a86ad"
 };
 
 const app = initializeApp(firebaseConfig);
