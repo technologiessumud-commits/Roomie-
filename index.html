@@ -4,104 +4,101 @@
   <title>Roomie</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial;
       background: #f0f4f8;
-      margin: 20px;
     }
 
-    h1 {
+    .hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       text-align: center;
+      background: linear-gradient(to right, #1d4ed8, #3b82f6);
+      color: white;
     }
 
-    .nav {
-      text-align: center;
-      margin-bottom: 20px;
+    .hero h1 {
+      font-size: 3em;
+      margin-bottom: 10px;
     }
 
-    .nav a {
-      margin: 0 10px;
-      color: #1d4ed8;
+    .hero p {
+      font-size: 1.2em;
+      max-width: 500px;
+    }
+
+    .buttons {
+      margin-top: 20px;
+    }
+
+    .buttons a {
       text-decoration: none;
+      margin: 10px;
+      padding: 12px 20px;
+      background: white;
+      color: #1d4ed8;
+      border-radius: 6px;
+      font-weight: bold;
     }
 
-    .filter {
+    .section {
+      padding: 40px;
       text-align: center;
-      margin-bottom: 20px;
     }
 
-    .rooms {
+    .features {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 20px;
     }
 
-    .card {
+    .feature-box {
       background: white;
-      padding: 15px;
+      padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .price {
-      color: green;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <h1>Roomie</h1>
+  <!-- HERO SECTION -->
+  <div class="hero">
+    <h1>Roomie</h1>
+    <p>
+      Find student accommodation, connect with roommates, 
+      or list your room easily—all in one place.
+    </p>
 
-  <div class="nav">
-    <a href="signup.html">Signup</a> |
-    <a href="login.html">Login</a> |
-    <a href="list-room.html">List a Room</a>
+    <div class="buttons">
+      <a href="signup.html">Get Started</a>
+      <a href="login.html">Sign In</a>
+    </div>
   </div>
 
-  <div class="filter">
-    <select id="filterLocation" onchange="loadRooms()">
-      <option value="">All Locations</option>
-      <option value="Campus A">Campus A</option>
-      <option value="Campus B">Campus B</option>
-      <option value="Campus C">Campus C</option>
-    </select>
+  <!-- FEATURES -->
+  <div class="section">
+    <h2>Why use Roomie?</h2>
+
+    <div class="features">
+      <div class="feature-box">
+        <h3>Find Rooms</h3>
+        <p>Browse available student accommodations بسهولة.</p>
+      </div>
+
+      <div class="feature-box">
+        <h3>Find Roommates</h3>
+        <p>Connect with students looking to share rooms.</p>
+      </div>
+
+      <div class="feature-box">
+        <h3>List Your Room</h3>
+        <p>Post your room and get matched quickly.</p>
+      </div>
+    </div>
   </div>
-
-  <div class="rooms" id="roomsContainer"></div>
-
-  <script type="module">
-    import { db, collection, getDocs } from "./firebase.js";
-
-    const container = document.getElementById("roomsContainer");
-
-    async function loadRooms() {
-      const filter = document.getElementById("filterLocation").value;
-      const snapshot = await getDocs(collection(db, "rooms"));
-
-      container.innerHTML = "";
-
-      snapshot.forEach((doc) => {
-        const room = doc.data();
-
-        if (filter && room.location !== filter) return;
-
-        const div = document.createElement("div");
-        div.classList.add("card");
-
-        div.innerHTML = `
-          <h3>${room.title}</h3>
-          <p>${room.description}</p>
-          <p><strong>${room.location}</strong></p>
-          <p class="price">₦${room.price}</p>
-          <p style="font-size:12px;">${room.ownerEmail}</p>
-        `;
-
-        container.appendChild(div);
-      });
-    }
-
-    loadRooms();
-  </script>
 
 </body>
 </html>
