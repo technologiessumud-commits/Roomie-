@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Select University</title>
+  <style>
+    body {
+      font-family: Arial;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f5f7fb;
+    }
+
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    select, button {
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>Select Your University</h2>
+
+  <select id="uni">
+    <option value="">Choose University</option>
+    <option value="University of Lagos">University of Lagos</option>
+    <option value="UI">University of Ibadan</option>
+    <option value="OAU">Obafemi Awolowo University</option>
+  </select>
+
+  <button onclick="saveUniversity()">Continue</button>
+</div>
+
+<script type="module">
+import { auth, db, collection, addDoc } from "./firebase.js";
+
+window.saveUniversity = async () => {
+  const uni = document.getElementById("uni").value;
+
+  if (!uni) {
+    alert("Select a university");
+    return;
+  }
+
+  await addDoc(collection(db, "users"), {
+    uid: auth.currentUser.uid,
+    university: uni
+  });
+
+  window.location.href = "home.html";
+};
+</script>
+
+</body>
+</html>
