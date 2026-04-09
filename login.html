@@ -1,28 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Login</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roomie – Log In</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="page-full" style="background:radial-gradient(ellipse at 20% 90%,rgba(255,179,71,.1) 0%,transparent 55%)">
+    <div class="auth-wrap">
 
-<div class="container">
-  <h2>Login</h2>
+      <div class="auth-logo">Room<span>ie</span></div>
+      <p class="auth-subtitle">Welcome back 👋</p>
 
-  <input id="email" placeholder="Email">
-  <input id="password" type="password">
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="email" placeholder="you@university.edu" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Your password" />
+      </div>
 
-  <button class="primary" onclick="login()">Login</button>
-</div>
+      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none"></p>
 
-<script type="module">
-import { auth, signInWithEmailAndPassword } from "./firebase.js";
+      <button class="btn btn-primary" id="login-btn" onclick="handleLogin()">
+        Log In
+      </button>
 
-window.login = async () => {
-  await signInWithEmailAndPassword(auth, email.value, password.value);
-  location.href = "setup.html";
-};
-</script>
+      <div class="auth-footer" style="margin-top:16px">
+        Don't have an account? <a href="signup.html">Sign up</a>
+      </div>
+    </div>
+  </div>
 
+  <script type="module">
+    import { logIn, getProfile } from './firebase.js';
+
+    window.handleLogin = async () => {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errEl    = document.getElementById('error-msg');
+      const btn      = document.getElementById('login-btn');
+
+      errEl.style.display = 'none';
+
+      if (!email || !password) {
+        errEl.textContent = 'Please enter your email and password.';
+        errEl.style.display = 'block'; return;
+      }
+
+      btn.textContent = 'Logging in…';
+      btn.disabled = true;
+
+      try {
+        const { user } = await logIn(email, password);
+        const profile = await getProfile(user.uid);
+        window.location.href = profile ? 'home.html' : 'setup.html';
+      } catch (err) {
+        errEl.textContent = 'Invalid email or password.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Log In';
+        btn.disabled = false;
+      }
+    };
+
+    // Allow Enter key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') window.handleLogin();
+    });
+  </script>
 </body>
 </html>
