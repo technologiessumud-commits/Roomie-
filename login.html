@@ -1,31 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Roomie Login</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Login - Roomie</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 300px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #1d4ed8;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-  <h2>Login</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="loginUser()">Login</button>
-  <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+
+  <div class="box">
+    <h2>Welcome Back</h2>
+
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+
+    <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+  </div>
 
   <script type="module">
     import { auth, signInWithEmailAndPassword } from "./firebase.js";
 
-    window.loginUser = async () => {
+    window.login = async () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
+      if (!email || !password) {
+        alert("Fill all fields");
+        return;
+      }
+
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        alert("Logged in!");
-        window.location.href = "index.html";
+        alert("Login successful!");
+        window.location.href = "home.html";
       } catch (error) {
         alert(error.message);
       }
     };
   </script>
+
 </body>
 </html>
