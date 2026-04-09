@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html>
-<head><title>Signup</title></head>
+<head>
+  <title>Signup</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
 
-<h2>Sign Up</h2>
+<div class="container">
+  <h2>Signup</h2>
 
-<input id="email" placeholder="Email"><br>
-<input id="password" type="password" placeholder="Password"><br>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
 
-<button onclick="signup()">Sign Up</button>
-
-<p><a href="login.html">Login</a></p>
+  <button class="primary" onclick="signup()">Signup</button>
+</div>
 
 <script type="module">
 import { auth, createUserWithEmailAndPassword } from "./firebase.js";
 
 window.signup = async () => {
-  const email = email.value;
-  const password = password.value;
-
-  await createUserWithEmailAndPassword(auth, email, password);
-  window.location.href = "home.html";
+  await createUserWithEmailAndPassword(auth, email.value, password.value);
+  location.href = "setup.html";
 };
 </script>
 
