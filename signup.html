@@ -1,15 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Roomie Signup</title>
+  <title>Roomie - Find Student Rooms</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f4f8;
+    }
+    .landing {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 3em;
+      color: #333;
+    }
+    p.description {
+      font-size: 1.2em;
+      color: #555;
+      max-width: 500px;
+    }
+    .signup-form {
+      margin-top: 30px;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 300px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 1em;
+    }
+    button {
+      background: #1d4ed8;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-  <h2>Signup</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="signupUser()">Sign Up</button>
-  <p>Already have an account? <a href="login.html">Login</a></p>
+  <div class="landing">
+    <h1>Welcome to Roomie</h1>
+    <p class="description">
+      Find the perfect student accommodation, list your room, or connect with a roommate easily. 
+      Roomie makes it simple and fast!
+    </p>
+
+    <div class="signup-form">
+      <h2>Sign Up</h2>
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="signupUser()">Sign Up</button>
+      <p>Already have an account? <a href="login.html">Login</a></p>
+    </div>
+  </div>
 
   <script type="module">
     import { auth, createUserWithEmailAndPassword } from "./firebase.js";
@@ -17,6 +78,11 @@
     window.signupUser = async () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        alert("Please enter email and password!");
+        return;
+      }
 
       try {
         await createUserWithEmailAndPassword(auth, email, password);
