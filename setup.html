@@ -1,36 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Setup</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roomie – Set Up Profile</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="page-full">
+    <div style="max-width:480px;margin:0 auto;width:100%">
 
-<div class="container">
-  <h2>Profile Setup</h2>
+      <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px">
+        One last step 🎉
+      </div>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:32px">
+        Set up your profile so others can get to know you.
+      </p>
 
-  <input id="name" placeholder="Name">
-  <input id="phone" placeholder="Phone">
-  <input id="university" placeholder="University">
+      <div class="form-group">
+        <label>Full name</label>
+        <input type="text" id="name" placeholder="e.g. Alex Johnson" />
+      </div>
+      <div class="form-group">
+        <label>Phone number</label>
+        <input type="tel" id="phone" placeholder="+1 555 000 0000" />
+      </div>
+      <div class="form-group">
+        <label>University / College</label>
+        <input type="text" id="university" placeholder="e.g. University of Lagos" />
+      </div>
+      <div class="form-group">
+        <label>Course / Department <span style="color:var(--muted)">(optional)</span></label>
+        <input type="text" id="course" placeholder="e.g. Computer Science" />
+      </div>
+      <div class="form-group">
+        <label>Year of study <span style="color:var(--muted)">(optional)</span></label>
+        <select id="year">
+          <option value="">Select year</option>
+          <option>1st year</option>
+          <option>2nd year</option>
+          <option>3rd year</option>
+          <option>4th year</option>
+          <option>Postgraduate</option>
+        </select>
+      </div>
 
-  <button class="primary" onclick="save()">Continue</button>
-</div>
+      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none"></p>
 
-<script type="module">
-import { auth, db, collection, addDoc } from "./firebase.js";
+      <button class="btn btn-primary" id="save-btn" onclick="handleSave()">
+        Save &amp; Continue
+      </button>
+    </div>
+  </div>
 
-window.save = async () => {
-  await addDoc(collection(db, "users"), {
-    uid: auth.currentUser.uid,
-    email: auth.currentUser.email,
-    name: name.value,
-    phone: phone.value,
-    university: university.value
-  });
+  <script type="module">
+    import { auth, saveProfile, onAuth } from './firebase.js';
 
-  location.href = "home.html";
-};
-</script>
+    // Ensure user is logged in
+    onAuth((user) => {
+      if (!user) window.location.href = 'login.html';
+    });
 
+    window.handleSave = async () => {
+      const name       = document.getElementById('name').value.trim();
+      const phone      = document.getElementById('phone').value.trim();
+      const university = document.getElementById('university').value.trim();
+      const course     = document.getElementById('course').value.trim();
+      const year       = document.getElementById('year').value;
+      const errEl      = document.getElementById('error-msg');
+      const btn        = document.getElementById('save-btn');
+
+      errEl.style.display = 'none';
+
+      if (!name || !phone || !university) {
+        errEl.textContent = 'Please fill in name, phone, and university.';
+        errEl.style.display = 'block'; return;
+      }
+
+      const user = auth.currentUser;
+      if (!user) { window.location.href = 'login.html'; return; }
+
+      btn.textContent = 'Saving…';
+      btn.disabled = true;
+
+      try {
+        await saveProfile(user.uid, {
+          uid: user.uid,
+          email: user.email,
+          name, phone, university, course, year,
+          createdAt: new Date().toISOString()
+        });
+        window.location.href = 'home.html';
+      } catch (err) {
+        errEl.textContent = 'Error saving profile. Try again.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Save & Continue';
+        btn.disabled = false;
+      }
+    };
+  </script>
 </body>
 </html>
