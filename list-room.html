@@ -1,91 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>List a Room - Roomie</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f0f4f8;
-      padding: 20px;
-      text-align: center;
-    }
-    .form-box {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-    }
-    button {
-      background: #1d4ed8;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
-</head>
+<head><title>List Room</title></head>
 <body>
 
-  <div class="form-box">
-    <h2>List Your Room</h2>
+<h2>List Room</h2>
 
-    <input type="text" id="title" placeholder="Room Title">
-    <input type="text" id="description" placeholder="Description">
+<input id="title" placeholder="Title"><br>
+<input id="description" placeholder="Description"><br>
 
-    <select id="location">
-      <option value="">Select Location</option>
-      <option value="Campus A">Campus A</option>
-      <option value="Campus B">Campus B</option>
-      <option value="Campus C">Campus C</option>
-    </select>
+<select id="location">
+  <option>Campus A</option>
+  <option>Campus B</option>
+</select><br>
 
-    <input type="number" id="price" placeholder="Price">
+<input id="price" type="number" placeholder="Price"><br>
 
-    <button onclick="listRoom()">Submit</button>
-    <p><a href="index.html">Back Home</a></p>
-  </div>
+<button onclick="addRoom()">Submit</button>
 
-  <script type="module">
-    import { auth, db, collection, addDoc } from "./firebase.js";
+<script type="module">
+import { auth, db, collection, addDoc } from "./firebase.js";
 
-    window.listRoom = async () => {
-      const title = document.getElementById("title").value;
-      const description = document.getElementById("description").value;
-      const location = document.getElementById("location").value;
-      const price = Number(document.getElementById("price").value);
+window.addRoom = async () => {
+  await addDoc(collection(db, "rooms"), {
+    title: title.value,
+    description: description.value,
+    location: location.value,
+    price: price.value,
+    owner: auth.currentUser.email
+  });
 
-      if (!auth.currentUser) {
-        alert("Login first!");
-        return;
-      }
-
-      if (!title || !description || !location || !price) {
-        alert("Fill all fields!");
-        return;
-      }
-
-      try {
-        await addDoc(collection(db, "rooms"), {
-          title,
-          description,
-          location,
-          price,
-          ownerEmail: auth.currentUser.email
-        });
-
-        alert("Room listed!");
-        window.location.href = "index.html";
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-  </script>
+  alert("Added!");
+  location.href="home.html";
+};
+</script>
 
 </body>
 </html>
