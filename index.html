@@ -3,102 +3,36 @@
 <head>
   <title>Roomie</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #f0f4f8;
-    }
-
+    body { margin:0; font-family: Arial; }
     .hero {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      background: linear-gradient(to right, #1d4ed8, #3b82f6);
-      color: white;
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      background:#1d4ed8;
+      color:white;
+      text-align:center;
     }
-
-    .hero h1 {
-      font-size: 3em;
-      margin-bottom: 10px;
-    }
-
-    .hero p {
-      font-size: 1.2em;
-      max-width: 500px;
-    }
-
-    .buttons {
-      margin-top: 20px;
-    }
-
-    .buttons a {
-      text-decoration: none;
-      margin: 10px;
-      padding: 12px 20px;
-      background: white;
-      color: #1d4ed8;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-
-    .section {
-      padding: 40px;
-      text-align: center;
-    }
-
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-    }
-
-    .feature-box {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
+    a {
+      background:white;
+      color:#1d4ed8;
+      padding:10px 20px;
+      margin:10px;
+      text-decoration:none;
+      border-radius:5px;
     }
   </style>
 </head>
 <body>
 
-  <!-- HERO SECTION -->
-  <div class="hero">
-    <h1>Roomie</h1>
-    <p>
-      Find student accommodation, connect with roommates, 
-      or list your room easily—all in one place.
-    </p>
+<div class="hero">
+  <h1>Roomie</h1>
+  <p>Find student accommodation or roommates easily</p>
 
-    <div class="buttons">
-      <a href="signup.html">Get Started</a>
-      <a href="login.html">Sign In</a>
-    </div>
-  </div>
-
-  <!-- FEATURES -->
-  <div class="section">
-    <h2>Why use Roomie?</h2>
-
-    <div class="features">
-      <div class="feature-box">
-        <h3>Find Rooms</h3>
-        <p>Browse available student accommodations بسهولة.</p>
-      </div>
-
-      <div class="feature-box">
-        <h3>Find Roommates</h3>
-        <p>Connect with students looking to share rooms.</p>
-      </div>
-
-      <div class="feature-box">
-        <h3>List Your Room</h3>
-        <p>Post your room and get matched quickly.</p>
-      </div>
-    </div>
-  </div>
+  <a href="signup.html">Get Started</a>
+  <a href="login.html">Login</a>
+</div>
 
 </body>
 </html>
