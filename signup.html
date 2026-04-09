@@ -26,7 +26,7 @@
         <input type="password" id="confirm" placeholder="Repeat password" />
       </div>
 
-      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none"></p>
+      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;border:1px solid rgba(255,77,109,.2);line-height:1.5"></p>
 
       <button class="btn btn-primary" id="signup-btn" onclick="handleSignup()">
         Create Account
@@ -51,16 +51,16 @@
       errEl.style.display = 'none';
 
       if (!email || !password) {
-        errEl.textContent = 'Please fill in all fields.';
-        errEl.style.display = 'block'; return;
+        showError('Please fill in all fields.');
+        return;
       }
       if (password !== confirm) {
-        errEl.textContent = 'Passwords do not match.';
-        errEl.style.display = 'block'; return;
+        showError('Passwords do not match.');
+        return;
       }
       if (password.length < 6) {
-        errEl.textContent = 'Password must be at least 6 characters.';
-        errEl.style.display = 'block'; return;
+        showError('Password must be at least 6 characters.');
+        return;
       }
 
       btn.textContent = 'Creating account…';
@@ -70,10 +70,36 @@
         await signUp(email, password);
         window.location.href = 'setup.html';
       } catch (err) {
-        errEl.textContent = err.message.replace('Firebase: ', '').replace(/\(.*\)\.?/, '');
-        errEl.style.display = 'block';
+        console.error('Signup error:', err);
+
+        const code = err.code || '';
+        const messages = {
+          'auth/unauthorized-domain':
+            '⚠️ Domain not authorized. Go to Firebase Console → Authentication → Settings → Authorized Domains and add: ' + location.hostname,
+          'auth/operation-not-allowed':
+            '⚠️ Email/Password sign-in is not enabled. Go to Firebase Console → Authentication → Sign-in method and enable it.',
+          'auth/email-already-in-use':
+            'This email is already registered. Try logging in instead.',
+          'auth/invalid-email':
+            'Please enter a valid email address.',
+          'auth/weak-password':
+            'Password is too weak. Use at least 6 characters.',
+          'auth/network-request-failed':
+            'Network error. Check your internet connection and try again.',
+          'auth/too-many-requests':
+            'Too many attempts. Please wait a moment and try again.',
+          'auth/invalid-api-key':
+            '⚠️ Invalid API key. Check your Firebase config in firebase.js.',
+        };
+
+        showError(messages[code] || `Error [${code}]: ${err.message}`);
         btn.textContent = 'Create Account';
         btn.disabled = false;
+      }
+
+      function showError(msg) {
+        errEl.textContent = msg;
+        errEl.style.display = 'block';
       }
     };
   </script>
