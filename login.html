@@ -1,82 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Login - Roomie</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f0f4f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .box {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      width: 300px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #1d4ed8;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-
-    a {
-      color: #1d4ed8;
-      text-decoration: none;
-    }
-  </style>
-</head>
+<head><title>Login</title></head>
 <body>
 
-  <div class="box">
-    <h2>Welcome Back</h2>
+<h2>Login</h2>
 
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
+<input id="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Password"><br>
 
-    <button onclick="login()">Login</button>
+<button onclick="login()">Login</button>
 
-    <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
-  </div>
+<p><a href="signup.html">Signup</a></p>
 
-  <script type="module">
-    import { auth, signInWithEmailAndPassword } from "./firebase.js";
+<script type="module">
+import { auth, signInWithEmailAndPassword } from "./firebase.js";
 
-    window.login = async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      if (!email || !password) {
-        alert("Fill all fields");
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Login successful!");
-        window.location.href = "home.html";
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-  </script>
+window.login = async () => {
+  await signInWithEmailAndPassword(auth, email.value, password.value);
+  window.location.href = "home.html";
+};
+</script>
 
 </body>
 </html>
