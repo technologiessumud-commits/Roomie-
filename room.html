@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Room Details</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f7fb;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .price {
+      color: green;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      background: #1d4ed8;
+      color: white;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="roomDetails">
+    Loading...
+  </div>
+
+  <script type="module">
+    import { db } from "./firebase.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    const container = document.getElementById("roomDetails");
+
+    async function loadRoom() {
+      const docRef = doc(db, "rooms", id);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        container.innerHTML = "Room not found";
+        return;
+      }
+
+      const r = docSnap.data();
+
+      container.innerHTML = `
+        <h2>${r.title}</h2>
+        <p>${r.description}</p>
+        <p><strong>Location:</strong> ${r.location}</p>
+        <p class="price">₦${r.price}</p>
+        <p><strong>Owner:</strong> ${r.owner}</p>
+
+        <button onclick="contact('${r.owner}')">
+          Contact Owner
+        </button>
+
+        <button onclick="goBack()">
+          Back
+        </button>
+      `;
+    }
+
+    loadRoom();
+
+    window.contact = (email) => {
+      window.location.href = "mailto:" + email;
+    };
+
+    window.goBack = () => {
+      window.location.href = "home.html";
+    };
+  </script>
+
+</body>
+</html>
