@@ -1,81 +1,91 @@
-body {
+* {
+  box-sizing: border-box;
   margin: 0;
+  padding: 0;
+}
+
+body {
   font-family: Arial;
   background: #f7f7f7;
 }
 
+/* APP WRAPPER */
 .container {
-  padding: 12px;
+  padding: 14px;
 }
 
+/* NAV */
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px;
-  background: white;
-  position: sticky;
-  top: 0;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px;
+  background:white;
+  position:sticky;
+  top:0;
+  z-index:100;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
 
+/* MOBILE FIRST GRID */
 .rooms {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  padding:12px;
 }
 
+/* CARD */
 .card {
-  background: white;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  background:white;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 3px 10px rgba(0,0,0,0.08);
 }
 
+/* IMAGE */
 .card img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
+  width:100%;
+  height:180px;
+  object-fit:cover;
 }
 
+/* INPUTS */
 input, textarea, select {
-  width: 100%;
-  padding: 14px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 16px;
+  width:100%;
+  padding:14px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:16px;
 }
 
+/* BUTTONS */
 button {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 10px;
-  margin-top: 10px;
+  width:100%;
+  padding:14px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
 }
 
 .primary {
-  background: #ff385c;
-  color: white;
+  background:#ff385c;
+  color:white;
 }
 
 .secondary {
-  background: #eee;
+  background:#eee;
 }
 
-.skeleton {
-  height: 180px;
-  background: linear-gradient(90deg,#eee,#f5f5f5,#eee);
-  animation: shimmer 1.2s infinite;
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@media (min-width: 768px) {
+/* DESKTOP */
+@media(min-width:768px){
   .rooms {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  button {
+    width:auto;
   }
 }
