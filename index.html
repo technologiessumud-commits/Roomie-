@@ -1,69 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Roomie Home</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Roomie</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      font-family: Arial;
       background: #f0f4f8;
+      margin: 20px;
     }
+
     h1 {
       text-align: center;
     }
-    .nav-links {
+
+    .nav {
       text-align: center;
       margin-bottom: 20px;
     }
-    .nav-links a {
+
+    .nav a {
       margin: 0 10px;
-      text-decoration: none;
       color: #1d4ed8;
+      text-decoration: none;
     }
+
     .filter {
       text-align: center;
       margin-bottom: 20px;
     }
-    .rooms-container {
+
+    .rooms {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 20px;
     }
-    .room-card {
+
+    .card {
       background: white;
       padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    .room-card img {
-      width: 100%;
-      border-radius: 8px;
-      height: 150px;
-      object-fit: cover;
-    }
-    .room-card h3 {
-      margin: 10px 0 5px 0;
-    }
-    .room-card p {
-      margin: 5px 0;
-      color: #555;
+
+    .price {
+      color: green;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Welcome to Roomie!</h1>
 
-  <!-- Navigation -->
-  <div class="nav-links">
-    <a href="signup.html">Signup</a> | 
-    <a href="login.html">Login</a> | 
+  <h1>Roomie</h1>
+
+  <div class="nav">
+    <a href="signup.html">Signup</a> |
+    <a href="login.html">Login</a> |
     <a href="list-room.html">List a Room</a>
   </div>
 
-  <!-- Filter -->
   <div class="filter">
-    <label for="filterLocation">Filter by location:</label>
     <select id="filterLocation" onchange="loadRooms()">
       <option value="">All Locations</option>
       <option value="Campus A">Campus A</option>
@@ -72,43 +67,41 @@
     </select>
   </div>
 
-  <!-- Rooms -->
-  <div class="rooms-container" id="roomsContainer"></div>
+  <div class="rooms" id="roomsContainer"></div>
 
   <script type="module">
     import { db, collection, getDocs } from "./firebase.js";
 
-    const roomsContainer = document.getElementById("roomsContainer");
+    const container = document.getElementById("roomsContainer");
 
     async function loadRooms() {
       const filter = document.getElementById("filterLocation").value;
-      const querySnapshot = await getDocs(collection(db, "rooms"));
-      roomsContainer.innerHTML = "";
+      const snapshot = await getDocs(collection(db, "rooms"));
 
-      querySnapshot.forEach((doc) => {
+      container.innerHTML = "";
+
+      snapshot.forEach((doc) => {
         const room = doc.data();
 
         if (filter && room.location !== filter) return;
 
         const div = document.createElement("div");
-        div.classList.add("room-card");
-
-        // Use a placeholder image if none provided
-        const imageURL = room.imageURL || "https://via.placeholder.com/300x150.png?text=Room";
+        div.classList.add("card");
 
         div.innerHTML = `
-          <img src="${imageURL}" alt="${room.title}">
           <h3>${room.title}</h3>
           <p>${room.description}</p>
-          <p>Location: ${room.location}</p>
-          <p>Price: $${room.price}</p>
-          <p>Owner: ${room.ownerEmail}</p>
+          <p><strong>${room.location}</strong></p>
+          <p class="price">₦${room.price}</p>
+          <p style="font-size:12px;">${room.ownerEmail}</p>
         `;
-        roomsContainer.appendChild(div);
+
+        container.appendChild(div);
       });
     }
 
     loadRooms();
   </script>
+
 </body>
 </html>
