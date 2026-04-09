@@ -1,36 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head><title>List Room</title></head>
+<head>
+  <title>Post Room</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
 
-<h2>List Room</h2>
+<div class="container">
+  <h2>Post Room</h2>
 
-<input id="title" placeholder="Title"><br>
-<input id="description" placeholder="Description"><br>
+  <input id="title" placeholder="Title">
+  <textarea id="description" placeholder="Description"></textarea>
+  <input id="location" placeholder="Location">
+  <input id="price" type="number" placeholder="Price">
+  <input id="imageURL" placeholder="Image URL (optional)">
 
-<select id="location">
-  <option>Campus A</option>
-  <option>Campus B</option>
-</select><br>
-
-<input id="price" type="number" placeholder="Price"><br>
-
-<button onclick="addRoom()">Submit</button>
+  <button class="primary" onclick="post()">Post</button>
+</div>
 
 <script type="module">
 import { auth, db, collection, addDoc } from "./firebase.js";
 
-window.addRoom = async () => {
+window.post = async () => {
   await addDoc(collection(db, "rooms"), {
     title: title.value,
     description: description.value,
     location: location.value,
-    price: price.value,
-    owner: auth.currentUser.email
+    price: Number(price.value),
+    imageURL: imageURL.value,
+    ownerEmail: auth.currentUser.email
   });
 
-  alert("Added!");
-  location.href="home.html";
+  location.href = "home.html";
 };
 </script>
 
