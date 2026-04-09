@@ -1,39 +1,31 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Post Room</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
 <div class="container">
-  <h2>Post Room</h2>
 
-  <input id="title" placeholder="Title">
-  <textarea id="description" placeholder="Description"></textarea>
-  <input id="location" placeholder="Location">
-  <input id="price" type="number" placeholder="Price">
-  <input id="imageURL" placeholder="Image URL (optional)">
+<input id="title">
+<textarea id="desc"></textarea>
+<input id="location">
+<input id="price">
 
-  <button class="primary" onclick="post()">Post</button>
+<input id="img1">
+<input id="img2">
+<input id="img3">
+
+<button onclick="post()" class="primary">Post</button>
+
 </div>
 
 <script type="module">
 import { auth, db, collection, addDoc } from "./firebase.js";
 
 window.post = async () => {
-  await addDoc(collection(db, "rooms"), {
-    title: title.value,
-    description: description.value,
-    location: location.value,
-    price: Number(price.value),
-    imageURL: imageURL.value,
-    ownerEmail: auth.currentUser.email
+  await addDoc(collection(db,"rooms"), {
+    title:title.value,
+    description:desc.value,
+    location:location.value,
+    price:Number(price.value),
+    imageURLs:[img1.value,img2.value,img3.value].filter(Boolean),
+    ownerEmail:auth.currentUser.email
   });
 
-  location.href = "home.html";
+  location.href="home.html";
 };
 </script>
-
-</body>
-</html>
