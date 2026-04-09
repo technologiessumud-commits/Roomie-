@@ -2,9 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
 import {
   getAuth,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
+  signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
 import {
@@ -33,8 +31,6 @@ export const db = getFirestore(app);
 export {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
   collection,
   addDoc,
   getDocs,
