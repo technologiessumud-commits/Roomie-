@@ -7,77 +7,75 @@
 <body>
 
 <div class="navbar">
-  <h2>Roomie</h2>
-
+  <h3>Roomie</h3>
   <div>
     <a href="list-room.html"><button class="primary">Post</button></a>
     <a href="roommate.html"><button class="secondary">Roommates</button></a>
-    <a href="profile.html"><button class="secondary">Profile</button></a>
   </div>
 </div>
 
 <div class="container">
 
-  <input id="search" placeholder="Search rooms..." oninput="filterRooms()">
+<input id="search" placeholder="Search..." oninput="filter()">
 
-  <input id="locationFilter" placeholder="Location" oninput="filterRooms()">
-  <input id="maxPrice" type="number" placeholder="Max Price" oninput="filterRooms()">
-
-  <div class="rooms" id="rooms"></div>
+<div class="rooms" id="rooms">
+  <div class="card skeleton"></div>
+</div>
 
 </div>
 
 <script type="module">
 import { db, collection, getDocs } from "./firebase.js";
 
-let allRooms = [];
+let all = [];
 
 async function load() {
-  const snap = await getDocs(collection(db, "rooms"));
+  const snap = await getDocs(collection(db,"rooms"));
 
-  allRooms = [];
-  snap.forEach(d => allRooms.push({ id: d.id, ...d.data() }));
+  all = [];
+  snap.forEach(d => all.push({id:d.id,...d.data()}));
 
-  render(allRooms);
+  render(all);
 }
 
 function render(data) {
-  const box = document.getElementById("rooms");
-  box.innerHTML = "";
+  rooms.innerHTML = "";
 
   data.forEach(r => {
-    box.innerHTML += `
+    const imgs = r.imageURLs || [];
+
+    rooms.innerHTML += `
       <div class="card">
 
-        <img src="${r.imageURL || 'https://via.placeholder.com/400'}"
-        style="width:100%;height:160px;object-fit:cover;border-radius:12px">
+        <div style="display:flex;overflow-x:auto;">
+          ${imgs.length ? imgs.map(i =>
+            `<img src="${i}" style="min-width:100%;height:180px;object-fit:cover;">`
+          ).join("") :
+          `<img src="https://via.placeholder.com/400">`}
+        </div>
 
-        <h3>${r.title}</h3>
-        <p>📍 ${r.location}</p>
-        <p>${r.description}</p>
-        <h3>₦${r.price}</h3>
+        <div class="container">
+          <h3>${r.title}</h3>
+          <p>${r.location}</p>
+          <h3>₦${r.price}</h3>
 
-        <button onclick="openRoom('${r.id}')" class="primary">View</button>
+          <button onclick="openRoom('${r.id}')" class="primary">View</button>
+        </div>
+
       </div>
     `;
   });
 }
 
-window.filterRooms = () => {
-  const text = search.value.toLowerCase();
-  const loc = locationFilter.value.toLowerCase();
-  const max = Number(maxPrice.value || 999999999);
-
-  render(allRooms.filter(r =>
-    r.title.toLowerCase().includes(text) &&
-    r.location.toLowerCase().includes(loc) &&
-    r.price <= max
+window.filter = () => {
+  const v = search.value.toLowerCase();
+  render(all.filter(r =>
+    r.title.toLowerCase().includes(v) ||
+    r.location.toLowerCase().includes(v)
   ));
 };
 
-window.openRoom = (id) => {
-  location.href = "room.html?id=" + id;
-};
+window.openRoom = id => location.href = "room.html?id="+id;
 
 load();
 </script>
