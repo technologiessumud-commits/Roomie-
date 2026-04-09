@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Roommate - Roomie</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f7fb;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    select, textarea, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>Find a Roommate</h2>
+
+  <select id="type">
+    <option value="need">I need a roommate</option>
+    <option value="have">I have a space</option>
+  </select>
+
+  <textarea id="desc" placeholder="Describe your situation..."></textarea>
+
+  <button onclick="postRoommate()">Post</button>
+</div>
+
+<script type="module">
+import { auth, db, collection, addDoc, getDocs } from "./firebase.js";
+
+window.postRoommate = async () => {
+  const type = document.getElementById("type").value;
+  const desc = document.getElementById("desc").value;
+
+  const userSnap = await getDocs(collection(db, "users"));
+
+  let uni = "";
+
+  userSnap.forEach(doc => {
+    const d = doc.data();
+    if (d.uid === auth.currentUser.uid) {
+      uni = d.university;
+    }
+  });
+
+  await addDoc(collection(db, "roommates"), {
+    uid: auth.currentUser.uid,
+    email: auth.currentUser.email,
+    university: uni,
+    type,
+    description: desc
+  });
+
+  alert("Posted!");
+  location.href = "home.html";
+};
+</script>
+
+</body>
+</html>
