@@ -2,26 +2,54 @@
 <html>
 <head>
   <title>List a Room - Roomie</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial;
+      background: #f0f4f8;
+      padding: 20px;
+      text-align: center;
+    }
+    .form-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    button {
+      background: #1d4ed8;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h2>List Your Room</h2>
 
-  <input type="text" id="title" placeholder="Room Title">
-  <input type="text" id="description" placeholder="Description">
-  
-  <label for="location">Location:</label>
-  <select id="location">
-    <option value="">Select a location</option>
-    <option value="Campus A">Campus A</option>
-    <option value="Campus B">Campus B</option>
-    <option value="Campus C">Campus C</option>
-  </select>
+  <div class="form-box">
+    <h2>List Your Room</h2>
 
-  <input type="number" id="price" placeholder="Price per month">
-  <button onclick="listRoom()">Submit</button>
-  
-  <p><a href="index.html">Back Home</a></p>
+    <input type="text" id="title" placeholder="Room Title">
+    <input type="text" id="description" placeholder="Description">
+
+    <select id="location">
+      <option value="">Select Location</option>
+      <option value="Campus A">Campus A</option>
+      <option value="Campus B">Campus B</option>
+      <option value="Campus C">Campus C</option>
+    </select>
+
+    <input type="number" id="price" placeholder="Price">
+
+    <button onclick="listRoom()">Submit</button>
+    <p><a href="index.html">Back Home</a></p>
+  </div>
 
   <script type="module">
     import { auth, db, collection, addDoc } from "./firebase.js";
@@ -32,13 +60,13 @@
       const location = document.getElementById("location").value;
       const price = Number(document.getElementById("price").value);
 
-      // Validation
       if (!auth.currentUser) {
-        alert("Please log in first!");
+        alert("Login first!");
         return;
       }
+
       if (!title || !description || !location || !price) {
-        alert("Please fill in all fields!");
+        alert("Fill all fields!");
         return;
       }
 
@@ -50,12 +78,14 @@
           price,
           ownerEmail: auth.currentUser.email
         });
-        alert("Room listed successfully!");
-        window.location.href = "index.html"; // go back home
+
+        alert("Room listed!");
+        window.location.href = "index.html";
       } catch (error) {
         alert(error.message);
       }
     };
   </script>
+
 </body>
 </html>
