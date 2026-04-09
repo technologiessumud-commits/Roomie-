@@ -1,82 +1,28 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Sign Up - Roomie</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f0f4f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .box {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      width: 300px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #1d4ed8;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-
-    a {
-      color: #1d4ed8;
-      text-decoration: none;
-    }
-  </style>
-</head>
+<head><title>Signup</title></head>
 <body>
 
-  <div class="box">
-    <h2>Create Account</h2>
+<h2>Sign Up</h2>
 
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
+<input id="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Password"><br>
 
-    <button onclick="signup()">Sign Up</button>
+<button onclick="signup()">Sign Up</button>
 
-    <p>Already have an account? <a href="login.html">Login</a></p>
-  </div>
+<p><a href="login.html">Login</a></p>
 
-  <script type="module">
-    import { auth, createUserWithEmailAndPassword } from "./firebase.js";
+<script type="module">
+import { auth, createUserWithEmailAndPassword } from "./firebase.js";
 
-    window.signup = async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+window.signup = async () => {
+  const email = email.value;
+  const password = password.value;
 
-      if (!email || !password) {
-        alert("Fill all fields");
-        return;
-      }
-
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("Account created!");
-        window.location.href = "home.html";
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-  </script>
+  await createUserWithEmailAndPassword(auth, email, password);
+  window.location.href = "home.html";
+};
+</script>
 
 </body>
 </html>
