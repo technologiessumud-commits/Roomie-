@@ -4,49 +4,54 @@ body {
   background: #f7f7f7;
 }
 
+.container {
+  padding: 12px;
+}
+
 .navbar {
   display: flex;
   justify-content: space-between;
-  padding: 15px;
+  padding: 12px;
   background: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.container {
-  padding: 20px;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
 
 .rooms {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 15px;
+  grid-template-columns: 1fr;
+  gap: 12px;
 }
 
 .card {
   background: white;
-  border-radius: 16px;
-  padding: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-  transition: 0.2s;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
 }
 
-.card:hover {
-  transform: translateY(-5px);
-}
-
-input, textarea {
+.card img {
   width: 100%;
-  padding: 10px;
+  height: 180px;
+  object-fit: cover;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 14px;
   margin-top: 10px;
   border-radius: 10px;
   border: 1px solid #ddd;
+  font-size: 16px;
 }
 
 button {
-  padding: 10px;
+  width: 100%;
+  padding: 14px;
   border: none;
   border-radius: 10px;
-  cursor: pointer;
+  margin-top: 10px;
 }
 
 .primary {
@@ -56,4 +61,21 @@ button {
 
 .secondary {
   background: #eee;
+}
+
+.skeleton {
+  height: 180px;
+  background: linear-gradient(90deg,#eee,#f5f5f5,#eee);
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@media (min-width: 768px) {
+  .rooms {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
