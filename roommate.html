@@ -1,27 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Roommates</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
 <div class="container">
 
-  <h2>Roommate System</h2>
+<select id="type">
+  <option value="need">Need roommate</option>
+  <option value="have">Have room</option>
+</select>
 
-  <select id="type">
-    <option value="need">Need roommate</option>
-    <option value="have">Have room</option>
-  </select>
+<input id="desc">
+<input id="loc">
+<input id="wa">
 
-  <input id="description" placeholder="Description">
-  <input id="location" placeholder="Location">
-  <input id="whatsapp" placeholder="WhatsApp">
+<button onclick="post()" class="primary">Post</button>
 
-  <button class="primary" onclick="post()">Post</button>
-
-  <div id="list"></div>
+<div id="list"></div>
 
 </div>
 
@@ -29,32 +19,27 @@
 import { auth, db, collection, addDoc, getDocs } from "./firebase.js";
 
 window.post = async () => {
-  await addDoc(collection(db, "roommates"), {
-    type: type.value,
-    description: description.value,
-    location: location.value,
-    whatsapp: whatsapp.value,
-    email: auth.currentUser.email
+  await addDoc(collection(db,"roommates"), {
+    type:type.value,
+    description:desc.value,
+    location:loc.value,
+    whatsapp:wa.value,
+    email:auth.currentUser.email
   });
 
   load();
 };
 
-async function load() {
-  const snap = await getDocs(collection(db, "roommates"));
+async function load(){
+  const snap = await getDocs(collection(db,"roommates"));
 
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  snap.forEach(d => {
-    const r = d.data();
-
-    list.innerHTML += `
+  list.innerHTML="";
+  snap.forEach(d=>{
+    const r=d.data();
+    list.innerHTML+=`
       <div class="card">
         <h3>${r.type}</h3>
         <p>${r.description}</p>
-        <p>${r.location}</p>
-
         <a href="https://wa.me/${r.whatsapp}">
           <button class="primary">Chat</button>
         </a>
@@ -65,6 +50,3 @@ async function load() {
 
 load();
 </script>
-
-</body>
-</html>
