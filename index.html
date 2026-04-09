@@ -3,28 +3,77 @@
 <head>
   <title>Roomie Home</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f0f4f8;
+    }
+    h1 {
+      text-align: center;
+    }
+    .nav-links {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .nav-links a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #1d4ed8;
+    }
+    .filter {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .rooms-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .room-card {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .room-card img {
+      width: 100%;
+      border-radius: 8px;
+      height: 150px;
+      object-fit: cover;
+    }
+    .room-card h3 {
+      margin: 10px 0 5px 0;
+    }
+    .room-card p {
+      margin: 5px 0;
+      color: #555;
+    }
+  </style>
 </head>
 <body>
   <h1>Welcome to Roomie!</h1>
 
   <!-- Navigation -->
-  <p>
+  <div class="nav-links">
     <a href="signup.html">Signup</a> | 
     <a href="login.html">Login</a> | 
     <a href="list-room.html">List a Room</a>
-  </p>
+  </div>
 
-  <!-- Filter by location -->
-  <label for="filterLocation">Filter by location:</label>
-  <select id="filterLocation" onchange="loadRooms()">
-    <option value="">All Locations</option>
-    <option value="Campus A">Campus A</option>
-    <option value="Campus B">Campus B</option>
-    <option value="Campus C">Campus C</option>
-  </select>
+  <!-- Filter -->
+  <div class="filter">
+    <label for="filterLocation">Filter by location:</label>
+    <select id="filterLocation" onchange="loadRooms()">
+      <option value="">All Locations</option>
+      <option value="Campus A">Campus A</option>
+      <option value="Campus B">Campus B</option>
+      <option value="Campus C">Campus C</option>
+    </select>
+  </div>
 
-  <h2>Available Rooms</h2>
-  <div id="roomsContainer"></div>
+  <!-- Rooms -->
+  <div class="rooms-container" id="roomsContainer"></div>
 
   <script type="module">
     import { db, collection, getDocs } from "./firebase.js";
@@ -39,23 +88,26 @@
       querySnapshot.forEach((doc) => {
         const room = doc.data();
 
-        // Skip rooms that don't match filter
         if (filter && room.location !== filter) return;
 
         const div = document.createElement("div");
+        div.classList.add("room-card");
+
+        // Use a placeholder image if none provided
+        const imageURL = room.imageURL || "https://via.placeholder.com/300x150.png?text=Room";
+
         div.innerHTML = `
+          <img src="${imageURL}" alt="${room.title}">
           <h3>${room.title}</h3>
           <p>${room.description}</p>
           <p>Location: ${room.location}</p>
           <p>Price: $${room.price}</p>
           <p>Owner: ${room.ownerEmail}</p>
-          <hr>
         `;
         roomsContainer.appendChild(div);
       });
     }
 
-    // Load rooms on page load
     loadRooms();
   </script>
 </body>
