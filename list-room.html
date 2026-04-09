@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>List a Room - Roomie</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>List Your Room</h2>
+
+  <input type="text" id="title" placeholder="Room Title">
+  <input type="text" id="description" placeholder="Description">
+  
+  <label for="location">Location:</label>
+  <select id="location">
+    <option value="">Select a location</option>
+    <option value="Campus A">Campus A</option>
+    <option value="Campus B">Campus B</option>
+    <option value="Campus C">Campus C</option>
+  </select>
+
+  <input type="number" id="price" placeholder="Price per month">
+  <button onclick="listRoom()">Submit</button>
+  
+  <p><a href="index.html">Back Home</a></p>
+
+  <script type="module">
+    import { auth, db, collection, addDoc } from "./firebase.js";
+
+    window.listRoom = async () => {
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const location = document.getElementById("location").value;
+      const price = Number(document.getElementById("price").value);
+
+      // Validation
+      if (!auth.currentUser) {
+        alert("Please log in first!");
+        return;
+      }
+      if (!title || !description || !location || !price) {
+        alert("Please fill in all fields!");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "rooms"), {
+          title,
+          description,
+          location,
+          price,
+          ownerEmail: auth.currentUser.email
+        });
+        alert("Room listed successfully!");
+        window.location.href = "index.html"; // go back home
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+  </script>
+</body>
+</html>
