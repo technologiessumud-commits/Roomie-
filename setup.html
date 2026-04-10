@@ -15,7 +15,7 @@
       padding-right:40px;
       cursor:pointer;
       position:relative;
-      z-index:2; /* ✅ FIXED CLICK ISSUE */
+      z-index:2;
     }
 
     .select-wrap::after {
@@ -26,20 +26,28 @@
       transform:translateY(-50%);
       border:5px solid transparent;
       border-top-color:var(--muted);
-      margin-top:3px;
       pointer-events:none;
       z-index:1;
     }
 
     .photo-preview-circle {
-      width:72px; height:72px; border-radius:50%;
-      background:var(--card); border:2px dashed var(--border);
-      display:flex; align-items:center; justify-content:center;
-      font-size:1.8rem; overflow:hidden; flex-shrink:0; cursor:pointer;
+      width:72px;
+      height:72px;
+      border-radius:50%;
+      background:var(--card);
+      border:2px dashed var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.8rem;
+      overflow:hidden;
+      cursor:pointer;
     }
 
     .photo-preview-circle img {
-      width:100%; height:100%; object-fit:cover;
+      width:100%;
+      height:100%;
+      object-fit:cover;
     }
   </style>
 </head>
@@ -48,30 +56,47 @@
 <div class="page-full">
   <div style="max-width:480px;margin:0 auto;width:100%;padding-bottom:40px">
 
-    <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px">One last step 🎉</div>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:28px">Set up your profile so others can get to know you.</p>
+    <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px">
+      One last step 🎉
+    </div>
 
-    <!-- PHOTO -->
+    <p style="color:var(--muted);font-size:14px;margin-bottom:28px">
+      Set up your profile so others can get to know you.
+    </p>
+
+    <!-- PROFILE PHOTO -->
     <div class="form-group">
       <label>Profile photo <span style="color:var(--muted)">(optional)</span></label>
+
       <div style="display:flex;align-items:center;gap:14px">
-        <div class="photo-preview-circle" id="photo-circle" onclick="document.getElementById('photo-file').click()">👤</div>
+        <div class="photo-preview-circle" id="photo-circle"
+          onclick="document.getElementById('photo-file').click()">👤</div>
+
         <div>
-          <label for="photo-file" style="display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:9px 16px;cursor:pointer;font-size:14px;font-weight:500;margin-bottom:0">
+          <label for="photo-file"
+            style="display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);padding:9px 16px;border-radius:8px;cursor:pointer">
             📷 Choose photo
           </label>
-          <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhotoSelect(this)"/>
-          <p class="form-hint" id="photo-status" style="margin-top:6px">Tap to upload a profile picture</p>
+
+          <input type="file" id="photo-file" accept="image/*"
+            style="display:none" onchange="handlePhotoSelect(this)"/>
+
+          <p id="photo-status" style="margin-top:6px;color:var(--muted);font-size:13px">
+            Tap to upload profile picture
+          </p>
         </div>
       </div>
+
       <input type="hidden" id="photoURL"/>
     </div>
 
+    <!-- NAME -->
     <div class="form-group">
       <label>Full name *</label>
       <input type="text" id="name" placeholder="e.g. Emeka Johnson"/>
     </div>
 
+    <!-- PHONE -->
     <div class="form-group">
       <label>Phone number *</label>
       <input type="tel" id="phone" placeholder="+234 800 000 0000"/>
@@ -90,86 +115,138 @@
     <!-- UNIVERSITY -->
     <div class="form-group" id="uni-group" style="display:none">
       <label>University *</label>
+
       <div class="select-wrap" id="uni-select-wrap">
-        <select id="uni-select" onchange="onUniChange()">
-          <option value="">— Select your university —</option>
-        </select>
+        <select id="uni-select" onchange="onUniChange()"></select>
       </div>
-      <input type="text" id="uni-other" placeholder="Type your university name…" style="display:none;margin-top:8px"/>
+
+      <input type="text" id="uni-other"
+        placeholder="Type your university…" style="display:none;margin-top:8px"/>
     </div>
 
+    <!-- CITY -->
     <div class="form-group">
       <label>City / State *</label>
       <input type="text" id="city" placeholder="e.g. Lagos"/>
     </div>
 
+    <!-- COURSE -->
     <div class="form-group">
       <label>Course / Department</label>
       <input type="text" id="course"/>
     </div>
 
+    <!-- YEAR -->
     <div class="form-group">
       <label>Year of study</label>
       <div class="select-wrap">
         <select id="year">
           <option value="">Select year</option>
-          <option>1st year</option><option>2nd year</option>
-          <option>3rd year</option><option>4th year</option>
+          <option>1st year</option>
+          <option>2nd year</option>
+          <option>3rd year</option>
+          <option>4th year</option>
           <option>Postgraduate</option>
         </select>
       </div>
     </div>
 
-    <p id="error-msg" style="display:none;color:red"></p>
+    <p id="error-msg" style="display:none;color:red;font-size:13px"></p>
 
-    <button class="btn btn-primary" onclick="handleSave()">Save & Continue</button>
+    <button class="btn btn-primary" onclick="handleSave()">
+      Save & Continue
+    </button>
 
-    <!-- HOME BUTTON -->
-    <button class="btn" style="margin-top:12px" onclick="goHome()">⬅ Go to Home</button>
+    <button class="btn" style="margin-top:10px" onclick="goHome()">
+      ⬅ Go Home
+    </button>
 
   </div>
 </div>
 
 <script type="module">
-import { auth, saveProfile, onAuth } from './firebase.js';
+import { saveProfile } from './firebase.js';
 import { uploadImage } from './upload.js';
 
-onAuth(u => { if (!u) window.location.href = 'login.html'; });
+/* =========================
+   COUNTRIES
+========================= */
+const COUNTRIES = [
+"Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia","Austria",
+"Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Benin","Bolivia","Botswana",
+"Brazil","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde",
+"Central African Republic","Chad","Chile","China","Colombia","Congo","Costa Rica",
+"Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominican Republic",
+"DR Congo","Ecuador","Egypt","El Salvador","Eritrea","Estonia","Eswatini","Ethiopia",
+"Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Guatemala",
+"Guinea","Haiti","Honduras","Hungary","India","Indonesia","Iran","Iraq","Ireland",
+"Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kuwait","Laos",
+"Latvia","Lebanon","Lesotho","Liberia","Libya","Lithuania","Luxembourg","Madagascar",
+"Malawi","Malaysia","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova",
+"Mongolia","Morocco","Mozambique","Myanmar","Namibia","Nepal","Netherlands",
+"New Zealand","Nicaragua","Niger","Nigeria","Norway","Pakistan","Portugal","Qatar",
+"Romania","Russia","Rwanda","Saudi Arabia","Senegal","South Africa","South Korea",
+"Spain","Sri Lanka","Sudan","Sweden","Switzerland","Tanzania","Thailand","Togo",
+"Turkey","Uganda","Ukraine","United Kingdom","United States","Zambia","Zimbabwe"
+];
 
-// COUNTRIES
-const COUNTRIES = ["Nigeria","Ghana","Kenya","United States","United Kingdom","Canada","India","Germany","France","Australia"];
-
-// UNIVERSITIES
+/* =========================
+   UNIVERSITIES (NIGERIA FULL)
+========================= */
 const UNIVERSITIES = {
-"Nigeria": ["University of Lagos","University of Ibadan","OAU","UNN","UNILORIN","LASU","Covenant University","Babcock University","Other (type below)"]
+"Nigeria": [
+"University of Lagos (UNILAG)",
+"University of Ibadan (UI)",
+"Obafemi Awolowo University (OAU)",
+"Ahmadu Bello University (ABU)",
+"University of Nigeria Nsukka (UNN)",
+"University of Benin (UNIBEN)",
+"Lagos State University (LASU)",
+"Covenant University",
+"Babcock University",
+"Federal University of Technology Akure (FUTA)",
+"Federal University of Technology Owerri (FUTO)",
+"University of Ilorin (UNILORIN)",
+"University of Port Harcourt (UNIPORT)",
+"Other (type below)"
+]
 };
 
-// populate countries
+/* =========================
+   INIT COUNTRIES
+========================= */
 const countryEl = document.getElementById('country');
+
 COUNTRIES.forEach(c=>{
-  let o=document.createElement('option');
-  o.value=c;
-  o.textContent=c;
-  countryEl.appendChild(o);
+  const opt=document.createElement('option');
+  opt.value=c;
+  opt.textContent=c;
+  countryEl.appendChild(opt);
 });
 
-// country change
+/* =========================
+   COUNTRY CHANGE
+========================= */
 window.onCountryChange=function(){
-  let c=countryEl.value;
-  let group=document.getElementById('uni-group');
-  let select=document.getElementById('uni-select');
-  let other=document.getElementById('uni-other');
+  const country = countryEl.value;
+  const group   = document.getElementById('uni-group');
+  const select  = document.getElementById('uni-select');
+  const other   = document.getElementById('uni-other');
 
-  select.innerHTML='<option value="">Select university</option>';
+  select.innerHTML='';
   other.style.display='none';
 
-  if(!c){group.style.display='none';return;}
+  if(!country){
+    group.style.display='none';
+    return;
+  }
 
   group.style.display='block';
 
-  if(c==="Nigeria"){
-    UNIVERSITIES["Nigeria"].forEach(u=>{
-      let o=document.createElement('option');
+  if(UNIVERSITIES[country]){
+    UNIVERSITIES[country].forEach(u=>{
+      const o=document.createElement('option');
+      o.value=u;
       o.textContent=u;
       select.appendChild(o);
     });
@@ -180,38 +257,87 @@ window.onCountryChange=function(){
   }
 };
 
-// image preview
+/* =========================
+   UNIVERSITY CHANGE
+========================= */
+window.onUniChange=function(){
+  const other=document.getElementById('uni-other');
+  const val=document.getElementById('uni-select').value;
+  other.style.display = val==="Other (type below)" ? 'block' : 'none';
+};
+
+/* =========================
+   PHOTO UPLOAD
+========================= */
 window.handlePhotoSelect = async function(input){
   const file=input.files[0];
   if(!file)return;
 
   const reader=new FileReader();
   reader.onload=e=>{
-    document.getElementById('photo-circle').innerHTML=`<img src="${e.target.result}">`;
+    document.getElementById('photo-circle').innerHTML=
+      `<img src="${e.target.result}">`;
   };
   reader.readAsDataURL(file);
 
   try{
     const url=await uploadImage(file);
     document.getElementById('photoURL').value=url;
-  }catch{}
+  }catch(e){
+    console.log(e);
+  }
 };
 
-// save
-window.handleSave=async()=>{
-  const name=document.getElementById('name').value.trim();
-  const phone=document.getElementById('phone').value.trim();
+/* =========================
+   SAVE PROFILE + REDIRECT
+========================= */
+window.handleSave = async function(){
 
-  if(!name||!phone){
-    document.getElementById('error-msg').innerText="Fill required fields";
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const country = document.getElementById('country').value;
+  const city = document.getElementById('city').value.trim();
+  const photoURL = document.getElementById('photoURL').value;
+
+  const uniSelect = document.getElementById('uni-select');
+  const uniOther = document.getElementById('uni-other');
+
+  let university =
+    uniSelect.style.display !== 'none'
+      ? uniSelect.value
+      : uniOther.value.trim();
+
+  if(!name || !phone || !country || !city){
+    document.getElementById('error-msg').style.display='block';
+    document.getElementById('error-msg').textContent='Please fill all required fields';
     return;
   }
 
-  await saveProfile({name,phone});
+  await saveProfile({
+    name,
+    phone,
+    country,
+    university,
+    city,
+    photoURL
+  });
+
+  // ✅ SMART REDIRECT
+  const isEdit = document.referrer.includes("profile.html");
+
+  if(isEdit){
+    window.location.href="profile.html";
+  } else {
+    window.location.href="home.html";
+  }
 };
 
-// home
-window.goHome=()=>window.location.href="index.html";
+/* =========================
+   HOME BUTTON
+========================= */
+window.goHome=function(){
+  window.location.href="home.html";
+};
 </script>
 
 </body>
