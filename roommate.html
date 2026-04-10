@@ -10,7 +10,7 @@
 
   <div class="topbar">
     <div class="topbar-logo">Room<span>ie</span></div>
-    <button id="post-toggle-btn" onclick="togglePostForm()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;cursor:pointer">
+    <button onclick="togglePostForm()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;cursor:pointer">
       + Post
     </button>
   </div>
@@ -31,7 +31,7 @@
     </div>
     <div class="form-group">
       <label>Description *</label>
-      <textarea id="rm-desc" rows="3" placeholder="Tell others about yourself, your schedule, preferences…"></textarea>
+      <textarea id="rm-desc" rows="3" placeholder="Tell others about yourself, schedule, preferences…"></textarea>
     </div>
     <div class="form-group">
       <label>WhatsApp number *</label>
@@ -44,31 +44,36 @@
     </div>
   </div>
 
-  <!-- SCOPE + TAB FILTERS -->
-  <div style="padding:12px 20px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
-    <button class="filter-chip active" id="scope-country" onclick="setScopeFilter('country',this)">🏫 My Country</button>
-    <button class="filter-chip" id="scope-all" onclick="setScopeFilter('all',this)">🌍 All</button>
+  <!-- SCOPE FILTER CHIPS -->
+  <div class="filter-row" style="padding-top:12px">
+    <button class="filter-chip active" id="scope-uni"     onclick="setScopeFilter('uni',this)">🎓 My University</button>
+    <button class="filter-chip"        id="scope-country" onclick="setScopeFilter('country',this)">🌍 My Country</button>
+    <button class="filter-chip"        id="scope-all"     onclick="setScopeFilter('all',this)">🌐 All Schools</button>
   </div>
 
-  <div style="display:flex;border-bottom:1px solid var(--border);margin-top:8px">
+  <!-- TYPE TABS -->
+  <div style="display:flex;border-bottom:1px solid var(--border)">
     <button id="tab-all"  onclick="setTab('all')"  style="flex:1;padding:14px;background:none;border:none;color:var(--text);font-family:'Syne',sans-serif;font-weight:600;font-size:14px;border-bottom:2px solid var(--accent);cursor:pointer">All</button>
     <button id="tab-need" onclick="setTab('need')" style="flex:1;padding:14px;background:none;border:none;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600;font-size:14px;border-bottom:2px solid transparent;cursor:pointer">Need Room</button>
     <button id="tab-have" onclick="setTab('have')" style="flex:1;padding:14px;background:none;border:none;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600;font-size:14px;border-bottom:2px solid transparent;cursor:pointer">Have Room</button>
   </div>
 
+  <!-- COUNT -->
+  <div style="padding:12px 20px 0;font-size:13px;color:var(--muted)" id="rm-count"></div>
+
   <!-- LOADING -->
   <div id="rm-skeleton" style="padding:20px;display:flex;flex-direction:column;gap:12px">
-    <div class="skeleton" style="height:130px;border-radius:var(--radius)"></div>
-    <div class="skeleton" style="height:130px;border-radius:var(--radius)"></div>
-    <div class="skeleton" style="height:130px;border-radius:var(--radius)"></div>
+    <div class="skeleton" style="height:120px;border-radius:var(--radius)"></div>
+    <div class="skeleton" style="height:120px;border-radius:var(--radius)"></div>
+    <div class="skeleton" style="height:120px;border-radius:var(--radius)"></div>
   </div>
 
-  <div id="rm-container" style="padding:16px 20px;display:none;flex-direction:column;gap:12px;padding-bottom:120px"></div>
+  <div id="rm-container" style="padding:12px 20px;display:none;flex-direction:column;gap:12px;padding-bottom:120px"></div>
 
   <div id="rm-empty" class="empty-state" style="display:none">
     <div class="empty-icon">👥</div>
-    <div class="empty-title">No listings in your country yet</div>
-    <p class="empty-sub">Switch to "All" to see everyone, or be the first to post!</p>
+    <div class="empty-title" id="rm-empty-title">No listings at your university yet</div>
+    <p class="empty-sub" id="rm-empty-sub">Be the first to post, or switch to "My Country" or "All Schools"</p>
   </div>
 
   <nav class="navbar">
@@ -98,14 +103,18 @@
     const user = await requireAuth();
     const userProfile = await getProfile(user.uid);
 
-    let allListings = [];
-    let currentTab = 'all';
-    let scopeFilter = 'country';
+    let allListings  = [];
+    let currentTab   = 'all';
+    let scopeFilter  = 'uni';   // default: same university
 
-    // Update scope chip label
-    if (userProfile && userProfile.country) {
+    // Label chips with real uni/country names
+    if (userProfile) {
+      const uniShort = userProfile.university.length > 18
+        ? userProfile.university.split(' ').slice(0,3).join(' ') + '…'
+        : userProfile.university;
+      document.getElementById('scope-uni').textContent     = `🎓 ${uniShort}`;
       document.getElementById('scope-country').textContent =
-        '🏫 ' + userProfile.country.charAt(0).toUpperCase() + userProfile.country.slice(1);
+        `🌍 ${userProfile.countryDisplay || capitalize(userProfile.country)}`;
     }
 
     async function loadRoommates() {
@@ -122,26 +131,35 @@
     function applyFilters() {
       let filtered = allListings;
 
-      // Scope filter
-      if (scopeFilter === 'country' && userProfile && userProfile.country) {
+      // ── Scope filter ──────────────────────────────────────────
+      if (scopeFilter === 'uni' && userProfile) {
         filtered = filtered.filter(l =>
-          l.ownerCountry && l.ownerCountry.toLowerCase() === userProfile.country.toLowerCase()
+          l.ownerUniversity &&
+          l.ownerUniversity.toLowerCase() === userProfile.university.toLowerCase()
+        );
+      } else if (scopeFilter === 'country' && userProfile) {
+        filtered = filtered.filter(l =>
+          l.ownerCountry &&
+          l.ownerCountry.toLowerCase() === userProfile.country.toLowerCase()
         );
       }
 
-      // Tab filter
+      // ── Tab filter ────────────────────────────────────────────
       if (currentTab !== 'all') {
         filtered = filtered.filter(l => l.type === currentTab);
       }
 
-      // Sort: same university first
-      if (userProfile) {
+      // ── Sort: same uni always first when in country/all view ──
+      if (userProfile && scopeFilter !== 'uni') {
         filtered.sort((a, b) => {
-          const aMatch = (a.ownerUniversity || '').toLowerCase() === (userProfile.university || '').toLowerCase();
-          const bMatch = (b.ownerUniversity || '').toLowerCase() === (userProfile.university || '').toLowerCase();
+          const aMatch = (a.ownerUniversity || '').toLowerCase() === userProfile.university.toLowerCase();
+          const bMatch = (b.ownerUniversity || '').toLowerCase() === userProfile.university.toLowerCase();
           return bMatch - aMatch;
         });
       }
+
+      document.getElementById('rm-count').textContent =
+        `${filtered.length} listing${filtered.length !== 1 ? 's' : ''}`;
 
       renderListings(filtered);
     }
@@ -153,21 +171,39 @@
       if (list.length === 0) {
         container.style.display = 'none';
         empty.style.display = 'flex';
+
+        if (scopeFilter === 'uni') {
+          document.getElementById('rm-empty-title').textContent = 'No listings at your university yet';
+          document.getElementById('rm-empty-sub').textContent =
+            'Be the first to post, or switch to "My Country" or "All Schools" to see more.';
+        } else if (scopeFilter === 'country') {
+          document.getElementById('rm-empty-title').textContent = 'No listings in your country yet';
+          document.getElementById('rm-empty-sub').textContent = 'Switch to "All Schools" to see everyone.';
+        } else {
+          document.getElementById('rm-empty-title').textContent = 'No listings found';
+          document.getElementById('rm-empty-sub').textContent = 'Be the first to post!';
+        }
         return;
       }
+
       container.style.display = 'flex';
       empty.style.display = 'none';
 
       container.innerHTML = list.map(item => {
-        const isNeed   = item.type === 'need';
-        const sameUni  = userProfile && item.ownerUniversity &&
+        const isNeed  = item.type === 'need';
+        const sameUni = userProfile && item.ownerUniversity &&
           item.ownerUniversity.toLowerCase() === userProfile.university.toLowerCase();
-        const photo    = item.ownerPhotoURL;
-        const initial  = (item.ownerName || item.email || 'U')[0].toUpperCase();
+        const initial = (item.ownerName || 'U')[0].toUpperCase();
+        const photo   = item.ownerPhotoURL;
 
         const avatarHtml = photo
-          ? `<img src="${photo}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.outerHTML='<div class=avatar style=width:48px;height:48px;font-size:.9rem>${initial}</div>'" />`
+          ? `<img src="${photo}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0"
+               onerror="this.outerHTML='<div class=avatar style=width:48px;height:48px;font-size:.9rem>${initial}</div>'" />`
           : `<div class="avatar" style="width:48px;height:48px;font-size:.9rem">${initial}</div>`;
+
+        // Show university on card only when NOT in uni-only view
+        const uniLine = (scopeFilter !== 'uni' && item.ownerUniversity)
+          ? `<div style="font-size:12px;color:var(--muted)">🎓 ${escHtml(item.ownerUniversity)}</div>` : '';
 
         return `
           <div class="card" onclick="window.location.href='roommate-detail.html?id=${item.id}'" style="cursor:pointer">
@@ -175,12 +211,12 @@
               <div style="display:flex;align-items:flex-start;gap:12px">
                 ${avatarHtml}
                 <div style="flex:1;min-width:0">
-                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
                     <span class="card-tag ${isNeed ? 'need' : ''}">${isNeed ? '🔍 Need Room' : '🏠 Have Room'}</span>
-                    ${sameUni ? '<span class="card-tag" style="background:rgba(255,107,53,.12);color:var(--accent)">🎓 Same Uni</span>' : ''}
+                    ${sameUni && scopeFilter !== 'uni' ? '<span class="card-tag" style="background:rgba(255,107,53,.12);color:var(--accent)">Your Uni</span>' : ''}
                   </div>
                   <div style="font-weight:600;font-size:14px;margin-top:6px">${escHtml(item.ownerName || 'Anonymous')}</div>
-                  <div style="font-size:12px;color:var(--muted)">${escHtml(item.ownerUniversity || '')}</div>
+                  ${uniLine}
                   <div style="font-size:12px;color:var(--muted);margin-top:2px">📍 ${escHtml(item.location || 'Location not specified')}</div>
                 </div>
                 <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" style="flex-shrink:0;margin-top:4px"><polyline points="9 18 15 12 9 6"/></svg>
@@ -195,7 +231,7 @@
       currentTab = tab;
       ['all','need','have'].forEach(t => {
         const btn = document.getElementById(`tab-${t}`);
-        btn.style.color       = t === tab ? 'var(--text)' : 'var(--muted)';
+        btn.style.color        = t === tab ? 'var(--text)' : 'var(--muted)';
         btn.style.borderBottom = t === tab ? '2px solid var(--accent)' : '2px solid transparent';
       });
       applyFilters();
@@ -203,8 +239,10 @@
 
     window.setScopeFilter = function(scope, el) {
       scopeFilter = scope;
-      document.getElementById('scope-country').classList.toggle('active', scope === 'country');
-      document.getElementById('scope-all').classList.toggle('active', scope === 'all');
+      ['scope-uni','scope-country','scope-all'].forEach(id =>
+        document.getElementById(id).classList.remove('active')
+      );
+      el.classList.add('active');
       applyFilters();
     };
 
@@ -227,8 +265,7 @@
         errEl.style.display = 'block'; return;
       }
 
-      btn.textContent = 'Posting…';
-      btn.disabled = true;
+      btn.textContent = 'Posting…'; btn.disabled = true;
 
       try {
         await postRoommate({
@@ -249,10 +286,11 @@
         errEl.textContent = 'Failed to post listing.';
         errEl.style.display = 'block';
       } finally {
-        btn.textContent = 'Post Listing';
-        btn.disabled = false;
+        btn.textContent = 'Post Listing'; btn.disabled = false;
       }
     };
+
+    function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
     function escHtml(str) {
       const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
