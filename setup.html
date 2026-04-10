@@ -1,400 +1,178 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Roomie – Set Up Profile</title>
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    .custom-select-wrap { position: relative; }
-    .custom-select-wrap select {
-      appearance: none; -webkit-appearance: none;
-      padding-right: 40px; cursor: pointer;
+<script type="module">
+  import { auth, saveProfile, onAuth } from './firebase.js';
+  import { uploadImage } from './upload.js';
+
+  onAuth((user) => { if (!user) window.location.href = 'login.html'; });
+
+  // ── COUNTRY LIST ───────────────────────────────────────────
+  const COUNTRIES = [
+    "Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia",
+    "Austria","Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Benin",
+    "Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Bulgaria","Burkina Faso",
+    "Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic",
+    "Chad","Chile","China","Colombia","Congo","Costa Rica","Croatia","Cuba","Cyprus",
+    "Czech Republic","Denmark","Djibouti","Dominican Republic","DR Congo","Ecuador",
+    "Egypt","El Salvador","Eritrea","Estonia","Eswatini","Ethiopia","Finland","France",
+    "Gabon","Gambia","Georgia","Germany","Ghana","Greece","Guatemala","Guinea",
+    "Guinea-Bissau","Haiti","Honduras","Hungary","India","Indonesia","Iran","Iraq",
+    "Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya",
+    "Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya",
+    "Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Mali","Malta",
+    "Mauritania","Mauritius","Mexico","Moldova","Mongolia","Morocco","Mozambique",
+    "Myanmar","Namibia","Nepal","Netherlands","New Zealand","Nicaragua","Niger",
+    "Nigeria","North Korea","Norway","Oman","Pakistan","Palestine","Panama",
+    "Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar",
+    "Romania","Russia","Rwanda","Saudi Arabia","Senegal","Sierra Leone","Singapore",
+    "Slovakia","Slovenia","Somalia","South Africa","South Korea","South Sudan","Spain",
+    "Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tajikistan",
+    "Tanzania","Thailand","Togo","Trinidad and Tobago","Tunisia","Turkey",
+    "Turkmenistan","Uganda","Ukraine","United Arab Emirates","United Kingdom",
+    "United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
+  ];
+
+  const countryEl = document.getElementById('country');
+
+  COUNTRIES.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.toLowerCase();
+    opt.textContent = c;
+    countryEl.appendChild(opt);
+  });
+
+  window.onCountryChange = function() {
+    const country = countryEl.options[countryEl.selectedIndex].text;
+    const uniGroup  = document.getElementById('uni-group');
+    const uniSelect = document.getElementById('uni-select');
+    const uniOther  = document.getElementById('uni-other');
+
+    uniSelect.innerHTML = '<option value="">— Select your university —</option>';
+    uniOther.style.display = 'none';
+    uniOther.value = '';
+
+    if (!country || country.startsWith('—')) {
+      uniGroup.style.display = 'none';
+      return;
     }
-    .select-arrow {
-      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-      pointer-events: none; color: var(--muted);
-    }
-    #uni-select { display: none; }
-  </style>
-</head>
-<body>
-  <div class="page-full">
-    <div style="max-width:480px;margin:0 auto;width:100%;padding-bottom:40px">
 
-      <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px">
-        One last step 🎉
-      </div>
-      <p style="color:var(--muted);font-size:14px;margin-bottom:32px">
-        Set up your profile so others can get to know you.
-      </p>
+    uniGroup.style.display = 'block';
 
-      <div class="form-group">
-        <label>Full name</label>
-        <input type="text" id="name" placeholder="e.g. Emeka Johnson" />
-      </div>
+    const unis = UNIVERSITIES[country];
+    if (unis && unis.length > 0) {
+      unis.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u;
+        opt.textContent = u;
+        uniSelect.appendChild(opt);
+      });
 
-      <div class="form-group">
-        <label>Phone number</label>
-        <input type="tel" id="phone" placeholder="+234 800 000 0000" />
-      </div>
-
-      <!-- COUNTRY DROPDOWN -->
-      <div class="form-group">
-        <label>Country</label>
-        <div class="custom-select-wrap">
-          <select id="country" onchange="onCountryChange()">
-            <option value="">— Select your country —</option>
-          </select>
-          <svg class="select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <p class="form-hint">Used to show you rooms & roommates from your country.</p>
-      </div>
-
-      <!-- UNIVERSITY DROPDOWN (shown after country picked) -->
-      <div class="form-group" id="uni-group" style="display:none">
-        <label>University / College</label>
-        <div class="custom-select-wrap">
-          <select id="uni-select">
-            <option value="">— Select your university —</option>
-          </select>
-          <svg class="select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <!-- Fallback text input if not in list -->
-        <input type="text" id="uni-other" placeholder="Type your university name…" style="display:none;margin-top:8px" />
-      </div>
-
-      <!-- CITY -->
-      <div class="form-group">
-        <label>City / State</label>
-        <input type="text" id="city" placeholder="e.g. Lagos" />
-      </div>
-
-      <!-- PROFILE PHOTO -->
-      <div class="form-group">
-        <label>Profile photo <span style="color:var(--muted)">(optional)</span></label>
-        <div id="photo-upload-wrap" style="display:flex;align-items:center;gap:12px">
-          <div id="photo-preview" style="width:64px;height:64px;border-radius:50%;background:var(--card);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden;flex-shrink:0">👤</div>
-          <div style="flex:1">
-            <label for="photo-file-input" style="display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 16px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);margin-bottom:0">
-              📷 Choose photo
-            </label>
-            <input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="handlePhotoSelect(this)" />
-            <p class="form-hint" style="margin-top:6px" id="photo-status">JPG or PNG, shown on your profile</p>
-          </div>
-        </div>
-        <input type="hidden" id="photoURL" />
-      </div>
-
-      <!-- COURSE -->
-      <div class="form-group">
-        <label>Course / Department <span style="color:var(--muted)">(optional)</span></label>
-        <input type="text" id="course" placeholder="e.g. Computer Science" />
-      </div>
-
-      <!-- YEAR -->
-      <div class="form-group">
-        <label>Year of study <span style="color:var(--muted)">(optional)</span></label>
-        <div class="custom-select-wrap">
-          <select id="year">
-            <option value="">Select year</option>
-            <option>1st year</option>
-            <option>2nd year</option>
-            <option>3rd year</option>
-            <option>4th year</option>
-            <option>Postgraduate</option>
-          </select>
-          <svg class="select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-      </div>
-
-      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px"></p>
-
-      <button class="btn btn-primary" id="save-btn" onclick="handleSave()">
-        Save &amp; Continue
-      </button>
-    </div>
-  </div>
-
-  <script type="module">
-    import { auth, saveProfile, onAuth } from './firebase.js';
-    import { uploadImage } from './upload.js';
-
-    onAuth((user) => { if (!user) window.location.href = 'login.html'; });
-
-    // ── COUNTRY LIST ───────────────────────────────────────────
-    const COUNTRIES = [
-      "Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia",
-      "Austria","Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Benin",
-      "Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Bulgaria","Burkina Faso",
-      "Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic",
-      "Chad","Chile","China","Colombia","Congo","Costa Rica","Croatia","Cuba","Cyprus",
-      "Czech Republic","Denmark","Djibouti","Dominican Republic","DR Congo","Ecuador",
-      "Egypt","El Salvador","Eritrea","Estonia","Eswatini","Ethiopia","Finland","France",
-      "Gabon","Gambia","Georgia","Germany","Ghana","Greece","Guatemala","Guinea",
-      "Guinea-Bissau","Haiti","Honduras","Hungary","India","Indonesia","Iran","Iraq",
-      "Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya",
-      "Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya",
-      "Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Mali","Malta",
-      "Mauritania","Mauritius","Mexico","Moldova","Mongolia","Morocco","Mozambique",
-      "Myanmar","Namibia","Nepal","Netherlands","New Zealand","Nicaragua","Niger",
-      "Nigeria","North Korea","Norway","Oman","Pakistan","Palestine","Panama",
-      "Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar",
-      "Romania","Russia","Rwanda","Saudi Arabia","Senegal","Sierra Leone","Singapore",
-      "Slovakia","Slovenia","Somalia","South Africa","South Korea","South Sudan","Spain",
-      "Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tajikistan",
-      "Tanzania","Thailand","Togo","Trinidad and Tobago","Tunisia","Turkey",
-      "Turkmenistan","Uganda","Ukraine","United Arab Emirates","United Kingdom",
-      "United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
-    ];
-
-    // ── UNIVERSITIES BY COUNTRY ────────────────────────────────
-    const UNIVERSITIES = {
-      "Nigeria": [
-        "Abia State University","Achievers University","Afe Babalola University",
-        "Ahmadu Bello University","Al-Hikmah University","Alex Ekwueme Federal University",
-        "Ambrose Alli University","American University of Nigeria","Anchor University",
-        "Arthur Jarvis University","Augustine University","Babcock University",
-        "Baze University","Bells University of Technology","Benson Idahosa University",
-        "Bingham University","Bowen University","Caleb University",
-        "Caritas University","Chrisland University","Christopher University",
-        "Clifford University","Coal City University","Covenant University",
-        "Crawford University","Cross River University of Technology",
-        "Crown Hill University","Delta State University","Dominican University",
-        "Eastern Palm University","Ebonyi State University","Edwin Clark University",
-        "Ekiti State University","Elizade University","Evangel University",
-        "Federal University Birnin Kebbi","Federal University Dutse",
-        "Federal University Dutsin-Ma","Federal University Gashua",
-        "Federal University Gusau","Federal University Kashere",
-        "Federal University Lafia","Federal University Lokoja",
-        "Federal University Ndufu-Alike","Federal University Otuoke",
-        "Federal University Oye-Ekiti","Federal University Wukari",
-        "Federal University of Agriculture Abeokuta",
-        "Federal University of Agriculture Makurdi",
-        "Federal University of Petroleum Resources",
-        "Federal University of Technology Akure",
-        "Federal University of Technology Minna",
-        "Federal University of Technology Owerri",
-        "Fountain University","Gombe State University",
-        "Gregory University","Hallmark University","Hezekiah University",
-        "Igbinedion University","Imo State University","Joseph Ayo Babalola University",
-        "Kaduna State University","Kebbi State University",
-        "Kogi State University","Kwara State University",
-        "Lagos State University","Landmark University",
-        "Lead City University","Legacy University",
-        "Madonna University","Michael Okpara University of Agriculture",
-        "Modibbo Adama University","Nasarawa State University",
-        "Niger Delta University","Nile University of Nigeria",
-        "Nnamdi Azikiwe University","Novena University",
-        "Obafemi Awolowo University","Obong University",
-        "Oduduwa University","Olabisi Onabanjo University",
-        "Ondo State University of Science and Technology",
-        "Paul University","Pan-Atlantic University",
-        "Plateau State University","Redeemer's University",
-        "Renaissance University","Rivers State University",
-        "Salem University","Samuel Adegboyega University",
-        "Sokoto State University","Spiritan University",
-        "Southwestern University","Tansian University",
-        "Taraba State University","Topfaith University",
-        "Trinity University","Umaru Musa Yar'adua University",
-        "University of Abuja","University of Agriculture Umudike",
-        "University of Benin","University of Calabar",
-        "University of Ibadan","University of Ilorin",
-        "University of Jos","University of Lagos",
-        "University of Maiduguri","University of Nigeria Nsukka",
-        "University of Port Harcourt","University of Uyo",
-        "Usmanu Danfodiyo University","Veritas University",
-        "Wellspring University","Wesley University",
-        "Western Delta University","Yobe State University",
-        "Zamfara State University","Other (type below)"
-      ],
-      "Ghana": [
-        "University of Ghana","Kwame Nkrumah University of Science and Technology",
-        "University of Cape Coast","University for Development Studies",
-        "University of Education Winneba","Ashesi University",
-        "Ghana Institute of Management and Public Administration",
-        "University of Professional Studies","Central University",
-        "Valley View University","Pentecost University","Other (type below)"
-      ],
-      "Kenya": [
-        "University of Nairobi","Kenyatta University","Strathmore University",
-        "Moi University","Jomo Kenyatta University of Agriculture and Technology",
-        "Egerton University","Maseno University","United States International University",
-        "Catholic University of Eastern Africa","Daystar University",
-        "Mount Kenya University","Kenya Methodist University","Other (type below)"
-      ],
-      "South Africa": [
-        "University of Cape Town","University of Witwatersrand","Stellenbosch University",
-        "University of Pretoria","University of KwaZulu-Natal","Rhodes University",
-        "University of Johannesburg","University of the Western Cape",
-        "Nelson Mandela University","North-West University",
-        "University of the Free State","University of South Africa (UNISA)",
-        "University of Limpopo","Walter Sisulu University","Other (type below)"
-      ],
-      "United Kingdom": [
-        "University of Oxford","University of Cambridge","Imperial College London",
-        "London School of Economics","University College London",
-        "University of Edinburgh","King's College London","University of Manchester",
-        "University of Birmingham","University of Bristol","University of Warwick",
-        "University of Sheffield","University of Nottingham","University of Leeds",
-        "University of Liverpool","University of Southampton","Durham University",
-        "Newcastle University","University of Glasgow","Cardiff University",
-        "Queen's University Belfast","University of Bath","University of Exeter",
-        "University of Reading","Loughborough University","Other (type below)"
-      ],
-      "United States": [
-        "Harvard University","MIT","Stanford University","Yale University",
-        "Princeton University","Columbia University","University of Chicago",
-        "University of Pennsylvania","Cornell University","Dartmouth College",
-        "Brown University","Duke University","Johns Hopkins University",
-        "Northwestern University","Vanderbilt University","Rice University",
-        "University of Notre Dame","Georgetown University","Emory University",
-        "University of Michigan","University of California Berkeley",
-        "UCLA","University of Virginia","University of North Carolina",
-        "University of Texas Austin","Georgia Tech","Carnegie Mellon University",
-        "New York University","Boston University","Tufts University",
-        "University of Southern California","University of Florida",
-        "University of Wisconsin-Madison","Other (type below)"
-      ],
-      "Canada": [
-        "University of Toronto","McGill University","University of British Columbia",
-        "University of Alberta","University of Waterloo","Queen's University",
-        "Western University","McMaster University","University of Ottawa",
-        "Dalhousie University","University of Calgary","Simon Fraser University",
-        "Concordia University","York University","Other (type below)"
-      ],
-      "Australia": [
-        "University of Melbourne","Australian National University",
-        "University of Sydney","University of Queensland","UNSW Sydney",
-        "Monash University","University of Western Australia",
-        "University of Adelaide","University of Technology Sydney",
-        "Macquarie University","Other (type below)"
-      ],
-      "India": [
-        "Indian Institute of Technology Bombay","Indian Institute of Technology Delhi",
-        "Indian Institute of Technology Madras","Indian Institute of Science",
-        "University of Delhi","Jawaharlal Nehru University","Jadavpur University",
-        "Anna University","University of Mumbai","Calcutta University",
-        "Banaras Hindu University","Aligarh Muslim University","Other (type below)"
-      ],
-      "Germany": [
-        "Technical University of Munich","Ludwig Maximilian University Munich",
-        "Heidelberg University","Humboldt University Berlin","Free University Berlin",
-        "RWTH Aachen University","University of Hamburg","University of Frankfurt",
-        "University of Cologne","University of Stuttgart","Other (type below)"
-      ],
-    };
-
-    // Populate country dropdown
-    const countryEl = document.getElementById('country');
-    COUNTRIES.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.toLowerCase();
-      opt.textContent = c;
-      countryEl.appendChild(opt);
-    });
-
-    window.onCountryChange = function() {
-      const country = countryEl.options[countryEl.selectedIndex].text;
-      const uniGroup  = document.getElementById('uni-group');
-      const uniSelect = document.getElementById('uni-select');
-      const uniOther  = document.getElementById('uni-other');
-
-      // Reset university fields
-      uniSelect.innerHTML = '<option value="">— Select your university —</option>';
-      uniOther.style.display = 'none';
-      uniOther.value = '';
-
-      if (!country || country.startsWith('—')) {
-        uniGroup.style.display = 'none';
-        return;
-      }
-
-      uniGroup.style.display = 'block';
-
-      const unis = UNIVERSITIES[country];
-      if (unis && unis.length > 0) {
-        unis.forEach(u => {
-          const opt = document.createElement('option');
-          opt.value = u;
-          opt.textContent = u;
-          uniSelect.appendChild(opt);
-        });
-        uniSelect.style.display = 'block';
-        uniSelect.onchange = function() {
-          uniOther.style.display = this.value === 'Other (type below)' ? 'block' : 'none';
-        };
-      } else {
-        // Country not in our list — show text input directly
-        uniSelect.style.display = 'none';
-        uniOther.style.display = 'block';
-        uniOther.placeholder = `Type your university in ${country}…`;
-      }
-    };
-
-    window.handlePhotoSelect = async function(input) {
-      const file = input.files[0];
-      if (!file) return;
-      const statusEl = document.getElementById('photo-status');
-      const preview  = document.getElementById('photo-preview');
-      statusEl.textContent = 'Uploading…';
-
-      // Show local preview immediately
-      const reader = new FileReader();
-      reader.onload = e => {
-        preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover" />`;
+      uniSelect.style.display = 'block';
+      uniSelect.onchange = function() {
+        uniOther.style.display = this.value === 'Other (type below)' ? 'block' : 'none';
       };
-      reader.readAsDataURL(file);
+    } else {
+      uniSelect.style.display = 'none';
+      uniOther.style.display = 'block';
+      uniOther.placeholder = `Type your university in ${country}…`;
+    }
+  };
 
-      try {
-        const url = await uploadImage(file);
-        document.getElementById('photoURL').value = url;
-        statusEl.textContent = '✅ Photo uploaded!';
-      } catch (err) {
-        statusEl.textContent = '⚠️ Upload failed — check Cloudinary config in upload.js';
-        document.getElementById('photoURL').value = '';
-      }
+  window.handlePhotoSelect = async function(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById('photo-status');
+    const preview  = document.getElementById('photo-preview');
+
+    statusEl.textContent = 'Uploading…';
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.innerHTML =
+        `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover" />`;
     };
+    reader.readAsDataURL(file);
 
-    window.handleSave = async () => {
-      const name     = document.getElementById('name').value.trim();
-      const phone    = document.getElementById('phone').value.trim();
-      const countryOpt = countryEl.options[countryEl.selectedIndex];
-      const country  = countryOpt ? countryOpt.text : '';
-      const countryVal = countryOpt ? countryOpt.value : '';
-      const uniSelect = document.getElementById('uni-select');
-      const uniOther  = document.getElementById('uni-other');
-      let university  = '';
+    try {
+      const url = await uploadImage(file);
+      document.getElementById('photoURL').value = url;
+      statusEl.textContent = '✅ Photo uploaded!';
+    } catch (err) {
+      statusEl.textContent = '⚠️ Upload failed — check Cloudinary config in upload.js';
+      document.getElementById('photoURL').value = '';
+    }
+  };
 
-      if (uniSelect.style.display !== 'none' && uniSelect.value && uniSelect.value !== 'Other (type below)') {
-        university = uniSelect.value;
-      } else {
-        university = uniOther.value.trim();
-      }
+  window.handleSave = async () => {
+    const name     = document.getElementById('name').value.trim();
+    const phone    = document.getElementById('phone').value.trim();
+    const countryOpt = countryEl.options[countryEl.selectedIndex];
+    const country  = countryOpt ? countryOpt.text : '';
+    const countryVal = countryOpt ? countryOpt.value : '';
 
-      const city     = document.getElementById('city').value.trim();
-      const photoURL = document.getElementById('photoURL').value.trim();
-      const course   = document.getElementById('course').value.trim();
-      const year     = document.getElementById('year').value;
-      const errEl    = document.getElementById('error-msg');
-      const btn      = document.getElementById('save-btn');
+    const uniSelect = document.getElementById('uni-select');
+    const uniOther  = document.getElementById('uni-other');
 
-      errEl.style.display = 'none';
+    let university = '';
+    if (uniSelect.style.display !== 'none' &&
+        uniSelect.value &&
+        uniSelect.value !== 'Other (type below)') {
+      university = uniSelect.value;
+    } else {
+      university = uniOther.value.trim();
+    }
 
-      if (!name || !phone || !country || country.startsWith('—') || !university || !city) {
-        errEl.textContent = 'Please fill in name, phone, country, university and city.';
-        errEl.style.display = 'block'; return;
-      }
+    const city     = document.getElementById('city').value.trim();
+    const photoURL = document.getElementById('photoURL').value.trim();
+    const course   = document.getElementById('course').value.trim();
+    const year     = document.getElementById('year').value;
 
-      const user = auth.currentUser;
-      if (!user) { window.location.href = 'login.html'; return; }
+    const errEl = document.getElementById('error-msg');
+    const btn   = document.getElementById('save-btn');
 
-      btn.textContent = 'Saving…';
-      btn.disabled = true;
+    errEl.style.display = 'none';
 
-      try {
-        await saveProfile(user.uid, {
-          uid: user.uid, email: user.email,
-          name, phone, university,
-          country: countryVal,
-          countryDisplay: co
+    if (!name || !phone || !country || country.startsWith('—') || !university || !city) {
+      errEl.textContent = 'Please fill in name, phone, country, university and city.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    btn.textContent = 'Saving…';
+    btn.disabled = true;
+
+    try {
+      await saveProfile(user.uid, {
+        uid: user.uid,
+        email: user.email,
+        name,
+        phone,
+        university,
+        country: countryVal,
+        countryDisplay: country,
+        city,
+        photoURL,
+        course,
+        year,
+        createdAt: Date.now()
+      });
+
+      btn.textContent = 'Saved! Redirecting…';
+
+      setTimeout(() => {
+        window.location.href = 'home.html';
+      }, 900);
+
+    } catch (err) {
+      errEl.textContent = 'Failed to save profile. Try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Save & Continue';
+      btn.disabled = false;
+    }
+  };
+</script>
