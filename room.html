@@ -156,7 +156,7 @@
 
       // Text info
       document.getElementById('room-title').textContent = room.title;
-      document.getElementById('room-price').textContent = `$${room.price}`;
+      document.getElementById('room-price').textContent = `₦${Number(room.price).toLocaleString()}`;
       document.getElementById('room-desc').textContent = room.description || 'No description provided.';
 
       const badge = document.getElementById('room-type-badge');
