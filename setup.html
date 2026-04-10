@@ -4,7 +4,6 @@
 
   onAuth((user) => { if (!user) window.location.href = 'login.html'; });
 
-  // ── COUNTRY LIST ───────────────────────────────────────────
   const COUNTRIES = [
     "Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia",
     "Austria","Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Benin",
@@ -30,6 +29,16 @@
     "United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
   ];
 
+  const UNIVERSITIES = {
+    Nigeria: ["University of Lagos","University of Ibadan","Covenant University","Other (type below)"],
+    Ghana: ["University of Ghana","KNUST","Other (type below)"],
+    Kenya: ["University of Nairobi","Other (type below)"],
+    South Africa: ["University of Cape Town","Other (type below)"],
+    United Kingdom: ["University of Oxford","Other (type below)"],
+    United States: ["Harvard University","Other (type below)"],
+    Canada: ["University of Toronto","Other (type below)"]
+  };
+
   const countryEl = document.getElementById('country');
 
   COUNTRIES.forEach(c => {
@@ -39,7 +48,7 @@
     countryEl.appendChild(opt);
   });
 
-  window.onCountryChange = function() {
+  window.onCountryChange = function () {
     const country = countryEl.options[countryEl.selectedIndex].text;
     const uniGroup  = document.getElementById('uni-group');
     const uniSelect = document.getElementById('uni-select');
@@ -57,7 +66,10 @@
     uniGroup.style.display = 'block';
 
     const unis = UNIVERSITIES[country];
-    if (unis && unis.length > 0) {
+
+    if (unis) {
+      uniSelect.style.display = 'block';
+
       unis.forEach(u => {
         const opt = document.createElement('option');
         opt.value = u;
@@ -65,18 +77,17 @@
         uniSelect.appendChild(opt);
       });
 
-      uniSelect.style.display = 'block';
-      uniSelect.onchange = function() {
-        uniOther.style.display = this.value === 'Other (type below)' ? 'block' : 'none';
+      uniSelect.onchange = () => {
+        uniOther.style.display =
+          uniSelect.value === 'Other (type below)' ? 'block' : 'none';
       };
     } else {
       uniSelect.style.display = 'none';
       uniOther.style.display = 'block';
-      uniOther.placeholder = `Type your university in ${country}…`;
     }
   };
 
-  window.handlePhotoSelect = async function(input) {
+  window.handlePhotoSelect = async function (input) {
     const file = input.files[0];
     if (!file) return;
 
@@ -97,51 +108,43 @@
       document.getElementById('photoURL').value = url;
       statusEl.textContent = '✅ Photo uploaded!';
     } catch (err) {
-      statusEl.textContent = '⚠️ Upload failed — check Cloudinary config in upload.js';
-      document.getElementById('photoURL').value = '';
+      statusEl.textContent = 'Upload failed';
     }
   };
 
-  window.handleSave = async () => {
-    const name     = document.getElementById('name').value.trim();
-    const phone    = document.getElementById('phone').value.trim();
+  window.handleSave = async function () {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const city = document.getElementById('city').value.trim();
+    const photoURL = document.getElementById('photoURL').value.trim();
+    const course = document.getElementById('course').value.trim();
+    const year = document.getElementById('year').value;
+
     const countryOpt = countryEl.options[countryEl.selectedIndex];
-    const country  = countryOpt ? countryOpt.text : '';
-    const countryVal = countryOpt ? countryOpt.value : '';
+    const country = countryOpt?.text || '';
+    const countryVal = countryOpt?.value || '';
 
     const uniSelect = document.getElementById('uni-select');
-    const uniOther  = document.getElementById('uni-other');
+    const uniOther = document.getElementById('uni-other');
 
-    let university = '';
-    if (uniSelect.style.display !== 'none' &&
-        uniSelect.value &&
-        uniSelect.value !== 'Other (type below)') {
-      university = uniSelect.value;
-    } else {
-      university = uniOther.value.trim();
-    }
-
-    const city     = document.getElementById('city').value.trim();
-    const photoURL = document.getElementById('photoURL').value.trim();
-    const course   = document.getElementById('course').value.trim();
-    const year     = document.getElementById('year').value;
+    const university =
+      uniSelect.value && uniSelect.value !== 'Other (type below)'
+        ? uniSelect.value
+        : uniOther.value.trim();
 
     const errEl = document.getElementById('error-msg');
-    const btn   = document.getElementById('save-btn');
+    const btn = document.getElementById('save-btn');
 
     errEl.style.display = 'none';
 
-    if (!name || !phone || !country || country.startsWith('—') || !university || !city) {
-      errEl.textContent = 'Please fill in name, phone, country, university and city.';
+    if (!name || !phone || !country || !university || !city) {
+      errEl.textContent = 'Please fill all required fields';
       errEl.style.display = 'block';
       return;
     }
 
     const user = auth.currentUser;
-    if (!user) {
-      window.location.href = 'login.html';
-      return;
-    }
+    if (!user) return (window.location.href = 'login.html');
 
     btn.textContent = 'Saving…';
     btn.disabled = true;
@@ -169,10 +172,10 @@
       }, 900);
 
     } catch (err) {
-      errEl.textContent = 'Failed to save profile. Try again.';
+      errEl.textContent = 'Failed to save profile';
       errEl.style.display = 'block';
-      btn.textContent = 'Save & Continue';
       btn.disabled = false;
+      btn.textContent = 'Save & Continue';
     }
   };
 </script>
