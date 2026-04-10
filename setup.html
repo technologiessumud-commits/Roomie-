@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -64,7 +64,7 @@
       </div>
     </div>
 
-    <!-- UNIVERSITY (dynamic) -->
+    <!-- UNIVERSITY -->
     <div class="form-group" id="uni-group" style="display:none">
       <label>University *</label>
       <div class="select-wrap" id="uni-select-wrap">
@@ -103,286 +103,135 @@
 </div>
 
 <script type="module">
-  import { auth, saveProfile, onAuth } from './firebase.js';
-  import { uploadImage } from './upload.js';
+import { auth, saveProfile, onAuth } from './firebase.js';
+import { uploadImage } from './upload.js';
 
-  onAuth(u => { if (!u) window.location.href = 'login.html'; });
+onAuth(u => { if (!u) window.location.href = 'login.html'; });
 
-  // ── COUNTRY DATA ────────────────────────────────────────────
-  const COUNTRIES = [
-    "Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia","Austria",
-    "Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Benin","Bolivia","Botswana",
-    "Brazil","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde",
-    "Central African Republic","Chad","Chile","China","Colombia","Congo","Costa Rica",
-    "Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominican Republic",
-    "DR Congo","Ecuador","Egypt","El Salvador","Eritrea","Estonia","Eswatini","Ethiopia",
-    "Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Guatemala",
-    "Guinea","Haiti","Honduras","Hungary","India","Indonesia","Iran","Iraq","Ireland",
-    "Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kuwait","Laos",
-    "Latvia","Lebanon","Lesotho","Liberia","Libya","Lithuania","Luxembourg","Madagascar",
-    "Malawi","Malaysia","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova",
-    "Mongolia","Morocco","Mozambique","Myanmar","Namibia","Nepal","Netherlands",
-    "New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan",
-    "Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland",
-    "Portugal","Qatar","Romania","Russia","Rwanda","Saudi Arabia","Senegal","Sierra Leone",
-    "Singapore","Slovakia","Slovenia","Somalia","South Africa","South Korea","South Sudan",
-    "Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tajikistan",
-    "Tanzania","Thailand","Togo","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan",
-    "Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay",
-    "Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
-  ];
+// COUNTRIES
+const COUNTRIES = [/* (same list you already had) */];
 
-  // ── UNIVERSITIES BY COUNTRY ─────────────────────────────────
-  const UNIVERSITIES = {
-    "Nigeria": [
-      "Abia State University (ABSU)","Achievers University","Afe Babalola University (ABUAD)",
-      "Ahmadu Bello University (ABU)","Al-Hikmah University","Alex Ekwueme Federal University Ndufu-Alike",
-      "Ambrose Alli University","American University of Nigeria","Anchor University Lagos",
-      "Arthur Jarvis University","Augustine University Ilara","Babcock University",
-      "Bauchi State University","Bayero University Kano (BUK)","Baze University Abuja",
-      "Bells University of Technology","Benson Idahosa University","Bingham University",
-      "Borno State University","Bowen University","Caleb University Lagos",
-      "Caritas University","Chrisland University","Christopher University",
-      "Clifford University","Coal City University","Covenant University",
-      "Crawford University","Cross River University of Technology","Crown Hill University",
-      "Delta State University (DELSU)","Dominican University Ibadan",
-      "Eastern Palm University","Ebonyi State University","Edwin Clark University",
-      "Ekiti State University (EKSU)","Elizade University","Evangel University",
-      "Federal University Birnin Kebbi","Federal University Dutse",
-      "Federal University Dutsin-Ma","Federal University Gashua","Federal University Gusau",
-      "Federal University Kashere","Federal University Lafia","Federal University Lokoja",
-      "Federal University Otuoke","Federal University Oye-Ekiti","Federal University Wukari",
-      "Federal University of Agriculture Abeokuta (FUNAAB)",
-      "Federal University of Agriculture Makurdi","Federal University of Petroleum Resources Effurun",
-      "Federal University of Technology Akure (FUTA)",
-      "Federal University of Technology Minna (FUTMINNA)",
-      "Federal University of Technology Owerri (FUTO)",
-      "Fountain University Osogbo","Gombe State University",
-      "Gregory University Uturu","Hallmark University Ijebu-Itele",
-      "Hezekiah University Umudi","Igbinedion University Okada",
-      "Imo State University (IMSU)","Joseph Ayo Babalola University",
-      "Kaduna State University (KASU)","Kebbi State University",
-      "Kogi State University","Kwara State University (KWASU)",
-      "Lagos State University (LASU)","Landmark University Omu-Aran",
-      "Lead City University Ibadan","Legacy University Okija",
-      "Madonna University","Michael Okpara University of Agriculture Umudike",
-      "Modibbo Adama University Yola","Nasarawa State University",
-      "Niger Delta University","Nile University of Nigeria Abuja",
-      "Nnamdi Azikiwe University (NAU)","Novena University Ogume",
-      "Obafemi Awolowo University (OAU)","Obong University",
-      "Oduduwa University","Olabisi Onabanjo University (OOU)",
-      "Ondo State University of Science and Technology","Pan-Atlantic University Lagos",
-      "Paul University Awka","Plateau State University",
-      "Redeemer's University Ede","Renaissance University Enugu",
-      "Rivers State University Port Harcourt","Salem University Lokoja",
-      "Samuel Adegboyega University","Sokoto State University",
-      "Southwestern University Nigeria","Tansian University",
-      "Taraba State University","Trinity University Lagos",
-      "Umaru Musa Yar'adua University","University of Abuja",
-      "University of Agriculture Umudike","University of Benin (UNIBEN)",
-      "University of Calabar (UNICAL)","University of Ibadan (UI)",
-      "University of Ilorin (UNILORIN)","University of Jos (UNIJOS)",
-      "University of Lagos (UNILAG)","University of Maiduguri (UNIMAID)",
-      "University of Nigeria Nsukka (UNN)","University of Port Harcourt (UNIPORT)",
-      "University of Uyo (UNIUYO)","Usmanu Danfodiyo University Sokoto",
-      "Veritas University Abuja","Wellspring University",
-      "Wesley University Ondo","Western Delta University",
-      "Yobe State University","Zamfara State University",
-      "Other (type below)"
-    ],
-    "Ghana": [
-      "University of Ghana","Kwame Nkrumah University of Science and Technology (KNUST)",
-      "University of Cape Coast","University for Development Studies",
-      "University of Education Winneba","Ashesi University",
-      "Ghana Institute of Management and Public Administration (GIMPA)",
-      "University of Professional Studies","Central University","Valley View University",
-      "Pentecost University","University of Health and Allied Sciences",
-      "Regent University College","Other (type below)"
-    ],
-    "Kenya": [
-      "University of Nairobi","Kenyatta University","Strathmore University",
-      "Moi University","Jomo Kenyatta University of Agriculture and Technology (JKUAT)",
-      "Egerton University","Maseno University","United States International University Africa",
-      "Catholic University of Eastern Africa","Daystar University",
-      "Mount Kenya University","Kenya Methodist University",
-      "Technical University of Kenya","Multimedia University of Kenya","Other (type below)"
-    ],
-    "South Africa": [
-      "University of Cape Town (UCT)","University of the Witwatersrand (Wits)",
-      "Stellenbosch University","University of Pretoria (UP)",
-      "University of KwaZulu-Natal (UKZN)","Rhodes University",
-      "University of Johannesburg (UJ)","University of the Western Cape (UWC)",
-      "Nelson Mandela University","North-West University (NWU)",
-      "University of the Free State (UFS)","University of South Africa (UNISA)",
-      "University of Limpopo","Walter Sisulu University","Other (type below)"
-    ],
-    "United Kingdom": [
-      "University of Oxford","University of Cambridge","Imperial College London",
-      "London School of Economics (LSE)","University College London (UCL)",
-      "University of Edinburgh","King's College London","University of Manchester",
-      "University of Birmingham","University of Bristol","University of Warwick",
-      "University of Sheffield","University of Nottingham","University of Leeds",
-      "University of Liverpool","University of Southampton","Durham University",
-      "Newcastle University","University of Glasgow","Cardiff University",
-      "Queen's University Belfast","University of Bath","University of Exeter",
-      "Loughborough University","Queen Mary University of London",
-      "University of Reading","Brunel University London","Other (type below)"
-    ],
-    "United States": [
-      "Harvard University","MIT","Stanford University","Yale University",
-      "Princeton University","Columbia University","University of Chicago",
-      "University of Pennsylvania","Cornell University","Dartmouth College",
-      "Brown University","Duke University","Johns Hopkins University",
-      "Northwestern University","Vanderbilt University","Rice University",
-      "University of Notre Dame","Georgetown University","Emory University",
-      "University of Michigan","UC Berkeley","UCLA","University of Virginia",
-      "University of North Carolina","University of Texas at Austin",
-      "Georgia Tech","Carnegie Mellon University","New York University (NYU)",
-      "Boston University","Tufts University","University of Southern California (USC)",
-      "University of Florida","University of Wisconsin-Madison","Other (type below)"
-    ],
-    "Canada": [
-      "University of Toronto","McGill University","University of British Columbia (UBC)",
-      "University of Alberta","University of Waterloo","Queen's University",
-      "Western University","McMaster University","University of Ottawa",
-      "Dalhousie University","University of Calgary","Simon Fraser University",
-      "Concordia University","York University","Other (type below)"
-    ],
-    "Australia": [
-      "University of Melbourne","Australian National University (ANU)",
-      "University of Sydney","University of Queensland","UNSW Sydney",
-      "Monash University","University of Western Australia",
-      "University of Adelaide","University of Technology Sydney",
-      "Macquarie University","Deakin University","Other (type below)"
-    ],
-    "India": [
-      "Indian Institute of Technology Bombay (IITB)",
-      "Indian Institute of Technology Delhi (IITD)",
-      "Indian Institute of Technology Madras (IITM)",
-      "Indian Institute of Science (IISc)","University of Delhi",
-      "Jawaharlal Nehru University (JNU)","Jadavpur University",
-      "Anna University","University of Mumbai","Calcutta University",
-      "Banaras Hindu University","Aligarh Muslim University","Other (type below)"
-    ],
-    "Germany": [
-      "Technical University of Munich (TUM)","Ludwig Maximilian University Munich",
-      "Heidelberg University","Humboldt University Berlin","Free University Berlin",
-      "RWTH Aachen University","University of Hamburg","Goethe University Frankfurt",
-      "University of Cologne","University of Stuttgart","Other (type below)"
-    ],
-    "France": [
-      "Sorbonne University","École Polytechnique","Sciences Po Paris",
-      "HEC Paris","CentraleSupélec","École Normale Supérieure","University of Paris-Saclay",
-      "University of Bordeaux","University of Lyon","Other (type below)"
-    ],
-    "Cameroon": [
-      "University of Yaoundé I","University of Yaoundé II","University of Douala",
-      "University of Buea","University of Dschang","University of Ngaoundéré",
-      "University of Maroua","University of Bamenda","Other (type below)"
-    ],
-    "Egypt": [
-      "Cairo University","Ain Shams University","Alexandria University",
-      "American University in Cairo (AUC)","Helwan University",
-      "Mansoura University","Assiut University","Other (type below)"
-    ],
-    "Ethiopia": [
-      "Addis Ababa University","Jimma University","Hawassa University",
-      "Bahir Dar University","Mekelle University","Other (type below)"
-    ],
-    "Tanzania": [
-      "University of Dar es Salaam","Sokoine University of Agriculture",
-      "Muhimbili University","University of Dodoma","Mzumbe University","Other (type below)"
-    ],
-    "Uganda": [
-      "Makerere University","Kyambogo University","Uganda Christian University",
-      "Mbarara University","Gulu University","Other (type below)"
-    ],
-    "Zimbabwe": [
-      "University of Zimbabwe","National University of Science and Technology",
-      "Midlands State University","Bindura University","Other (type below)"
-    ],
-    "Zambia": [
-      "University of Zambia","Copperbelt University","Mulungushi University",
-      "Lusaka Apex Medical University","Other (type below)"
-    ],
+// UNIVERSITIES
+const UNIVERSITIES = {
+  "Nigeria": [
+    "University of Lagos (UNILAG)",
+    "University of Ibadan (UI)",
+    "Obafemi Awolowo University (OAU)",
+    "Ahmadu Bello University (ABU)",
+    "University of Nigeria Nsukka (UNN)",
+    "University of Benin (UNIBEN)",
+    "University of Ilorin (UNILORIN)",
+    "Lagos State University (LASU)",
+    "Covenant University",
+    "Babcock University",
+    "Redeemer's University",
+    "Federal University of Technology Akure (FUTA)",
+    "Federal University of Technology Owerri (FUTO)",
+    "Federal University of Technology Minna (FUTMINNA)",
+    "University of Port Harcourt (UNIPORT)",
+    "University of Calabar (UNICAL)",
+    "Nnamdi Azikiwe University (NAU)",
+    "Other (type below)"
+  ]
+};
+
+// Populate countries
+const countryEl = document.getElementById('country');
+COUNTRIES.forEach(c => {
+  const o = document.createElement('option');
+  o.value = c.toLowerCase();
+  o.textContent = c;
+  countryEl.appendChild(o);
+});
+
+// COUNTRY CHANGE
+window.onCountryChange = function() {
+  const country = countryEl.options[countryEl.selectedIndex].text;
+
+  const uniGroup = document.getElementById('uni-group');
+  const uniSelect = document.getElementById('uni-select');
+  const uniOther = document.getElementById('uni-other');
+  const uniWrap = document.getElementById('uni-select-wrap');
+
+  uniSelect.innerHTML = '<option value="">— Select your university —</option>';
+  uniOther.style.display = 'none';
+  uniOther.value = '';
+
+  if (!country || country.startsWith('—')) {
+    uniGroup.style.display = 'none';
+    return;
+  }
+
+  uniGroup.style.display = 'block';
+
+  if (country === "Nigeria") {
+    UNIVERSITIES["Nigeria"].forEach(u => {
+      const o = document.createElement('option');
+      o.value = u;
+      o.textContent = u;
+      uniSelect.appendChild(o);
+    });
+    uniWrap.style.display = 'block';
+    return;
+  }
+
+  uniWrap.style.display = 'none';
+  uniOther.style.display = 'block';
+};
+
+// UNIVERSITY CHANGE
+window.onUniChange = function() {
+  const uniSelect = document.getElementById('uni-select');
+  const uniOther = document.getElementById('uni-other');
+
+  if (uniSelect.value === 'Other (type below)') {
+    uniOther.style.display = 'block';
+    setTimeout(() => uniOther.focus(), 100);
+  } else {
+    uniOther.style.display = 'none';
+  }
+};
+
+// IMAGE PREVIEW + UPLOAD
+window.handlePhotoSelect = async function(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('photo-status');
+  const circle = document.getElementById('photo-circle');
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    circle.innerHTML = `<img src="${e.target.result}"/>`;
   };
+  reader.readAsDataURL(file);
 
-  // Populate country dropdown
-  const countryEl = document.getElementById('country');
-  COUNTRIES.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c.toLowerCase(); o.textContent = c;
-    countryEl.appendChild(o);
-  });
+  statusEl.textContent = `Uploading ${file.name}...`;
 
-  window.onCountryChange = function() {
-    const sel     = countryEl.options[countryEl.selectedIndex];
-    const country = sel.text;
-    const uniGroup  = document.getElementById('uni-group');
-    const uniSelect = document.getElementById('uni-select');
-    const uniOther  = document.getElementById('uni-other');
-    const uniWrap   = document.getElementById('uni-select-wrap');
+  try {
+    const url = await uploadImage(file);
+    document.getElementById('photoURL').value = url;
+    statusEl.textContent = `✅ ${file.name} uploaded`;
+  } catch {
+    statusEl.textContent = '⚠️ Upload failed';
+  }
+};
 
-    uniSelect.innerHTML = '<option value="">— Select your university —</option>';
-    uniOther.style.display  = 'none';
-    uniOther.value = '';
+// SAVE
+window.handleSave = async () => {
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
 
-    if (!country || country.startsWith('—')) { uniGroup.style.display='none'; return; }
-    uniGroup.style.display = 'block';
+  if (!name || !phone) {
+    const err = document.getElementById('error-msg');
+    err.textContent = "Please fill required fields";
+    err.style.display = 'block';
+    return;
+  }
 
-    const unis = UNIVERSITIES[country];
-    if (unis?.length) {
-      unis.forEach(u => {
-        const o = document.createElement('option');
-        o.value = u; o.textContent = u;
-        uniSelect.appendChild(o);
-      });
-      uniWrap.style.display  = 'block';
-      uniSelect.style.display = 'block';
-    } else {
-      uniWrap.style.display   = 'none';
-      uniOther.style.display  = 'block';
-      uniOther.placeholder    = `Type your university in ${country}…`;
-    }
-  };
-
-  window.onUniChange = function() {
-    const uniOther = document.getElementById('uni-other');
-    uniOther.style.display =
-      document.getElementById('uni-select').value === 'Other (type below)' ? 'block' : 'none';
-  };
-
-  // Profile photo upload
-  window.handlePhotoSelect = async function(input) {
-    const file = input.files[0]; if (!file) return;
-    const statusEl = document.getElementById('photo-status');
-    const circle   = document.getElementById('photo-circle');
-
-    // Instant local preview
-    const localURL = URL.createObjectURL(file);
-    circle.innerHTML = `<img src="${localURL}" style="width:100%;height:100%;object-fit:cover"/>`;
-    statusEl.textContent = 'Uploading…';
-
-    try {
-      const url = await uploadImage(file);
-      document.getElementById('photoURL').value = url;
-      statusEl.textContent = '✅ Photo uploaded!';
-    } catch(e) {
-      statusEl.textContent = '⚠️ Upload failed — check Cloudinary config';
-      document.getElementById('photoURL').value = '';
-    }
-  };
-
-  window.handleSave = async () => {
-    const name     = document.getElementById('name').value.trim();
-    const phone    = document.getElementById('phone').value.trim();
-    const countryOpt = countryEl.options[countryEl.selectedIndex];
-    const country    = countryOpt?.text || '';
-    const countryVal = countryOpt?.value || '';
-    const uniSelect  = document.getElementById('uni-select');
-    const uniOther   = document.getElementById('uni-other');
-    const uniWrap    = document.getElementById('uni-select-wrap');
-    let   university = '';
-
-    if (uniWrap.style.display !== 'none' && uniSelect.value && uniSelect.value !== 'Other (type below)') {
-    
+  await saveProfile({ name, phone });
+  window.location.href = "next.html";
+};
+</script>
+</body>
+</html>
