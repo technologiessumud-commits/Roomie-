@@ -169,7 +169,7 @@
                 <div style="font-weight:600;font-size:14px">${escHtml(r.title)}</div>
                 <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location || '—')}</div>
               </div>
-              <span class="card-price">$${r.price}</span>
+              <span class="card-price">₦${Number(r.price).toLocaleString()}</span>
             </div>
           </div>`).join('');
       }
@@ -192,5 +192,4 @@
     }
   </script>
 </body>
-  </html>
-  
+</html>
