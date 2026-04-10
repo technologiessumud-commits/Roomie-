@@ -172,4 +172,3 @@ export async function handleSocialRedirect() {
     console.error('Social redirect error:', err);
   }
 }
-  
