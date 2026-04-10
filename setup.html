@@ -1,237 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Roomie – Set Up Profile</title>
-  <link rel="stylesheet" href="style.css"/>
-  <style>
-    .select-wrap { position:relative; }
-    .select-wrap select { appearance:none; -webkit-appearance:none; padding-right:40px; cursor:pointer; }
-    .select-wrap::after {
-      content:''; position:absolute; right:14px; top:50%; transform:translateY(-50%);
-      border:5px solid transparent; border-top-color:var(--muted); margin-top:3px; pointer-events:none;
-    }
-    .photo-preview-circle {
-      width:72px; height:72px; border-radius:50%;
-      background:var(--card); border:2px dashed var(--border);
-      display:flex; align-items:center; justify-content:center;
-      font-size:1.8rem; overflow:hidden; flex-shrink:0; cursor:pointer;
-    }
-    .photo-preview-circle img { width:100%; height:100%; object-fit:cover; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Roomie – Set Up Profile</title>
+
+<style>
+.select-wrap { position:relative; }
+.select-wrap select { appearance:none; -webkit-appearance:none; padding-right:40px; cursor:pointer; }
+.select-wrap::after {
+  content:''; position:absolute; right:14px; top:50%; transform:translateY(-50%);
+  border:5px solid transparent; border-top-color:#888; margin-top:3px;
+}
+.photo-preview-circle {
+  width:72px;height:72px;border-radius:50%;
+  border:2px dashed #ccc;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;cursor:pointer;
+}
+.photo-preview-circle img { width:100%;height:100%;object-fit:cover; }
+</style>
 </head>
+
 <body>
-<div class="page-full">
-  <div style="max-width:480px;margin:0 auto;width:100%;padding-bottom:40px">
 
-    <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px">One last step 🎉</div>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:28px">Set up your profile so others can get to know you.</p>
+<div style="max-width:480px;margin:auto">
 
-    <!-- PROFILE PHOTO -->
-    <div class="form-group">
-      <label>Profile photo <span style="color:var(--muted)">(optional)</span></label>
-      <div style="display:flex;align-items:center;gap:14px">
-        <div class="photo-preview-circle" id="photo-circle" onclick="document.getElementById('photo-file').click()">👤</div>
-        <div>
-          <label for="photo-file" style="display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:9px 16px;cursor:pointer;font-size:14px;font-weight:500;margin-bottom:0">
-            📷 Choose photo
-          </label>
-          <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhotoSelect(this)"/>
-          <p class="form-hint" id="photo-status" style="margin-top:6px">Tap to upload a profile picture</p>
-        </div>
-      </div>
-      <input type="hidden" id="photoURL"/>
-    </div>
+<h2>One last step 🎉</h2>
 
-    <div class="form-group">
-      <label>Full name *</label>
-      <input type="text" id="name" placeholder="e.g. Emeka Johnson"/>
-    </div>
-
-    <div class="form-group">
-      <label>Phone number *</label>
-      <input type="tel" id="phone" placeholder="+234 800 000 0000"/>
-    </div>
-
-    <!-- COUNTRY -->
-    <div class="form-group">
-      <label>Country *</label>
-      <div class="select-wrap">
-        <select id="country" onchange="onCountryChange()">
-          <option value="">— Select your country —</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- UNIVERSITY -->
-    <div class="form-group" id="uni-group" style="display:none">
-      <label>University *</label>
-      <div class="select-wrap" id="uni-select-wrap">
-        <select id="uni-select" onchange="onUniChange()">
-          <option value="">— Select your university —</option>
-        </select>
-      </div>
-      <input type="text" id="uni-other" placeholder="Type your university name…" style="display:none;margin-top:8px"/>
-    </div>
-
-    <div class="form-group">
-      <label>City / State *</label>
-      <input type="text" id="city" placeholder="e.g. Lagos"/>
-    </div>
-
-    <div class="form-group">
-      <label>Course / Department <span style="color:var(--muted)">(optional)</span></label>
-      <input type="text" id="course" placeholder="e.g. Computer Science"/>
-    </div>
-
-    <div class="form-group">
-      <label>Year of study <span style="color:var(--muted)">(optional)</span></label>
-      <div class="select-wrap">
-        <select id="year">
-          <option value="">Select year</option>
-          <option>1st year</option><option>2nd year</option>
-          <option>3rd year</option><option>4th year</option>
-          <option>Postgraduate</option>
-        </select>
-      </div>
-    </div>
-
-    <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px"></p>
-    <button class="btn btn-primary" id="save-btn" onclick="handleSave()">Save &amp; Continue</button>
-  </div>
+<!-- PHOTO -->
+<div>
+  <div class="photo-preview-circle" id="photo-circle" onclick="document.getElementById('photo-file').click()">👤</div>
+  <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhotoSelect(this)">
+  <p id="photo-status">Upload a profile picture</p>
 </div>
 
-<script type="module">
-import { auth, saveProfile, onAuth } from './firebase.js';
-import { uploadImage } from './upload.js';
+<input id="name" placeholder="Full name"><br><br>
+<input id="phone" placeholder="Phone"><br><br>
 
-onAuth(u => { if (!u) window.location.href = 'login.html'; });
+<!-- COUNTRY -->
+<select id="country" onchange="onCountryChange()">
+<option value="">Select country</option>
+</select>
 
-// COUNTRIES
-const COUNTRIES = [/* (same list you already had) */];
+<!-- UNIVERSITY -->
+<div id="uni-group" style="display:none;margin-top:10px">
+<select id="uni-select" onchange="onUniChange()"></select>
+<input id="uni-other" placeholder="Type university" style="display:none;margin-top:5px">
+</div>
 
-// UNIVERSITIES
+<script>
+
+// FULL COUNTRIES
+const COUNTRIES = [
+"Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria",
+"Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin",
+"Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso",
+"Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile",
+"China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic",
+"Denmark","Djibouti","Dominica","Dominican Republic","DR Congo","Ecuador","Egypt","El Salvador",
+"Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon",
+"Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau",
+"Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland",
+"Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan",
+"Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg",
+"Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania",
+"Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco",
+"Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger",
+"Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama",
+"Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia",
+"Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent","Samoa","San Marino",
+"Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone",
+"Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea",
+"South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan",
+"Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia",
+"Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom",
+"United States","Uruguay","Uzbekistan","Vanuatu","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
+];
+
+// MASSIVE NIGERIA LIST
 const UNIVERSITIES = {
-  "Nigeria": [
-    "University of Lagos (UNILAG)",
-    "University of Ibadan (UI)",
-    "Obafemi Awolowo University (OAU)",
-    "Ahmadu Bello University (ABU)",
-    "University of Nigeria Nsukka (UNN)",
-    "University of Benin (UNIBEN)",
-    "University of Ilorin (UNILORIN)",
-    "Lagos State University (LASU)",
-    "Covenant University",
-    "Babcock University",
-    "Redeemer's University",
-    "Federal University of Technology Akure (FUTA)",
-    "Federal University of Technology Owerri (FUTO)",
-    "Federal University of Technology Minna (FUTMINNA)",
-    "University of Port Harcourt (UNIPORT)",
-    "University of Calabar (UNICAL)",
-    "Nnamdi Azikiwe University (NAU)",
-    "Other (type below)"
-  ]
+"Nigeria": [
+"University of Lagos (UNILAG)",
+"University of Ibadan (UI)",
+"Obafemi Awolowo University (OAU)",
+"Ahmadu Bello University (ABU)",
+"University of Nigeria Nsukka (UNN)",
+"University of Benin (UNIBEN)",
+"University of Ilorin (UNILORIN)",
+"University of Port Harcourt (UNIPORT)",
+"University of Calabar (UNICAL)",
+"Nnamdi Azikiwe University (NAU)",
+"Lagos State University (LASU)",
+"Delta State University (DELSU)",
+"Ekiti State University (EKSU)",
+"Imo State University (IMSU)",
+"Kaduna State University (KASU)",
+"Kwara State University (KWASU)",
+"Nasarawa State University",
+"Rivers State University",
+"Ambrose Alli University",
+"Olabisi Onabanjo University (OOU)",
+"Bayero University Kano (BUK)",
+"Federal University of Technology Akure (FUTA)",
+"Federal University of Technology Owerri (FUTO)",
+"Federal University of Technology Minna (FUTMINNA)",
+"Federal University Lokoja",
+"Federal University Lafia",
+"Federal University Dutse",
+"Federal University Dutsin-Ma",
+"Federal University Kashere",
+"Federal University Gusau",
+"Federal University Oye-Ekiti",
+"Federal University Wukari",
+"Federal University Gashua",
+"Federal University Birnin Kebbi",
+"Covenant University",
+"Babcock University",
+"Redeemer's University",
+"Bowen University",
+"Caleb University",
+"Pan-Atlantic University",
+"Lead City University",
+"American University of Nigeria",
+"Baze University",
+"Nile University of Nigeria",
+"Other (type below)"
+]
 };
 
-// Populate countries
-const countryEl = document.getElementById('country');
-COUNTRIES.forEach(c => {
-  const o = document.createElement('option');
-  o.value = c.toLowerCase();
-  o.textContent = c;
-  countryEl.appendChild(o);
+// populate countries
+const countryEl = document.getElementById("country");
+COUNTRIES.forEach(c=>{
+let o=document.createElement("option");
+o.textContent=c;
+countryEl.appendChild(o);
 });
 
-// COUNTRY CHANGE
-window.onCountryChange = function() {
-  const country = countryEl.options[countryEl.selectedIndex].text;
+// country change
+function onCountryChange(){
+let c=countryEl.value;
+let group=document.getElementById("uni-group");
+let select=document.getElementById("uni-select");
+let other=document.getElementById("uni-other");
 
-  const uniGroup = document.getElementById('uni-group');
-  const uniSelect = document.getElementById('uni-select');
-  const uniOther = document.getElementById('uni-other');
-  const uniWrap = document.getElementById('uni-select-wrap');
+select.innerHTML="";
+other.style.display="none";
 
-  uniSelect.innerHTML = '<option value="">— Select your university —</option>';
-  uniOther.style.display = 'none';
-  uniOther.value = '';
+if(!c){group.style.display="none";return;}
 
-  if (!country || country.startsWith('—')) {
-    uniGroup.style.display = 'none';
-    return;
-  }
+group.style.display="block";
 
-  uniGroup.style.display = 'block';
+if(c==="Nigeria"){
+UNIVERSITIES["Nigeria"].forEach(u=>{
+let o=document.createElement("option");
+o.textContent=u;
+select.appendChild(o);
+});
+}else{
+select.style.display="none";
+other.style.display="block";
+}
+}
 
-  if (country === "Nigeria") {
-    UNIVERSITIES["Nigeria"].forEach(u => {
-      const o = document.createElement('option');
-      o.value = u;
-      o.textContent = u;
-      uniSelect.appendChild(o);
-    });
-    uniWrap.style.display = 'block';
-    return;
-  }
+// uni change
+function onUniChange(){
+let select=document.getElementById("uni-select");
+let other=document.getElementById("uni-other");
 
-  uniWrap.style.display = 'none';
-  uniOther.style.display = 'block';
+if(select.value==="Other (type below)"){
+other.style.display="block";
+}else{
+other.style.display="none";
+}
+}
+
+// image preview
+function handlePhotoSelect(input){
+let file=input.files[0];
+if(!file)return;
+
+let circle=document.getElementById("photo-circle");
+let reader=new FileReader();
+
+reader.onload=e=>{
+circle.innerHTML=`<img src="${e.target.result}">`;
 };
 
-// UNIVERSITY CHANGE
-window.onUniChange = function() {
-  const uniSelect = document.getElementById('uni-select');
-  const uniOther = document.getElementById('uni-other');
+reader.readAsDataURL(file);
 
-  if (uniSelect.value === 'Other (type below)') {
-    uniOther.style.display = 'block';
-    setTimeout(() => uniOther.focus(), 100);
-  } else {
-    uniOther.style.display = 'none';
-  }
-};
+document.getElementById("photo-status").innerText=file.name;
+}
 
-// IMAGE PREVIEW + UPLOAD
-window.handlePhotoSelect = async function(input) {
-  const file = input.files[0];
-  if (!file) return;
-
-  const statusEl = document.getElementById('photo-status');
-  const circle = document.getElementById('photo-circle');
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    circle.innerHTML = `<img src="${e.target.result}"/>`;
-  };
-  reader.readAsDataURL(file);
-
-  statusEl.textContent = `Uploading ${file.name}...`;
-
-  try {
-    const url = await uploadImage(file);
-    document.getElementById('photoURL').value = url;
-    statusEl.textContent = `✅ ${file.name} uploaded`;
-  } catch {
-    statusEl.textContent = '⚠️ Upload failed';
-  }
-};
-
-// SAVE
-window.handleSave = async () => {
-  const name = document.getElementById('name').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-
-  if (!name || !phone) {
-    const err = document.getElementById('error-msg');
-    err.textContent = "Please fill required fields";
-    err.style.display = 'block';
-    return;
-  }
-
-  await saveProfile({ name, phone });
-  window.location.href = "next.html";
-};
 </script>
+
 </body>
 </html>
