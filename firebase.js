@@ -127,4 +127,4 @@ export async function requireAuth(redirectToSetup = true) {
       resolve(user);
     });
   });
-}
+      }
