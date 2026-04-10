@@ -5,6 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roomie – List a Room</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    .upload-area:hover, .upload-area.drag-over {
+      border-color: var(--accent);
+      background: rgba(255,107,53,.05);
+    }
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .preview-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--card);
+    }
+    .preview-item img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .preview-remove {
+      position: absolute; top: 4px; right: 4px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(0,0,0,.7); color: #fff;
+      border: none; font-size: 12px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+    .upload-progress {
+      height: 4px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden;
+    }
+    .upload-progress-bar {
+      height: 100%; background: var(--accent); border-radius: 2px;
+      transition: width .3s; width: 0%;
+    }
+  </style>
 </head>
 <body>
 
@@ -17,18 +66,17 @@
   </div>
 
   <div class="container page">
-    <p style="color:var(--muted);font-size:14px;margin-bottom:24px">
-      Fill in the details below. Use image URLs (paste from Imgur, Google Drive, etc).
-    </p>
 
     <div class="form-group">
       <label>Room title *</label>
       <input type="text" id="title" placeholder="e.g. Cozy Self-con near UNILAG" />
     </div>
+
     <div class="form-group">
       <label>Location / Address *</label>
       <input type="text" id="location" placeholder="e.g. Akoka, Lagos" />
     </div>
+
     <div class="form-row">
       <div class="form-group">
         <label>Monthly price (₦) *</label>
@@ -46,15 +94,32 @@
         </select>
       </div>
     </div>
+
     <div class="form-group">
       <label>Description *</label>
       <textarea id="description" placeholder="Describe the room: size, amenities, rules, nearby landmarks…"></textarea>
     </div>
+
+    <!-- PHOTO UPLOAD -->
     <div class="form-group">
-      <label>Image URLs (one per line)</label>
-      <textarea id="imageURLs" rows="4" placeholder="https://i.imgur.com/your-photo.jpg&#10;https://example.com/room2.jpg"></textarea>
-      <p class="form-hint">Paste direct image links. Up to 6 photos.</p>
+      <label>Room Photos (up to 6)</label>
+      <div class="upload-area" id="upload-area">
+        <input type="file" id="photo-input" accept="image/*" multiple onchange="handleFileSelect(this.files)" />
+        <div id="upload-placeholder">
+          <div style="font-size:2rem;margin-bottom:8px">📷</div>
+          <div style="font-weight:600;font-size:15px">Tap to upload photos</div>
+          <div style="color:var(--muted);font-size:13px;margin-top:4px">JPG, PNG, WEBP — up to 6 photos</div>
+        </div>
+      </div>
+      <!-- Preview grid -->
+      <div class="preview-grid" id="preview-grid"></div>
+      <!-- Progress bar -->
+      <div class="upload-progress" id="upload-progress" style="display:none">
+        <div class="upload-progress-bar" id="upload-progress-bar"></div>
+      </div>
+      <p id="upload-status" style="font-size:13px;color:var(--muted);margin-top:6px"></p>
     </div>
+
     <div class="form-group">
       <label>Your WhatsApp number *</label>
       <input type="tel" id="whatsapp" placeholder="+234 800 000 0000" />
@@ -90,8 +155,61 @@
 
   <script type="module">
     import { requireAuth, postRoom, getProfile } from './firebase.js';
+    import { uploadImages } from './upload.js';
 
     const user = await requireAuth();
+    let selectedFiles = [];
+
+    // ── Drag & drop support ───────────────────────────────────
+    const uploadArea = document.getElementById('upload-area');
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('drag-over');
+      handleFileSelect(e.dataTransfer.files);
+    });
+
+    window.handleFileSelect = function(files) {
+      const allowed = Array.from(files).slice(0, 6 - selectedFiles.length);
+      allowed.forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+        selectedFiles.push(file);
+        addPreview(file, selectedFiles.length - 1);
+      });
+      updatePlaceholder();
+    };
+
+    function addPreview(file, index) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const grid = document.getElementById('preview-grid');
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        item.id = `preview-${index}`;
+        item.innerHTML = `
+          <img src="${e.target.result}" alt="preview" />
+          <button class="preview-remove" onclick="removePhoto(${index})">✕</button>`;
+        grid.appendChild(item);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.removePhoto = function(index) {
+      selectedFiles.splice(index, 1);
+      // Rebuild previews
+      const grid = document.getElementById('preview-grid');
+      grid.innerHTML = '';
+      selectedFiles.forEach((file, i) => addPreview(file, i));
+      updatePlaceholder();
+    };
+
+    function updatePlaceholder() {
+      const ph = document.getElementById('upload-placeholder');
+      ph.style.display = selectedFiles.length === 0 ? 'block' : 'none';
+      document.getElementById('upload-status').textContent =
+        selectedFiles.length > 0 ? `${selectedFiles.length} photo${selectedFiles.length > 1 ? 's' : ''} selected` : '';
+    }
 
     window.handlePost = async () => {
       const title    = document.getElementById('title').value.trim();
@@ -99,7 +217,6 @@
       const price    = parseFloat(document.getElementById('price').value);
       const type     = document.getElementById('type').value;
       const desc     = document.getElementById('description').value.trim();
-      const urlsRaw  = document.getElementById('imageURLs').value.trim();
       const whatsapp = document.getElementById('whatsapp').value.trim();
       const errEl    = document.getElementById('error-msg');
       const btn      = document.getElementById('post-btn');
@@ -111,14 +228,36 @@
         errEl.style.display = 'block'; return;
       }
 
-      const imageURLs = urlsRaw
-        ? urlsRaw.split('\n').map(u => u.trim()).filter(Boolean).slice(0, 6)
-        : [];
+      btn.textContent = 'Uploading photos…';
+      btn.disabled = true;
 
-      const profile = await getProfile(user.uid);
+      let imageURLs = [];
+
+      // Upload photos if any selected
+      if (selectedFiles.length > 0) {
+        const progressWrap = document.getElementById('upload-progress');
+        const progressBar  = document.getElementById('upload-progress-bar');
+        const statusEl     = document.getElementById('upload-status');
+        progressWrap.style.display = 'block';
+
+        try {
+          imageURLs = await uploadImages(selectedFiles, (done, total) => {
+            const pct = Math.round((done / total) * 100);
+            progressBar.style.width = pct + '%';
+            statusEl.textContent = `Uploading ${done} of ${total}…`;
+          });
+          statusEl.textContent = '✅ Photos uploaded!';
+        } catch (err) {
+          errEl.textContent = '⚠️ Photo upload failed. Check your Cloudinary config in upload.js.';
+          errEl.style.display = 'block';
+          btn.textContent = '🏠 Post Room';
+          btn.disabled = false;
+          return;
+        }
+      }
 
       btn.textContent = 'Posting…';
-      btn.disabled = true;
+      const profile = await getProfile(user.uid);
 
       try {
         const ref = await postRoom({
