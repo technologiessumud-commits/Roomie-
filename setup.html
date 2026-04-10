@@ -19,15 +19,30 @@
 
       <div class="form-group">
         <label>Full name</label>
-        <input type="text" id="name" placeholder="e.g. Alex Johnson" />
+        <input type="text" id="name" placeholder="e.g. Emeka Johnson" />
       </div>
       <div class="form-group">
         <label>Phone number</label>
-        <input type="tel" id="phone" placeholder="+1 555 000 0000" />
+        <input type="tel" id="phone" placeholder="+234 800 000 0000" />
       </div>
       <div class="form-group">
         <label>University / College</label>
-        <input type="text" id="university" placeholder="e.g. University of Lagos" />
+        <input type="text" id="university" placeholder="e.g. University of Lagos" oninput="suggestUniversity(this.value)" />
+        <div id="uni-suggestions" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:4px;display:none;max-height:180px;overflow-y:auto;z-index:10;position:relative"></div>
+      </div>
+      <div class="form-group">
+        <label>Country</label>
+        <input type="text" id="country" placeholder="e.g. Nigeria" />
+        <p class="form-hint">Used to show you rooms & roommates from your country.</p>
+      </div>
+      <div class="form-group">
+        <label>City / State</label>
+        <input type="text" id="city" placeholder="e.g. Lagos" />
+      </div>
+      <div class="form-group">
+        <label>Profile photo URL <span style="color:var(--muted)">(optional)</span></label>
+        <input type="url" id="photoURL" placeholder="https://i.imgur.com/yourphoto.jpg" />
+        <p class="form-hint">Paste a direct image link. Shows on your profile and roommate card.</p>
       </div>
       <div class="form-group">
         <label>Course / Department <span style="color:var(--muted)">(optional)</span></label>
@@ -45,7 +60,7 @@
         </select>
       </div>
 
-      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none"></p>
+      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px"></p>
 
       <button class="btn btn-primary" id="save-btn" onclick="handleSave()">
         Save &amp; Continue
@@ -56,24 +71,52 @@
   <script type="module">
     import { auth, saveProfile, onAuth } from './firebase.js';
 
-    // Ensure user is logged in
-    onAuth((user) => {
-      if (!user) window.location.href = 'login.html';
-    });
+    onAuth((user) => { if (!user) window.location.href = 'login.html'; });
+
+    // Basic university suggestions (Nigerian universities as default)
+    const universities = [
+      'University of Lagos','University of Ibadan','Obafemi Awolowo University',
+      'University of Nigeria Nsukka','Ahmadu Bello University','University of Benin',
+      'Lagos State University','Covenant University','Babcock University',
+      'Pan-Atlantic University','Redeemer\'s University','Landmark University',
+      'University of Abuja','Federal University of Technology Minna',
+      'Nnamdi Azikiwe University','University of Port Harcourt',
+      'Harvard University','MIT','Stanford University','Oxford University',
+      'Cambridge University','Yale University','Princeton University',
+    ];
+
+    window.suggestUniversity = function(val) {
+      const box = document.getElementById('uni-suggestions');
+      if (!val || val.length < 2) { box.style.display = 'none'; return; }
+      const matches = universities.filter(u => u.toLowerCase().includes(val.toLowerCase())).slice(0, 5);
+      if (matches.length === 0) { box.style.display = 'none'; return; }
+      box.style.display = 'block';
+      box.innerHTML = matches.map(u =>
+        `<div onclick="selectUni('${u.replace(/'/g,"\\'")}')}" style="padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border)" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background=''">${u}</div>`
+      ).join('');
+    };
+
+    window.selectUni = function(name) {
+      document.getElementById('university').value = name;
+      document.getElementById('uni-suggestions').style.display = 'none';
+    };
 
     window.handleSave = async () => {
-      const name       = document.getElementById('name').value.trim();
-      const phone      = document.getElementById('phone').value.trim();
+      const name     = document.getElementById('name').value.trim();
+      const phone    = document.getElementById('phone').value.trim();
       const university = document.getElementById('university').value.trim();
-      const course     = document.getElementById('course').value.trim();
-      const year       = document.getElementById('year').value;
-      const errEl      = document.getElementById('error-msg');
-      const btn        = document.getElementById('save-btn');
+      const country  = document.getElementById('country').value.trim();
+      const city     = document.getElementById('city').value.trim();
+      const photoURL = document.getElementById('photoURL').value.trim();
+      const course   = document.getElementById('course').value.trim();
+      const year     = document.getElementById('year').value;
+      const errEl    = document.getElementById('error-msg');
+      const btn      = document.getElementById('save-btn');
 
       errEl.style.display = 'none';
 
-      if (!name || !phone || !university) {
-        errEl.textContent = 'Please fill in name, phone, and university.';
+      if (!name || !phone || !university || !country || !city) {
+        errEl.textContent = 'Please fill in name, phone, university, country and city.';
         errEl.style.display = 'block'; return;
       }
 
@@ -85,9 +128,11 @@
 
       try {
         await saveProfile(user.uid, {
-          uid: user.uid,
-          email: user.email,
-          name, phone, university, course, year,
+          uid: user.uid, email: user.email,
+          name, phone, university,
+          country: country.toLowerCase().trim(),
+          city: city.toLowerCase().trim(),
+          photoURL, course, year,
           createdAt: new Date().toISOString()
         });
         window.location.href = 'home.html';
@@ -101,3 +146,4 @@
   </script>
 </body>
 </html>
+vut
