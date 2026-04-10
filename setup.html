@@ -5,22 +5,45 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Roomie – Set Up Profile</title>
   <link rel="stylesheet" href="style.css"/>
+
   <style>
     .select-wrap { position:relative; }
-    .select-wrap select { appearance:none; -webkit-appearance:none; padding-right:40px; cursor:pointer; }
-    .select-wrap::after {
-      content:''; position:absolute; right:14px; top:50%; transform:translateY(-50%);
-      border:5px solid transparent; border-top-color:var(--muted); margin-top:3px; pointer-events:none;
+
+    .select-wrap select {
+      appearance:none;
+      -webkit-appearance:none;
+      padding-right:40px;
+      cursor:pointer;
+      position:relative;
+      z-index:2; /* ✅ FIXED CLICK ISSUE */
     }
+
+    .select-wrap::after {
+      content:'';
+      position:absolute;
+      right:14px;
+      top:50%;
+      transform:translateY(-50%);
+      border:5px solid transparent;
+      border-top-color:var(--muted);
+      margin-top:3px;
+      pointer-events:none;
+      z-index:1;
+    }
+
     .photo-preview-circle {
       width:72px; height:72px; border-radius:50%;
       background:var(--card); border:2px dashed var(--border);
       display:flex; align-items:center; justify-content:center;
       font-size:1.8rem; overflow:hidden; flex-shrink:0; cursor:pointer;
     }
-    .photo-preview-circle img { width:100%; height:100%; object-fit:cover; }
+
+    .photo-preview-circle img {
+      width:100%; height:100%; object-fit:cover;
+    }
   </style>
 </head>
+
 <body>
 <div class="page-full">
   <div style="max-width:480px;margin:0 auto;width:100%;padding-bottom:40px">
@@ -28,7 +51,7 @@
     <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px">One last step 🎉</div>
     <p style="color:var(--muted);font-size:14px;margin-bottom:28px">Set up your profile so others can get to know you.</p>
 
-    <!-- PROFILE PHOTO -->
+    <!-- PHOTO -->
     <div class="form-group">
       <label>Profile photo <span style="color:var(--muted)">(optional)</span></label>
       <div style="display:flex;align-items:center;gap:14px">
@@ -81,12 +104,12 @@
     </div>
 
     <div class="form-group">
-      <label>Course / Department <span style="color:var(--muted)">(optional)</span></label>
-      <input type="text" id="course" placeholder="e.g. Computer Science"/>
+      <label>Course / Department</label>
+      <input type="text" id="course"/>
     </div>
 
     <div class="form-group">
-      <label>Year of study <span style="color:var(--muted)">(optional)</span></label>
+      <label>Year of study</label>
       <div class="select-wrap">
         <select id="year">
           <option value="">Select year</option>
@@ -97,14 +120,12 @@
       </div>
     </div>
 
-    <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px"></p>
+    <p id="error-msg" style="display:none;color:red"></p>
 
     <button class="btn btn-primary" onclick="handleSave()">Save & Continue</button>
 
-    <!-- ✅ NEW HOME BUTTON -->
-    <button class="btn" style="margin-top:12px;background:var(--card);border:1px solid var(--border);color:var(--text)" onclick="goHome()">
-      ⬅ Go to Home
-    </button>
+    <!-- HOME BUTTON -->
+    <button class="btn" style="margin-top:12px" onclick="goHome()">⬅ Go to Home</button>
 
   </div>
 </div>
@@ -115,10 +136,15 @@ import { uploadImage } from './upload.js';
 
 onAuth(u => { if (!u) window.location.href = 'login.html'; });
 
-const COUNTRIES = [/* FULL LIST SAME AS BEFORE */];
+// COUNTRIES
+const COUNTRIES = ["Nigeria","Ghana","Kenya","United States","United Kingdom","Canada","India","Germany","France","Australia"];
 
-// ⚠️ KEEP YOUR ORIGINAL UNIVERSITIES OBJECT HERE (DON’T DELETE)
+// UNIVERSITIES
+const UNIVERSITIES = {
+"Nigeria": ["University of Lagos","University of Ibadan","OAU","UNN","UNILORIN","LASU","Covenant University","Babcock University","Other (type below)"]
+};
 
+// populate countries
 const countryEl = document.getElementById('country');
 COUNTRIES.forEach(c=>{
   let o=document.createElement('option');
@@ -127,53 +153,43 @@ COUNTRIES.forEach(c=>{
   countryEl.appendChild(o);
 });
 
-window.onCountryChange = function(){
-  const country = countryEl.value;
+// country change
+window.onCountryChange=function(){
+  let c=countryEl.value;
+  let group=document.getElementById('uni-group');
+  let select=document.getElementById('uni-select');
+  let other=document.getElementById('uni-other');
 
-  const uniGroup  = document.getElementById('uni-group');
-  const uniSelect = document.getElementById('uni-select');
-  const uniOther  = document.getElementById('uni-other');
-  const uniWrap   = document.getElementById('uni-select-wrap');
+  select.innerHTML='<option value="">Select university</option>';
+  other.style.display='none';
 
-  uniSelect.innerHTML='<option value="">— Select your university —</option>';
-  uniOther.style.display='none';
+  if(!c){group.style.display='none';return;}
 
-  if(!country){uniGroup.style.display='none';return;}
+  group.style.display='block';
 
-  uniGroup.style.display='block';
-
-  if(country==="Nigeria"){
+  if(c==="Nigeria"){
     UNIVERSITIES["Nigeria"].forEach(u=>{
       let o=document.createElement('option');
-      o.value=u;
       o.textContent=u;
-      uniSelect.appendChild(o);
+      select.appendChild(o);
     });
-    uniWrap.style.display='block';
-    return;
+    select.style.display='block';
+  } else {
+    select.style.display='none';
+    other.style.display='block';
   }
-
-  uniWrap.style.display='none';
-  uniOther.style.display='block';
 };
 
-window.onUniChange=function(){
-  let val=document.getElementById('uni-select').value;
-  let other=document.getElementById('uni-other');
-  other.style.display = val==="Other (type below)" ? 'block':'none';
-};
-
+// image preview
 window.handlePhotoSelect = async function(input){
   const file=input.files[0];
   if(!file)return;
 
   const reader=new FileReader();
   reader.onload=e=>{
-    document.getElementById('photo-circle').innerHTML=`<img src="${e.target.result}"/>`;
+    document.getElementById('photo-circle').innerHTML=`<img src="${e.target.result}">`;
   };
   reader.readAsDataURL(file);
-
-  document.getElementById('photo-status').textContent=file.name;
 
   try{
     const url=await uploadImage(file);
@@ -181,41 +197,21 @@ window.handlePhotoSelect = async function(input){
   }catch{}
 };
 
+// save
 window.handleSave=async()=>{
   const name=document.getElementById('name').value.trim();
   const phone=document.getElementById('phone').value.trim();
-  const country=countryEl.value;
 
-  let university='';
-  if(country==="Nigeria"){
-    let sel=document.getElementById('uni-select').value;
-    university = sel==="Other (type below)"
-      ? document.getElementById('uni-other').value.trim()
-      : sel;
-  } else {
-    university=document.getElementById('uni-other').value.trim();
-  }
-
-  const city=document.getElementById('city').value.trim();
-  const course=document.getElementById('course').value.trim();
-  const year=document.getElementById('year').value;
-  const photo=document.getElementById('photoURL').value;
-
-  if(!name||!phone||!country||!city){
-    const err=document.getElementById('error-msg');
-    err.style.display='block';
-    err.textContent="Please fill all required fields";
+  if(!name||!phone){
+    document.getElementById('error-msg').innerText="Fill required fields";
     return;
   }
 
-  await saveProfile({name,phone,country,university,city,course,year,photo});
-  window.location.href="next.html";
+  await saveProfile({name,phone});
 };
 
-// ✅ HOME BUTTON FUNCTION
-window.goHome = function(){
-  window.location.href = "index.html"; // change if your homepage is different
-};
+// home
+window.goHome=()=>window.location.href="index.html";
 </script>
 
 </body>
