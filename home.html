@@ -14,7 +14,7 @@
   </div>
 
   <div class="hero-section">
-    <div class="hero-eyebrow">👋 Welcome back</div>
+    <div class="hero-eyebrow" id="hero-eyebrow">👋 Welcome back</div>
     <h2 class="hero-title" id="hero-greeting">Find your <span>next room</span></h2>
     <p class="hero-sub" id="hero-sub">Browse rooms near your campus</p>
   </div>
@@ -27,18 +27,24 @@
     </div>
   </div>
 
-  <!-- FILTER ROW -->
+  <!-- SCOPE FILTER -->
   <div class="filter-row">
-    <button class="filter-chip active" id="chip-country" onclick="setScopeFilter('country', this)">🇳🇬 My Country</button>
-    <button class="filter-chip" id="chip-all" onclick="setScopeFilter('all', this)">🌍 All Listings</button>
-    <button class="filter-chip" onclick="setPriceFilter(0, this)">All prices</button>
+    <button class="filter-chip active" id="chip-uni" onclick="setScopeFilter('uni', this)">🎓 My University</button>
+    <button class="filter-chip" id="chip-country" onclick="setScopeFilter('country', this)">🌍 My Country</button>
+    <button class="filter-chip" id="chip-all" onclick="setScopeFilter('all', this)">🌐 All Schools</button>
+  </div>
+
+  <!-- PRICE FILTER -->
+  <div class="filter-row" style="padding-top:0">
+    <button class="filter-chip active" id="price-any" onclick="setPriceFilter(0, this)">Any price</button>
     <button class="filter-chip" onclick="setPriceFilter(50000, this)">Under ₦50k</button>
     <button class="filter-chip" onclick="setPriceFilter(100000, this)">Under ₦100k</button>
     <button class="filter-chip" onclick="setPriceFilter(200000, this)">Under ₦200k</button>
+    <button class="filter-chip" onclick="setPriceFilter(500000, this)">Under ₦500k</button>
   </div>
 
   <div class="section-header">
-    <span class="section-title">Available Rooms</span>
+    <span class="section-title" id="section-label">My University</span>
     <span id="room-count" class="text-muted" style="font-size:13px"></span>
   </div>
 
@@ -51,8 +57,8 @@
 
   <div id="empty-state" class="empty-state" style="display:none">
     <div class="empty-icon">🏠</div>
-    <div class="empty-title">No rooms found</div>
-    <p class="empty-sub" id="empty-sub-text">Try switching to "All Listings" or adjust your filters</p>
+    <div class="empty-title" id="empty-title">No rooms at your university yet</div>
+    <p class="empty-sub" id="empty-sub">Be the first to post, or switch to "My Country" or "All Schools" to see more listings.</p>
     <a href="list-room.html" class="btn btn-primary btn-sm mt-16">Post the first room</a>
   </div>
 
@@ -82,25 +88,29 @@
   <script type="module">
     import { requireAuth, getRooms, getProfile } from './firebase.js';
 
-    let allRooms = [];
-    let maxPrice = 0;
-    let scopeFilter = 'country';
-    let userProfile = null;
+    let allRooms     = [];
+    let maxPrice     = 0;
+    let scopeFilter  = 'uni';   // default: same university only
+    let userProfile  = null;
 
     const user = await requireAuth();
     userProfile = await getProfile(user.uid);
 
     if (userProfile) {
       const firstName = userProfile.name.split(' ')[0];
-      document.getElementById('hero-greeting').innerHTML = `Hey, <span style="color:var(--accent)">${firstName}</span> 👋`;
-      document.getElementById('hero-sub').textContent = `Rooms near ${userProfile.university}`;
+      document.getElementById('hero-greeting').innerHTML =
+        `Hey, <span style="color:var(--accent)">${firstName}</span> 👋`;
+      document.getElementById('hero-sub').textContent =
+        `Showing rooms at ${userProfile.university}`;
       document.getElementById('avatar-btn').textContent = firstName[0].toUpperCase();
 
-      // Update country chip label
-      const countryChip = document.getElementById('chip-country');
-      if (userProfile.country) {
-        countryChip.textContent = `🏫 ${capitalize(userProfile.country)}`;
-      }
+      // Label the university chip with their actual uni name (truncated)
+      const uniName = userProfile.university.length > 20
+        ? userProfile.university.split(' ').slice(0,3).join(' ') + '…'
+        : userProfile.university;
+      document.getElementById('chip-uni').textContent = `🎓 ${uniName}`;
+      document.getElementById('chip-country').textContent =
+        `🌍 ${userProfile.countryDisplay || capitalize(userProfile.country)}`;
     }
 
     async function loadRooms() {
@@ -117,33 +127,53 @@
     function renderRooms(rooms) {
       const container = document.getElementById('rooms-container');
       const empty     = document.getElementById('empty-state');
-      document.getElementById('room-count').textContent = `${rooms.length} listing${rooms.length !== 1 ? 's' : ''}`;
+      document.getElementById('room-count').textContent =
+        `${rooms.length} listing${rooms.length !== 1 ? 's' : ''}`;
 
       if (rooms.length === 0) {
         container.style.display = 'none';
         empty.style.display = 'flex';
+
+        // Update empty state message based on scope
+        if (scopeFilter === 'uni') {
+          document.getElementById('empty-title').textContent = 'No rooms at your university yet';
+          document.getElementById('empty-sub').textContent =
+            'Be the first to post, or switch to "My Country" or "All Schools" to see more.';
+        } else if (scopeFilter === 'country') {
+          document.getElementById('empty-title').textContent = 'No rooms in your country yet';
+          document.getElementById('empty-sub').textContent =
+            'Switch to "All Schools" to see listings worldwide.';
+        } else {
+          document.getElementById('empty-title').textContent = 'No rooms found';
+          document.getElementById('empty-sub').textContent = 'Try adjusting your search or filters.';
+        }
         return;
       }
+
       container.style.display = 'flex';
       empty.style.display = 'none';
 
       container.innerHTML = rooms.map(room => {
         const img = room.imageURLs && room.imageURLs.length > 0
-          ? `<img class="card-img" src="${room.imageURLs[0]}" alt="${room.title}" onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>📷 No image</div>'" />`
+          ? `<img class="card-img" src="${room.imageURLs[0]}" alt="${room.title}"
+               onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>📷 No image</div>'" />`
           : `<div class="card-img-placeholder">📷 No image</div>`;
 
-        // Same university badge
         const sameUni = userProfile && room.ownerUniversity &&
           room.ownerUniversity.toLowerCase() === userProfile.university.toLowerCase();
+
+        // Show university label only when viewing "all" or "country"
+        const uniLabel = (scopeFilter !== 'uni' && room.ownerUniversity)
+          ? `<div class="card-meta">🎓 ${escHtml(room.ownerUniversity)}</div>` : '';
 
         return `
           <div class="card" onclick="window.location.href='room.html?id=${room.id}'" style="cursor:pointer">
             ${img}
             <div class="card-body">
-              ${sameUni ? '<span class="card-tag" style="margin-bottom:8px">🎓 Same University</span>' : ''}
+              ${sameUni && scopeFilter !== 'uni' ? '<span class="card-tag" style="margin-bottom:8px;display:inline-block">🎓 Your University</span>' : ''}
               <div class="card-title">${escHtml(room.title)}</div>
               <div class="card-meta">📍 ${escHtml(room.location || 'Location not specified')}</div>
-              ${room.ownerUniversity ? `<div class="card-meta">🎓 ${escHtml(room.ownerUniversity)}</div>` : ''}
+              ${uniLabel}
               <div class="flex-between" style="margin-top:8px">
                 <span class="card-price">₦${Number(room.price).toLocaleString()}<span style="font-size:12px;font-weight:400;color:var(--muted)">/mo</span></span>
                 <span class="badge">View →</span>
@@ -155,18 +185,30 @@
 
     window.filterRooms = function() {
       const q = document.getElementById('search-input').value.toLowerCase();
+
       let filtered = allRooms.filter(r => {
-        const matchText  = r.title.toLowerCase().includes(q) || (r.location || '').toLowerCase().includes(q);
+        // Text search
+        const matchText = r.title.toLowerCase().includes(q)
+          || (r.location || '').toLowerCase().includes(q);
+
+        // Price filter
         const matchPrice = maxPrice === 0 || r.price <= maxPrice;
+
+        // Scope filter
         let matchScope = true;
-        if (scopeFilter === 'country' && userProfile) {
-          matchScope = r.ownerCountry && r.ownerCountry.toLowerCase() === userProfile.country.toLowerCase();
+        if (scopeFilter === 'uni' && userProfile) {
+          matchScope = r.ownerUniversity &&
+            r.ownerUniversity.toLowerCase() === userProfile.university.toLowerCase();
+        } else if (scopeFilter === 'country' && userProfile) {
+          matchScope = r.ownerCountry &&
+            r.ownerCountry.toLowerCase() === userProfile.country.toLowerCase();
         }
+
         return matchText && matchPrice && matchScope;
       });
 
-      // Sort: same university first
-      if (userProfile) {
+      // Always sort: same university first when in country/all view
+      if (userProfile && scopeFilter !== 'uni') {
         filtered.sort((a, b) => {
           const aMatch = (a.ownerUniversity || '').toLowerCase() === userProfile.university.toLowerCase();
           const bMatch = (b.ownerUniversity || '').toLowerCase() === userProfile.university.toLowerCase();
@@ -179,21 +221,36 @@
 
     window.setScopeFilter = function(scope, el) {
       scopeFilter = scope;
-      document.getElementById('chip-country').classList.toggle('active', scope === 'country');
-      document.getElementById('chip-all').classList.toggle('active', scope === 'all');
+      ['chip-uni','chip-country','chip-all'].forEach(id =>
+        document.getElementById(id).classList.remove('active')
+      );
+      el.classList.add('active');
+
+      const labels = { uni: 'My University', country: 'My Country', all: 'All Schools' };
+      document.getElementById('section-label').textContent = labels[scope];
+
+      // Update subtitle
+      if (userProfile) {
+        const subs = {
+          uni:     `Showing rooms at ${userProfile.university}`,
+          country: `Showing rooms in ${userProfile.countryDisplay || capitalize(userProfile.country)}`,
+          all:     'Showing all rooms worldwide'
+        };
+        document.getElementById('hero-sub').textContent = subs[scope];
+      }
+
       filterRooms();
     };
 
     window.setPriceFilter = function(price, el) {
       maxPrice = price;
-      document.querySelectorAll('.filter-chip').forEach(c => {
-        if (c.textContent.includes('₦') || c.textContent.includes('All prices')) c.classList.remove('active');
-      });
+      document.querySelectorAll('.filter-row:nth-child(2) .filter-chip')
+        .forEach(c => c.classList.remove('active'));
       el.classList.add('active');
       filterRooms();
     };
 
-    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+    function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
     function escHtml(str) {
       const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
@@ -208,4 +265,5 @@
     loadRooms();
   </script>
 </body>
-</html>
+  </html>
+  
