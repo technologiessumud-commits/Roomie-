@@ -42,6 +42,18 @@
       <!-- Type badge -->
       <div style="margin-top:12px" id="rm-badge"></div>
 
+      <!-- Status banner -->
+      <div id="rm-status-banner" style="display:none;align-items:center;gap:10px;padding:12px 16px;background:rgba(62,207,142,.12);color:var(--success);border-radius:var(--radius-sm);margin-top:12px;font-weight:600;font-size:14px">
+        ✅ Roommate has been found
+      </div>
+
+      <!-- Owner controls -->
+      <div id="rm-owner-controls" style="display:none;flex-direction:column;gap:10px;margin-top:16px">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Manage Listing</div>
+        <button class="btn btn-secondary" id="rm-status-btn" onclick="toggleRoommateStatus()">✅ Mark Roommate as Found</button>
+        <button class="btn" onclick="deleteRoomateListing()" style="background:transparent;color:var(--danger);border:1.5px solid var(--danger);display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:var(--radius-sm);font-family:'Syne',sans-serif;font-weight:600;cursor:pointer">🗑️ Delete Listing</button>
+      </div>
+
       <!-- Same uni badge -->
       <div id="same-uni-badge" style="display:none;margin-top:8px">
         <span class="card-tag">🎓 Same University as you</span>
@@ -72,7 +84,7 @@
   <div id="toast" class="toast"></div>
 
   <script type="module">
-    import { requireAuth, getRoommates, getUserRooms, getProfile } from './firebase.js';
+    import { requireAuth, getRoommates, getUserRooms, getProfile, updateRoommate, deleteRoommate } from './firebase.js';
 
     const user = await requireAuth();
     const userProfile = await getProfile(user.uid);
@@ -127,6 +139,16 @@
       document.getElementById('rm-badge').innerHTML =
         `<span class="card-tag ${isNeed ? 'need' : ''}">${isNeed ? '🔍 Looking for a Room' : '🏠 Has a Room Available'}</span>`;
 
+      // Owner controls
+      if (user.uid === item.uid) {
+        const ctrl = document.getElementById('rm-owner-controls');
+        ctrl.style.display = 'flex';
+        if (item.status === 'found') {
+          document.getElementById('rm-status-btn').textContent = '🔄 Mark as Still Looking';
+          document.getElementById('rm-status-banner').style.display = 'flex';
+        }
+      }
+
       // Same uni
       if (userProfile && item.ownerUniversity &&
           item.ownerUniversity.toLowerCase() === userProfile.university.toLowerCase()) {
@@ -175,6 +197,33 @@
       document.getElementById('action-bar').style.display = 'block';
     }
 
+    window.toggleRoommateStatus = async () => {
+      const newStatus = listing.status === 'found' ? 'active' : 'found';
+      try {
+        await updateRoommate(listingId, { status: newStatus });
+        listing.status = newStatus;
+        const btn = document.getElementById('rm-status-btn');
+        const banner = document.getElementById('rm-status-banner');
+        if (newStatus === 'found') {
+          btn.textContent = '🔄 Mark as Still Looking';
+          banner.style.display = 'flex';
+        } else {
+          btn.textContent = '✅ Mark Roommate as Found';
+          banner.style.display = 'none';
+        }
+        showToast(newStatus==='found'?'✅ Marked as found!':'🔄 Back to active','success');
+      } catch(e) { showToast('Failed to update','error'); }
+    };
+
+    window.deleteRoomateListing = async () => {
+      if (!confirm('Delete this listing?')) return;
+      try {
+        await deleteRoommate(listingId);
+        showToast('Listing deleted','success');
+        setTimeout(()=>window.location.href='roommate.html',1200);
+      } catch(e) { showToast('Failed to delete','error'); }
+    };
+
     function showDefaultBanner(el, item) {
       const isNeed = item.type === 'need';
       el.style.background = isNeed
@@ -194,4 +243,3 @@
   </script>
 </body>
 </html>
-
