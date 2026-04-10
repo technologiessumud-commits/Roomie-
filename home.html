@@ -8,13 +8,11 @@
 </head>
 <body>
 
-  <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-logo">Room<span>ie</span></div>
     <div id="avatar-btn" class="avatar" style="cursor:pointer" onclick="window.location.href='profile.html'">?</div>
   </div>
 
-  <!-- HERO -->
   <div class="hero-section">
     <div class="hero-eyebrow">👋 Welcome back</div>
     <h2 class="hero-title" id="hero-greeting">Find your <span>next room</span></h2>
@@ -31,42 +29,35 @@
 
   <!-- FILTER ROW -->
   <div class="filter-row">
-    <button class="filter-chip active" onclick="setPriceFilter(0, this)">All prices</button>
-    <button class="filter-chip" onclick="setPriceFilter(100, this)">Under $100</button>
-    <button class="filter-chip" onclick="setPriceFilter(200, this)">Under $200</button>
-    <button class="filter-chip" onclick="setPriceFilter(300, this)">Under $300</button>
-    <button class="filter-chip" onclick="setPriceFilter(500, this)">Under $500</button>
+    <button class="filter-chip active" id="chip-country" onclick="setScopeFilter('country', this)">🇳🇬 My Country</button>
+    <button class="filter-chip" id="chip-all" onclick="setScopeFilter('all', this)">🌍 All Listings</button>
+    <button class="filter-chip" onclick="setPriceFilter(0, this)">All prices</button>
+    <button class="filter-chip" onclick="setPriceFilter(50000, this)">Under ₦50k</button>
+    <button class="filter-chip" onclick="setPriceFilter(100000, this)">Under ₦100k</button>
+    <button class="filter-chip" onclick="setPriceFilter(200000, this)">Under ₦200k</button>
   </div>
 
-  <!-- ROOMS SECTION -->
   <div class="section-header">
     <span class="section-title">Available Rooms</span>
     <span id="room-count" class="text-muted" style="font-size:13px"></span>
   </div>
 
-  <!-- Loading skeletons -->
   <div id="skeleton-loader">
     <div class="skeleton skeleton-card"></div>
     <div class="skeleton skeleton-card"></div>
-    <div class="skeleton skeleton-text"></div>
-    <div class="skeleton skeleton-text short"></div>
   </div>
 
-  <!-- Rooms grid -->
   <div id="rooms-container" class="rooms-grid" style="display:none"></div>
 
-  <!-- Empty state -->
   <div id="empty-state" class="empty-state" style="display:none">
     <div class="empty-icon">🏠</div>
     <div class="empty-title">No rooms found</div>
-    <p class="empty-sub">Try adjusting your search or filters</p>
+    <p class="empty-sub" id="empty-sub-text">Try switching to "All Listings" or adjust your filters</p>
     <a href="list-room.html" class="btn btn-primary btn-sm mt-16">Post the first room</a>
   </div>
 
-  <!-- FAB: Post room -->
   <a href="list-room.html" class="fab" title="Post a room">+</a>
 
-  <!-- BOTTOM NAVBAR -->
   <nav class="navbar">
     <a href="home.html" class="nav-item active">
       <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -86,36 +77,39 @@
     </a>
   </nav>
 
-  <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
   <script type="module">
     import { requireAuth, getRooms, getProfile } from './firebase.js';
 
     let allRooms = [];
-    let maxPrice = 0; // 0 = no limit
+    let maxPrice = 0;
+    let scopeFilter = 'country';
+    let userProfile = null;
 
-    // Auth guard
     const user = await requireAuth();
+    userProfile = await getProfile(user.uid);
 
-    // Load greeting
-    const profile = await getProfile(user.uid);
-    if (profile) {
-      const firstName = profile.name.split(' ')[0];
+    if (userProfile) {
+      const firstName = userProfile.name.split(' ')[0];
       document.getElementById('hero-greeting').innerHTML = `Hey, <span style="color:var(--accent)">${firstName}</span> 👋`;
-      document.getElementById('hero-sub').textContent = `Find your next room near ${profile.university}`;
+      document.getElementById('hero-sub').textContent = `Rooms near ${userProfile.university}`;
       document.getElementById('avatar-btn').textContent = firstName[0].toUpperCase();
+
+      // Update country chip label
+      const countryChip = document.getElementById('chip-country');
+      if (userProfile.country) {
+        countryChip.textContent = `🏫 ${capitalize(userProfile.country)}`;
+      }
     }
 
-    // Load rooms
     async function loadRooms() {
       try {
         allRooms = await getRooms();
         document.getElementById('skeleton-loader').style.display = 'none';
         document.getElementById('rooms-container').style.display = 'flex';
-        renderRooms(allRooms);
+        filterRooms();
       } catch (err) {
-        console.error(err);
         showToast('Failed to load rooms', 'error');
       }
     }
@@ -123,16 +117,13 @@
     function renderRooms(rooms) {
       const container = document.getElementById('rooms-container');
       const empty     = document.getElementById('empty-state');
-      const countEl   = document.getElementById('room-count');
-
-      countEl.textContent = `${rooms.length} listing${rooms.length !== 1 ? 's' : ''}`;
+      document.getElementById('room-count').textContent = `${rooms.length} listing${rooms.length !== 1 ? 's' : ''}`;
 
       if (rooms.length === 0) {
         container.style.display = 'none';
         empty.style.display = 'flex';
         return;
       }
-
       container.style.display = 'flex';
       empty.style.display = 'none';
 
@@ -141,50 +132,76 @@
           ? `<img class="card-img" src="${room.imageURLs[0]}" alt="${room.title}" onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>📷 No image</div>'" />`
           : `<div class="card-img-placeholder">📷 No image</div>`;
 
+        // Same university badge
+        const sameUni = userProfile && room.ownerUniversity &&
+          room.ownerUniversity.toLowerCase() === userProfile.university.toLowerCase();
+
         return `
           <div class="card" onclick="window.location.href='room.html?id=${room.id}'" style="cursor:pointer">
             ${img}
             <div class="card-body">
+              ${sameUni ? '<span class="card-tag" style="margin-bottom:8px">🎓 Same University</span>' : ''}
               <div class="card-title">${escHtml(room.title)}</div>
               <div class="card-meta">📍 ${escHtml(room.location || 'Location not specified')}</div>
-              <div class="flex-between">
-                <span class="card-price">$${room.price}<span style="font-size:12px;font-weight:400;color:var(--muted)">/mo</span></span>
-                <span class="badge">View details →</span>
+              ${room.ownerUniversity ? `<div class="card-meta">🎓 ${escHtml(room.ownerUniversity)}</div>` : ''}
+              <div class="flex-between" style="margin-top:8px">
+                <span class="card-price">₦${Number(room.price).toLocaleString()}<span style="font-size:12px;font-weight:400;color:var(--muted)">/mo</span></span>
+                <span class="badge">View →</span>
               </div>
             </div>
           </div>`;
       }).join('');
     }
 
-    window.filterRooms = function () {
+    window.filterRooms = function() {
       const q = document.getElementById('search-input').value.toLowerCase();
-      const filtered = allRooms.filter(r => {
-        const matchText = r.title.toLowerCase().includes(q)
-          || (r.location || '').toLowerCase().includes(q)
-          || (r.description || '').toLowerCase().includes(q);
+      let filtered = allRooms.filter(r => {
+        const matchText  = r.title.toLowerCase().includes(q) || (r.location || '').toLowerCase().includes(q);
         const matchPrice = maxPrice === 0 || r.price <= maxPrice;
-        return matchText && matchPrice;
+        let matchScope = true;
+        if (scopeFilter === 'country' && userProfile) {
+          matchScope = r.ownerCountry && r.ownerCountry.toLowerCase() === userProfile.country.toLowerCase();
+        }
+        return matchText && matchPrice && matchScope;
       });
+
+      // Sort: same university first
+      if (userProfile) {
+        filtered.sort((a, b) => {
+          const aMatch = (a.ownerUniversity || '').toLowerCase() === userProfile.university.toLowerCase();
+          const bMatch = (b.ownerUniversity || '').toLowerCase() === userProfile.university.toLowerCase();
+          return bMatch - aMatch;
+        });
+      }
+
       renderRooms(filtered);
     };
 
-    window.setPriceFilter = function (price, el) {
+    window.setScopeFilter = function(scope, el) {
+      scopeFilter = scope;
+      document.getElementById('chip-country').classList.toggle('active', scope === 'country');
+      document.getElementById('chip-all').classList.toggle('active', scope === 'all');
+      filterRooms();
+    };
+
+    window.setPriceFilter = function(price, el) {
       maxPrice = price;
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.filter-chip').forEach(c => {
+        if (c.textContent.includes('₦') || c.textContent.includes('All prices')) c.classList.remove('active');
+      });
       el.classList.add('active');
       filterRooms();
     };
 
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
     function escHtml(str) {
-      const d = document.createElement('div');
-      d.textContent = str;
-      return d.innerHTML;
+      const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
     }
 
     function showToast(msg, type = '') {
       const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = `toast ${type} show`;
+      t.textContent = msg; t.className = `toast ${type} show`;
       setTimeout(() => t.classList.remove('show'), 3000);
     }
 
