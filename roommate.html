@@ -8,7 +8,6 @@
 </head>
 <body>
 
-  <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-logo">Room<span>ie</span></div>
     <button id="post-toggle-btn" onclick="togglePostForm()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;cursor:pointer">
@@ -16,10 +15,9 @@
     </button>
   </div>
 
-  <!-- POST FORM (hidden by default) -->
+  <!-- POST FORM -->
   <div id="post-form" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:20px">
     <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px">Post Roommate Listing</h3>
-
     <div class="form-group">
       <label>I am…</label>
       <select id="rm-type">
@@ -29,7 +27,7 @@
     </div>
     <div class="form-group">
       <label>Location / Area *</label>
-      <input type="text" id="rm-location" placeholder="e.g. Near University of Lagos" />
+      <input type="text" id="rm-location" placeholder="e.g. Near UNILAG, Akoka" />
     </div>
     <div class="form-group">
       <label>Description *</label>
@@ -37,40 +35,42 @@
     </div>
     <div class="form-group">
       <label>WhatsApp number *</label>
-      <input type="tel" id="rm-whatsapp" placeholder="+1 555 000 0000" />
+      <input type="tel" id="rm-whatsapp" placeholder="+234 800 000 0000" />
     </div>
-    <p id="rm-error" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none"></p>
+    <p id="rm-error" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px"></p>
     <div style="display:flex;gap:10px">
       <button class="btn btn-primary" id="rm-submit-btn" onclick="handlePostRoommate()">Post Listing</button>
       <button class="btn btn-secondary" onclick="togglePostForm()" style="width:auto;padding:14px 20px">Cancel</button>
     </div>
   </div>
 
-  <!-- FILTER TABS -->
-  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin:0">
-    <button id="tab-all"  class="tab-btn active" onclick="setTab('all')"  style="flex:1;padding:14px;background:none;border:none;color:var(--text);font-family:'Syne',sans-serif;font-weight:600;font-size:14px;border-bottom:2px solid var(--accent);cursor:pointer">All</button>
-    <button id="tab-need" class="tab-btn" onclick="setTab('need')" style="flex:1;padding:14px;background:none;border:none;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600;font-size:14px;border-bottom:2px solid transparent;cursor:pointer">Need Room</button>
-    <button id="tab-have" class="tab-btn" onclick="setTab('have')" style="flex:1;padding:14px;background:none;border:none;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600;font-size:14px;border-bottom:2px solid transparent;cursor:pointer">Have Room</button>
+  <!-- SCOPE + TAB FILTERS -->
+  <div style="padding:12px 20px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
+    <button class="filter-chip active" id="scope-country" onclick="setScopeFilter('country',this)">🏫 My Country</button>
+    <button class="filter-chip" id="scope-all" onclick="setScopeFilter('all',this)">🌍 All</button>
+  </div>
+
+  <div style="display:flex;border-bottom:1px solid var(--border);margin-top:8px">
+    <button id="tab-all"  onclick="setTab('all')"  style="flex:1;padding:14px;background:none;border:none;color:var(--text);font-family:'Syne',sans-serif;font-weight:600;font-size:14px;border-bottom:2px solid var(--accent);cursor:pointer">All</button>
+    <button id="tab-need" onclick="setTab('need')" style="flex:1;padding:14px;background:none;border:none;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600;font-size:14px;border-bottom:2px solid transparent;cursor:pointer">Need Room</button>
+    <button id="tab-have" onclick="setTab('have')" style="flex:1;padding:14px;background:none;border:none;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600;font-size:14px;border-bottom:2px solid transparent;cursor:pointer">Have Room</button>
   </div>
 
   <!-- LOADING -->
-  <div id="rm-skeleton" style="padding:20px">
-    <div class="skeleton" style="height:130px;border-radius:var(--radius);margin-bottom:12px"></div>
-    <div class="skeleton" style="height:130px;border-radius:var(--radius);margin-bottom:12px"></div>
+  <div id="rm-skeleton" style="padding:20px;display:flex;flex-direction:column;gap:12px">
+    <div class="skeleton" style="height:130px;border-radius:var(--radius)"></div>
+    <div class="skeleton" style="height:130px;border-radius:var(--radius)"></div>
     <div class="skeleton" style="height:130px;border-radius:var(--radius)"></div>
   </div>
 
-  <!-- LISTINGS -->
   <div id="rm-container" style="padding:16px 20px;display:none;flex-direction:column;gap:12px;padding-bottom:120px"></div>
 
-  <!-- EMPTY -->
   <div id="rm-empty" class="empty-state" style="display:none">
     <div class="empty-icon">👥</div>
-    <div class="empty-title">No listings yet</div>
-    <p class="empty-sub">Be the first to post a roommate listing!</p>
+    <div class="empty-title">No listings in your country yet</div>
+    <p class="empty-sub">Switch to "All" to see everyone, or be the first to post!</p>
   </div>
 
-  <!-- BOTTOM NAVBAR -->
   <nav class="navbar">
     <a href="home.html" class="nav-item">
       <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -93,22 +93,57 @@
   <div id="toast" class="toast"></div>
 
   <script type="module">
-    import { requireAuth, postRoommate, getRoommates } from './firebase.js';
+    import { requireAuth, postRoommate, getRoommates, getProfile } from './firebase.js';
 
     const user = await requireAuth();
+    const userProfile = await getProfile(user.uid);
+
     let allListings = [];
     let currentTab = 'all';
+    let scopeFilter = 'country';
 
-    // Load listings
+    // Update scope chip label
+    if (userProfile && userProfile.country) {
+      document.getElementById('scope-country').textContent =
+        '🏫 ' + userProfile.country.charAt(0).toUpperCase() + userProfile.country.slice(1);
+    }
+
     async function loadRoommates() {
       try {
         allListings = await getRoommates();
         document.getElementById('rm-skeleton').style.display = 'none';
         document.getElementById('rm-container').style.display = 'flex';
-        renderListings(allListings);
+        applyFilters();
       } catch (err) {
         showToast('Failed to load listings', 'error');
       }
+    }
+
+    function applyFilters() {
+      let filtered = allListings;
+
+      // Scope filter
+      if (scopeFilter === 'country' && userProfile && userProfile.country) {
+        filtered = filtered.filter(l =>
+          l.ownerCountry && l.ownerCountry.toLowerCase() === userProfile.country.toLowerCase()
+        );
+      }
+
+      // Tab filter
+      if (currentTab !== 'all') {
+        filtered = filtered.filter(l => l.type === currentTab);
+      }
+
+      // Sort: same university first
+      if (userProfile) {
+        filtered.sort((a, b) => {
+          const aMatch = (a.ownerUniversity || '').toLowerCase() === (userProfile.university || '').toLowerCase();
+          const bMatch = (b.ownerUniversity || '').toLowerCase() === (userProfile.university || '').toLowerCase();
+          return bMatch - aMatch;
+        });
+      }
+
+      renderListings(filtered);
     }
 
     function renderListings(list) {
@@ -124,28 +159,33 @@
       empty.style.display = 'none';
 
       container.innerHTML = list.map(item => {
-        const isNeed    = item.type === 'need';
-        const waClean   = item.whatsapp ? item.whatsapp.replace(/\D/g, '') : '';
-        const waMsg     = encodeURIComponent(`Hi! I saw your roommate listing on Roomie and I'm interested.`);
-        const waHref    = waClean ? `https://wa.me/${waClean}?text=${waMsg}` : `mailto:${item.email || ''}`;
-        const initial   = (item.ownerName || item.email || 'U')[0].toUpperCase();
+        const isNeed   = item.type === 'need';
+        const sameUni  = userProfile && item.ownerUniversity &&
+          item.ownerUniversity.toLowerCase() === userProfile.university.toLowerCase();
+        const photo    = item.ownerPhotoURL;
+        const initial  = (item.ownerName || item.email || 'U')[0].toUpperCase();
+
+        const avatarHtml = photo
+          ? `<img src="${photo}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.outerHTML='<div class=avatar style=width:48px;height:48px;font-size:.9rem>${initial}</div>'" />`
+          : `<div class="avatar" style="width:48px;height:48px;font-size:.9rem">${initial}</div>`;
 
         return `
-          <div class="card">
+          <div class="card" onclick="window.location.href='roommate-detail.html?id=${item.id}'" style="cursor:pointer">
             <div class="card-body">
-              <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
-                <div class="avatar" style="width:40px;height:40px;font-size:.9rem">${initial}</div>
-                <div style="flex:1">
-                  <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:flex-start;gap:12px">
+                ${avatarHtml}
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                     <span class="card-tag ${isNeed ? 'need' : ''}">${isNeed ? '🔍 Need Room' : '🏠 Have Room'}</span>
+                    ${sameUni ? '<span class="card-tag" style="background:rgba(255,107,53,.12);color:var(--accent)">🎓 Same Uni</span>' : ''}
                   </div>
-                  <div style="font-size:13px;color:var(--muted);margin-top:4px">📍 ${escHtml(item.location || 'Location not specified')}</div>
+                  <div style="font-weight:600;font-size:14px;margin-top:6px">${escHtml(item.ownerName || 'Anonymous')}</div>
+                  <div style="font-size:12px;color:var(--muted)">${escHtml(item.ownerUniversity || '')}</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px">📍 ${escHtml(item.location || 'Location not specified')}</div>
                 </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" style="flex-shrink:0;margin-top:4px"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
-              <p style="font-size:14px;color:var(--muted);margin-bottom:14px;line-height:1.6">${escHtml(item.description || '')}</p>
-              <button class="btn btn-whatsapp btn-sm" onclick="window.open('${waHref}','_blank')">
-                💬 Chat on WhatsApp
-              </button>
+              <p style="font-size:13px;color:var(--muted);margin-top:10px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(item.description || '')}</p>
             </div>
           </div>`;
       }).join('');
@@ -155,11 +195,17 @@
       currentTab = tab;
       ['all','need','have'].forEach(t => {
         const btn = document.getElementById(`tab-${t}`);
-        btn.style.color      = t === tab ? 'var(--text)' : 'var(--muted)';
+        btn.style.color       = t === tab ? 'var(--text)' : 'var(--muted)';
         btn.style.borderBottom = t === tab ? '2px solid var(--accent)' : '2px solid transparent';
       });
-      const filtered = tab === 'all' ? allListings : allListings.filter(l => l.type === tab);
-      renderListings(filtered);
+      applyFilters();
+    };
+
+    window.setScopeFilter = function(scope, el) {
+      scopeFilter = scope;
+      document.getElementById('scope-country').classList.toggle('active', scope === 'country');
+      document.getElementById('scope-all').classList.toggle('active', scope === 'all');
+      applyFilters();
     };
 
     window.togglePostForm = function() {
@@ -168,15 +214,14 @@
     };
 
     window.handlePostRoommate = async () => {
-      const type      = document.getElementById('rm-type').value;
-      const location  = document.getElementById('rm-location').value.trim();
-      const desc      = document.getElementById('rm-desc').value.trim();
-      const whatsapp  = document.getElementById('rm-whatsapp').value.trim();
-      const errEl     = document.getElementById('rm-error');
-      const btn       = document.getElementById('rm-submit-btn');
+      const type     = document.getElementById('rm-type').value;
+      const location = document.getElementById('rm-location').value.trim();
+      const desc     = document.getElementById('rm-desc').value.trim();
+      const whatsapp = document.getElementById('rm-whatsapp').value.trim();
+      const errEl    = document.getElementById('rm-error');
+      const btn      = document.getElementById('rm-submit-btn');
 
       errEl.style.display = 'none';
-
       if (!location || !desc || !whatsapp) {
         errEl.textContent = 'Please fill in all required fields.';
         errEl.style.display = 'block'; return;
@@ -188,13 +233,18 @@
       try {
         await postRoommate({
           type, location, description: desc, whatsapp,
-          uid: user.uid, email: user.email
+          uid:             user.uid,
+          email:           user.email,
+          ownerName:       userProfile ? userProfile.name : '',
+          ownerUniversity: userProfile ? userProfile.university : '',
+          ownerCountry:    userProfile ? userProfile.country : '',
+          ownerCity:       userProfile ? userProfile.city : '',
+          ownerPhotoURL:   userProfile ? (userProfile.photoURL || '') : '',
         });
         showToast('Listing posted! 🎉', 'success');
         togglePostForm();
-        // Reload
         allListings = await getRoommates();
-        renderListings(currentTab === 'all' ? allListings : allListings.filter(l => l.type === currentTab));
+        applyFilters();
       } catch (err) {
         errEl.textContent = 'Failed to post listing.';
         errEl.style.display = 'block';
@@ -205,15 +255,12 @@
     };
 
     function escHtml(str) {
-      const d = document.createElement('div');
-      d.textContent = str;
-      return d.innerHTML;
+      const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
     }
 
     function showToast(msg, type = '') {
       const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = `toast ${type} show`;
+      t.textContent = msg; t.className = `toast ${type} show`;
       setTimeout(() => t.classList.remove('show'), 3000);
     }
 
