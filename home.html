@@ -113,7 +113,19 @@
     const fn = userProfile.name.split(' ')[0];
     document.getElementById('hero-greeting').innerHTML = `Hey, <span style="color:var(--accent)">${fn}</span> 👋`;
     document.getElementById('hero-sub').textContent    = `Showing rooms at ${userProfile.university}`;
-    document.getElementById('avatar-btn').textContent  = fn[0].toUpperCase();
+    // Show photo in navbar avatar if available
+    const avatarBtn = document.getElementById('avatar-btn');
+    if (userProfile.photoURL) {
+      avatarBtn.innerHTML = '';
+      avatarBtn.style.cssText = 'cursor:pointer;width:42px;height:42px;border-radius:50%;overflow:hidden;border:2px solid var(--border);flex-shrink:0';
+      const img = document.createElement('img');
+      img.src = userProfile.photoURL;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      img.onerror = () => { avatarBtn.innerHTML = fn[0].toUpperCase(); avatarBtn.style.cssText = ''; avatarBtn.className = 'avatar'; };
+      avatarBtn.appendChild(img);
+    } else {
+      avatarBtn.textContent = fn[0].toUpperCase();
+    }
     const uniShort = userProfile.university.length > 18
       ? userProfile.university.split(' ').slice(0,3).join(' ')+'…'
       : userProfile.university;
@@ -251,5 +263,4 @@
   loadRooms();
 </script>
 </body>
-  </html>
-  
+</html>
