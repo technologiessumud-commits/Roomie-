@@ -102,7 +102,7 @@
   </div>
 </div>
 
-<script type="module">
+    <script type="module">
   import { auth, saveProfile, onAuth } from './firebase.js';
   import { uploadImage } from './upload.js';
 
@@ -385,4 +385,45 @@
     let   university = '';
 
     if (uniWrap.style.display !== 'none' && uniSelect.value && uniSelect.value !== 'Other (type below)') {
-    
+      university = uniSelect.value;
+    } else {
+      university = uniOther.value.trim();
+    }
+
+    const city     = document.getElementById('city').value.trim();
+    const photoURL = document.getElementById('photoURL').value.trim();
+    const course   = document.getElementById('course').value.trim();
+    const year     = document.getElementById('year').value;
+    const errEl    = document.getElementById('error-msg');
+    const btn      = document.getElementById('save-btn');
+
+    errEl.style.display = 'none';
+    if (!name || !phone || !country || country.startsWith('—') || !university || !city) {
+      errEl.textContent = 'Please fill in name, phone, country, university and city.';
+      errEl.style.display = 'block'; return;
+    }
+
+    const u = auth.currentUser;
+    if (!u) { window.location.href = 'login.html'; return; }
+
+    btn.textContent = 'Saving…'; btn.disabled = true;
+    try {
+      await saveProfile(u.uid, {
+        uid: u.uid, email: u.email,
+        name, phone, university,
+        country: countryVal,
+        countryDisplay: country,
+        city: city.toLowerCase().trim(),
+        photoURL, course, year,
+        createdAt: new Date().toISOString()
+      });
+      window.location.href = 'home.html';
+    } catch(e) {
+      errEl.textContent = 'Error saving profile. Try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Save & Continue'; btn.disabled = false;
+    }
+  };
+</script>
+</body>
+</html>
