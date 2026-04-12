@@ -169,14 +169,32 @@ export function listenUserChats(uid, callback) {
 
 // ─── ROUTE GUARD ──────────────────────────────────────────────
 export async function requireAuth(redirectToSetup = true) {
-  return new Promise(resolve => {
-    onAuthStateChanged(auth, async user => {
-      if (!user) { window.location.href = 'login.html'; return; }
+  return new Promise((resolve, reject) => {
+    // Firebase auth state fires quickly — if it doesn't in 8s something is wrong
+    const timer = setTimeout(() => reject(new Error('auth-timeout')), 8000);
+
+    const unsub = onAuthStateChanged(auth, async user => {
+      unsub(); // unsubscribe immediately — we only need it once
+      clearTimeout(timer);
+
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
       if (redirectToSetup) {
-        const p = await getProfile(user.uid);
-        if (!p) { window.location.href = 'setup.html'; return; }
+        try {
+          const p = await getProfile(user.uid);
+          if (!p) { window.location.href = 'setup.html'; return; }
+        } catch(e) {
+          // If Firestore fails here, still let the user through
+          // Pages will handle missing profile gracefully
+          console.warn('requireAuth profile fetch failed:', e);
+        }
       }
       resolve(user);
+    }, err => {
+      clearTimeout(timer);
+      reject(err);
     });
   });
 }
