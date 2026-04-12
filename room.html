@@ -79,12 +79,13 @@
     <p class="room-desc" id="room-desc">—</p>
     <div class="divider"></div>
     <h3 style="margin-bottom:12px;font-family:'Syne',sans-serif">Listed by</h3>
-    <div class="flex-gap" id="owner-row">
+    <div class="flex-gap" id="owner-row" style="cursor:pointer" onclick="viewOwnerProfile()">
       <div class="avatar" id="owner-avatar">?</div>
-      <div>
+      <div style="flex:1">
         <div style="font-weight:600" id="owner-name">—</div>
         <div style="font-size:13px;color:var(--muted)" id="owner-uni">—</div>
       </div>
+      <span style="font-size:12px;color:var(--accent);font-weight:600">View profile →</span>
     </div>
 
     <!-- OWNER CONTROLS -->
@@ -287,6 +288,12 @@
       showToast('Listing deleted','success');
       setTimeout(()=>window.location.href='home.html',1200);
     } catch(e) { showToast('Failed to delete','error'); }
+  };
+
+  window.viewOwnerProfile = function() {
+    if (room.ownerUid && room.ownerUid !== user.uid) {
+      window.location.href = `user-profile.html?uid=${room.ownerUid}`;
+    }
   };
 
   window.openChat = function() {
