@@ -318,21 +318,45 @@
       const genderBadge = room.genderPref && room.genderPref!=='any'
         ? `<span style="font-size:11px;color:var(--muted)">${room.genderPref==='female'?'👩 Female only':'👨 Male only'}</span>` : '';
 
+      const isOwn = room.ownerUid === user.uid;
       return `
-        <div class="card" onclick="window.location.href='room.html?id=${room.id}'" style="cursor:pointer;${isOccupied?'opacity:.75':''}">
-          ${imgSection}
-          <div class="card-body">
-            ${sameUni&&scopeFilter!=='uni'?'<span class="card-tag" style="margin-bottom:6px;display:inline-block">🎓 Your University</span>':''}
-            <div class="card-title">${escHtml(room.title)}</div>
-            <div class="card-meta">📍 ${escHtml(room.location||'Location not specified')}</div>
-            ${uniLine}
-            ${amenityBadges}
-            <div class="flex-between" style="margin-top:6px">
-              <span class="card-price">₦${Number(room.price).toLocaleString()}<span style="font-size:12px;font-weight:400;color:var(--muted)">/mo</span></span>
-              ${genderBadge}
-              ${isOccupied?'<span style="font-size:12px;color:var(--danger);font-weight:600">Occupied</span>':'<span class="badge">View →</span>'}
+        <div class="card" style="${isOccupied?'opacity:.75':''}">
+          <div onclick="window.location.href='room.html?id=${room.id}'" style="cursor:pointer">
+            ${imgSection}
+            <div class="card-body">
+              ${sameUni&&scopeFilter!=='uni'?'<span class="card-tag" style="margin-bottom:6px;display:inline-block">🎓 Your University</span>':''}
+              <div class="card-title">${escHtml(room.title)}</div>
+              <div class="card-meta">📍 ${escHtml(room.location||'Location not specified')}</div>
+              ${uniLine}
+              ${amenityBadges}
+              <div class="flex-between" style="margin-top:6px">
+                <span class="card-price">₦${Number(room.price).toLocaleString()}<span style="font-size:12px;font-weight:400;color:var(--muted)">/mo</span></span>
+                ${genderBadge}
+                ${isOccupied?'<span style="font-size:12px;color:var(--danger);font-weight:600">Occupied</span>':''}
+              </div>
             </div>
           </div>
+          ${!isOwn ? `
+          <div style="display:flex;gap:8px;padding:0 16px 14px">
+            <button onclick="window.location.href='room.html?id=${room.id}'"
+              style="flex:2;padding:9px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif">
+              View Room
+            </button>
+            <button onclick="window.location.href='chat.html?uid=${room.ownerUid}&name=${encodeURIComponent(room.ownerName||'Owner')}'"
+              style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif">
+              ✉️
+            </button>
+            <button onclick="window.location.href='user-profile.html?uid=${room.ownerUid}'"
+              style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif">
+              👤
+            </button>
+          </div>` : `
+          <div style="padding:0 16px 14px">
+            <button onclick="window.location.href='room.html?id=${room.id}'"
+              style="width:100%;padding:9px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif">
+              View Room ✏️ (Your listing)
+            </button>
+          </div>`}
         </div>`;
     }).join('');
   }
@@ -357,50 +381,4 @@
       }
       // Type filter
       if (typeFilter !== 'all' && r.type !== typeFilter) return false;
-      return true;
-    });
-
-    if (userProfile && scopeFilter!=='uni') {
-      filtered.sort((a,b)=>{
-        const am=(a.ownerUniversity||'').toLowerCase()===userProfile.university?.toLowerCase();
-        const bm=(b.ownerUniversity||'').toLowerCase()===userProfile.university?.toLowerCase();
-        return bm-am;
-      });
-    }
-    renderRooms(filtered);
-    updateFilterDot();
-  };
-
-  function updateFilterDot() {
-    const active = activeAmenities.size || genderFilter!=='any' || typeFilter!=='all';
-    document.getElementById('filter-dot').style.display = active ? 'block' : 'none';
-    document.getElementById('filter-toggle-btn').style.borderColor = active ? 'var(--accent)' : 'var(--border)';
-  }
-
-  window.toggleFilterPanel = function() {
-    filterOpen = !filterOpen;
-    document.getElementById('filter-panel').classList.toggle('open', filterOpen);
-  };
-
-  window.toggleAFilter = function(el, key) {
-    el.classList.toggle('on');
-    if (activeAmenities.has(key)) activeAmenities.delete(key);
-    else activeAmenities.add(key);
-    filterRooms();
-  };
-
-  window.setGenderFilter = function(val, el) {
-    genderFilter = val;
-    ['gf-any','gf-female','gf-male'].forEach(id=>document.getElementById(id).classList.remove('on'));
-    el.classList.add('on'); filterRooms();
-  };
-
-  window.toggleTypeFilter = function(el, val) {
-    typeFilter = val;
-    document.querySelectorAll('[id^="tf-"]').forEach(e=>e.classList.remove('on'));
-    el.classList.add('on'); filterRooms();
-  };
-
-  window.clearAllFilters = function() {
-    activeAmenities.clear(); genderFilter='any'; typeFilter='all'; maxPrice=0;
-    d
+  
