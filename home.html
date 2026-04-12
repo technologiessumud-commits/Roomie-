@@ -8,160 +8,159 @@
   <style>
     .fav-btn {
       position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;
-      background:rgba(13,15,20,.65);backdrop-filter:blur(6px);
+      background:rgba(13,15,20,.7);backdrop-filter:blur(6px);
       border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
-      font-size:1.1rem;transition:transform .2s;z-index:2;
+      font-size:1.1rem;z-index:2;
     }
-    .fav-btn:active{transform:scale(1.3);}
-    .card{position:relative;}
-
-    /* Filter panel */
+    .card { position:relative; }
     .filter-panel {
       background:var(--surface);border-bottom:1px solid var(--border);
-      padding:16px 20px;display:none;flex-direction:column;gap:16px;
+      padding:16px 20px;display:none;flex-direction:column;gap:14px;
     }
     .filter-panel.open { display:flex; }
-    .filter-section-title {
-      font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
-      color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;
-    }
-    .amenity-filter-grid {
-      display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
-    }
+    .fp-title { font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px; }
+    .af-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:6px; }
     .af-chip {
-      padding:7px 10px;border-radius:8px;border:1.5px solid var(--border);
-      background:var(--card);color:var(--muted);font-size:12px;font-weight:500;
-      cursor:pointer;transition:all .15s;text-align:center;
+      padding:7px 6px;border-radius:8px;border:1.5px solid var(--border);
+      background:var(--card);color:var(--muted);font-size:11px;font-weight:500;
+      cursor:pointer;text-align:center;transition:all .15s;
     }
     .af-chip.on { border-color:var(--accent);background:rgba(255,107,53,.1);color:var(--accent); }
-    .gender-filter-row { display:flex;gap:8px; }
+    .gf-row { display:flex;gap:8px; }
     .gf-btn {
-      flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);
+      flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);
       background:var(--card);color:var(--muted);font-size:12px;font-weight:600;
-      cursor:pointer;transition:all .15s;text-align:center;
+      cursor:pointer;text-align:center;transition:all .15s;
     }
     .gf-btn.on { border-color:var(--accent);background:rgba(255,107,53,.1);color:var(--accent); }
-    .amenity-badge {
+    .a-badge {
       display:inline-flex;align-items:center;gap:3px;
       background:rgba(255,107,53,.1);color:var(--accent);
       font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;
     }
+    .card-actions {
+      display:flex;gap:8px;padding:0 14px 14px;
+    }
+    .card-actions button {
+      padding:9px;border-radius:8px;border:1.5px solid var(--border);
+      background:transparent;color:var(--text);font-size:13px;font-weight:600;
+      cursor:pointer;font-family:'Syne',sans-serif;transition:background .15s;
+    }
+    .card-actions button:hover { background:var(--border); }
+    .card-actions .btn-view {
+      flex:2;background:var(--accent);color:#fff;border-color:var(--accent);
+    }
+    .card-actions .btn-icon { flex:1; }
   </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-logo">Room<span>ie</span></div>
-  <div style="display:flex;gap:10px;align-items:center">
-    <a href="messages.html" style="color:var(--muted);font-size:1.3rem;line-height:1" title="Messages">💬</a>
-    <a href="favourites.html" style="color:var(--muted);font-size:1.3rem;line-height:1" title="Saved">❤️</a>
-    <div id="avatar-btn" class="avatar" style="cursor:pointer;width:38px;height:38px;font-size:1rem" onclick="window.location.href='profile.html'">?</div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <a href="messages.html" title="Messages" style="color:var(--muted);font-size:1.2rem;line-height:1">💬</a>
+    <a href="favourites.html" title="Saved" style="color:var(--muted);font-size:1.2rem;line-height:1">❤️</a>
+    <div id="avatar-btn" class="avatar" style="cursor:pointer;width:36px;height:36px;font-size:.95rem" onclick="location.href='profile.html'">?</div>
   </div>
 </div>
 
 <div class="hero-section">
-  <div class="hero-eyebrow" id="hero-eyebrow">👋 Welcome back</div>
+  <div class="hero-eyebrow">👋 Welcome back</div>
   <h2 class="hero-title" id="hero-greeting">Find your <span>next room</span></h2>
-  <p class="hero-sub" id="hero-sub">Browse rooms near your campus</p>
+  <p class="hero-sub" id="hero-sub">Browse student rooms</p>
 </div>
 
-<!-- SEARCH + FILTER TOGGLE -->
+<!-- SEARCH -->
 <div class="search-wrap" style="display:flex;gap:8px;align-items:center">
   <div class="search-bar" style="flex:1">
     <svg width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="search-input" placeholder="Search title or location…" oninput="filterRooms()"/>
+    <input type="text" id="search-input" placeholder="Search title or location…" oninput="applyFilters()"/>
   </div>
-  <button id="filter-toggle-btn" onclick="toggleFilterPanel()"
-    style="width:44px;height:44px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative">
+  <button id="filter-btn" onclick="togglePanel()"
+    style="width:44px;height:44px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative">
     <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-    <span id="filter-dot" style="display:none;position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--accent)"></span>
+    <span id="filter-dot" style="display:none;position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent)"></span>
   </button>
 </div>
 
-<!-- ADVANCED FILTER PANEL -->
+<!-- FILTER PANEL -->
 <div class="filter-panel" id="filter-panel">
   <div>
-    <div class="filter-section-title">Amenities</div>
-    <div class="amenity-filter-grid">
-      <div class="af-chip" onclick="toggleAFilter(this,'wifi')">📶 WiFi</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'water')">🚿 Water</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'electricity')">⚡ 24hr Power</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'generator')">🔌 Generator</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'furnished')">🛋️ Furnished</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'bathroom')">🚽 Private WC</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'kitchen')">🍳 Kitchen</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'security')">🔐 Security</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'parking')">🚗 Parking</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'ac')">❄️ AC</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'laundry')">👕 Laundry</div>
-      <div class="af-chip" onclick="toggleAFilter(this,'pets')">🐾 Pets OK</div>
+    <div class="fp-title">Amenities</div>
+    <div class="af-grid">
+      <div class="af-chip" data-amenity="wifi"        onclick="toggleA(this)">📶 WiFi</div>
+      <div class="af-chip" data-amenity="water"       onclick="toggleA(this)">🚿 Water</div>
+      <div class="af-chip" data-amenity="electricity" onclick="toggleA(this)">⚡ Power</div>
+      <div class="af-chip" data-amenity="generator"   onclick="toggleA(this)">🔌 Gen</div>
+      <div class="af-chip" data-amenity="furnished"   onclick="toggleA(this)">🛋️ Furnished</div>
+      <div class="af-chip" data-amenity="bathroom"    onclick="toggleA(this)">🚽 Pvt WC</div>
+      <div class="af-chip" data-amenity="kitchen"     onclick="toggleA(this)">🍳 Kitchen</div>
+      <div class="af-chip" data-amenity="security"    onclick="toggleA(this)">🔐 Security</div>
+      <div class="af-chip" data-amenity="ac"          onclick="toggleA(this)">❄️ AC</div>
     </div>
   </div>
   <div>
-    <div class="filter-section-title">Tenant Preference</div>
-    <div class="gender-filter-row">
-      <div class="gf-btn on" id="gf-any"    onclick="setGenderFilter('any',this)">👥 Anyone</div>
-      <div class="gf-btn"    id="gf-female" onclick="setGenderFilter('female',this)">👩 Female</div>
-      <div class="gf-btn"    id="gf-male"   onclick="setGenderFilter('male',this)">👨 Male</div>
+    <div class="fp-title">Tenant Preference</div>
+    <div class="gf-row">
+      <div class="gf-btn on" id="gf-any"    onclick="setGender('any',this)">👥 Anyone</div>
+      <div class="gf-btn"    id="gf-female" onclick="setGender('female',this)">👩 Female</div>
+      <div class="gf-btn"    id="gf-male"   onclick="setGender('male',this)">👨 Male</div>
     </div>
   </div>
   <div>
-    <div class="filter-section-title">Room Type</div>
+    <div class="fp-title">Room Type</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <div class="af-chip on" onclick="toggleTypeFilter(this,'all')"     id="tf-all">All types</div>
-      <div class="af-chip"    onclick="toggleTypeFilter(this,'self-con')" id="tf-self-con">Self-con</div>
-      <div class="af-chip"    onclick="toggleTypeFilter(this,'single')"   id="tf-single">Single</div>
-      <div class="af-chip"    onclick="toggleTypeFilter(this,'shared')"   id="tf-shared">Shared</div>
-      <div class="af-chip"    onclick="toggleTypeFilter(this,'flat')"     id="tf-flat">Flat</div>
-      <div class="af-chip"    onclick="toggleTypeFilter(this,'studio')"   id="tf-studio">Studio</div>
-      <div class="af-chip"    onclick="toggleTypeFilter(this,'bq')"       id="tf-bq">BQ</div>
+      <div class="af-chip on" data-type="all"      onclick="setType('all',this)">All</div>
+      <div class="af-chip"    data-type="self-con"  onclick="setType('self-con',this)">Self-con</div>
+      <div class="af-chip"    data-type="single"    onclick="setType('single',this)">Single</div>
+      <div class="af-chip"    data-type="shared"    onclick="setType('shared',this)">Shared</div>
+      <div class="af-chip"    data-type="flat"      onclick="setType('flat',this)">Flat</div>
+      <div class="af-chip"    data-type="studio"    onclick="setType('studio',this)">Studio</div>
     </div>
   </div>
-  <button onclick="clearAllFilters()" style="background:none;border:none;color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;text-align:left;padding:0">✕ Clear all filters</button>
+  <button onclick="clearFilters()" style="background:none;border:none;color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;padding:0;text-align:left">✕ Clear filters</button>
 </div>
 
-<!-- SCOPE CHIPS -->
+<!-- SCOPE + PRICE -->
 <div class="filter-row">
-  <button class="filter-chip active" id="chip-uni"     onclick="setScopeFilter('uni',this)">🎓 My University</button>
-  <button class="filter-chip"        id="chip-country" onclick="setScopeFilter('country',this)">🌍 My Country</button>
-  <button class="filter-chip"        id="chip-all"     onclick="setScopeFilter('all',this)">🌐 All Schools</button>
+  <button class="filter-chip active" id="sc-all"     onclick="setScope('all',this)">🌐 All Rooms</button>
+  <button class="filter-chip"        id="sc-uni"     onclick="setScope('uni',this)">🎓 My University</button>
+  <button class="filter-chip"        id="sc-country" onclick="setScope('country',this)">🌍 My Country</button>
 </div>
-
-<!-- PRICE CHIPS -->
 <div class="filter-row" style="padding-top:0">
-  <button class="filter-chip active" onclick="setPriceFilter(0,this)">Any price</button>
-  <button class="filter-chip" onclick="setPriceFilter(50000,this)">Under ₦50k</button>
-  <button class="filter-chip" onclick="setPriceFilter(100000,this)">Under ₦100k</button>
-  <button class="filter-chip" onclick="setPriceFilter(200000,this)">Under ₦200k</button>
-  <button class="filter-chip" onclick="setPriceFilter(500000,this)">Under ₦500k</button>
+  <button class="filter-chip active" onclick="setPrice(0,this)">Any price</button>
+  <button class="filter-chip" onclick="setPrice(50000,this)">Under ₦50k</button>
+  <button class="filter-chip" onclick="setPrice(100000,this)">Under ₦100k</button>
+  <button class="filter-chip" onclick="setPrice(200000,this)">Under ₦200k</button>
+  <button class="filter-chip" onclick="setPrice(500000,this)">Under ₦500k</button>
 </div>
 
 <div class="section-header">
-  <span class="section-title" id="section-label">My University</span>
+  <span class="section-title" id="section-label">All Rooms</span>
   <span id="room-count" class="text-muted" style="font-size:13px"></span>
 </div>
 
-<div id="skeleton-loader">
+<!-- STATES -->
+<div id="state-loading">
   <div class="skeleton skeleton-card"></div>
   <div class="skeleton skeleton-card"></div>
 </div>
 
-<!-- Error state -->
-<div id="error-state" style="display:none" class="empty-state">
+<div id="state-error" class="empty-state" style="display:none">
   <div class="empty-icon">⚠️</div>
   <div class="empty-title">Couldn't load rooms</div>
-  <p class="empty-sub" id="error-detail">Check your connection and try again.</p>
+  <p class="empty-sub" id="error-msg">Check your connection.</p>
   <button onclick="loadRooms()" class="btn btn-primary btn-sm mt-16">Retry</button>
 </div>
 
-<div id="rooms-container" class="rooms-grid" style="display:none"></div>
-
-<div id="empty-state" class="empty-state" style="display:none">
+<div id="state-empty" class="empty-state" style="display:none">
   <div class="empty-icon">🏠</div>
   <div class="empty-title" id="empty-title">No rooms found</div>
-  <p class="empty-sub" id="empty-sub">Try adjusting your filters.</p>
-  <a href="list-room.html" class="btn btn-primary btn-sm mt-16">Post the first room</a>
+  <p class="empty-sub" id="empty-sub">Be the first to post!</p>
+  <a href="list-room.html" class="btn btn-primary btn-sm mt-16">Post a room</a>
 </div>
+
+<div id="state-rooms" class="rooms-grid" style="display:none"></div>
 
 <a href="list-room.html" class="fab">+</a>
 
@@ -176,209 +175,255 @@
 <div id="toast" class="toast"></div>
 
 <script type="module">
-  import { requireAuth, getRooms, getProfile, getFavourites, toggleFavourite } from './firebase.js';
+  import { auth, getProfile, getRooms, getFavourites, toggleFavourite } from './firebase.js';
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  let allRooms        = [];
-  let maxPrice        = 0;
-  let scopeFilter     = 'uni';
-  let userProfile     = null;
-  let favourites      = [];
-  let activeAmenities = new Set();
-  let genderFilter    = 'any';
-  let typeFilter      = 'all';
-  let filterOpen      = false;
+  // ── State ─────────────────────────────────────────────────
+  let allRooms    = [];
+  let favs        = [];
+  let userProfile = null;
+  let uid         = null;
+  let scope       = 'all';   // default: show everything
+  let maxPrice    = 0;
+  let genderF     = 'any';
+  let typeF       = 'all';
+  let amenityF    = new Set();
+  let panelOpen   = false;
 
-  // Auth guard with timeout safety
-  let user;
-  try {
-    user = await Promise.race([
-      requireAuth(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('auth-timeout')), 10000))
+  const AL = {
+    wifi:'📶 WiFi',water:'🚿 Water',electricity:'⚡ 24hr Power',
+    generator:'🔌 Generator',furnished:'🛋️ Furnished',bathroom:'🚽 Private WC',
+    kitchen:'🍳 Kitchen',security:'🔐 Security',ac:'❄️ AC',
+    parking:'🚗 Parking',laundry:'👕 Laundry',pets:'🐾 Pets OK'
+  };
+
+  // ── Auth ──────────────────────────────────────────────────
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { location.href = 'login.html'; return; }
+    uid = user.uid;
+
+    // Load profile + favs in parallel, don't block on errors
+    [userProfile, favs] = await Promise.all([
+      getProfile(uid).catch(() => null),
+      getFavourites(uid).catch(() => [])
     ]);
-  } catch(e) {
-    if (e.message === 'auth-timeout') {
-      window.location.href = 'login.html';
-    }
-    // otherwise requireAuth already redirected
-    throw e;
-  }
 
-  // Load profile and favourites — don't let favourites failure block everything
-  try {
-    [userProfile, favourites] = await Promise.all([
-      getProfile(user.uid),
-      getFavourites(user.uid).catch(() => [])   // graceful fallback
-    ]);
-  } catch(e) {
-    console.warn('Profile load error:', e);
-    userProfile = null; favourites = [];
-  }
+    updateHeader();
+    loadRooms();
+  });
 
-  if (userProfile) {
+  function updateHeader() {
+    if (!userProfile) return;
     const fn = userProfile.name.split(' ')[0];
-    document.getElementById('hero-greeting').innerHTML = `Hey, <span style="color:var(--accent)">${fn}</span> 👋`;
-    document.getElementById('hero-sub').textContent    = `Showing rooms at ${userProfile.university}`;
+    document.getElementById('hero-greeting').innerHTML =
+      `Hey, <span style="color:var(--accent)">${fn}</span> 👋`;
+    document.getElementById('hero-sub').textContent =
+      `${userProfile.university || 'Browse student rooms'}`;
 
-    // Avatar
-    const avatarBtn = document.getElementById('avatar-btn');
+    const av = document.getElementById('avatar-btn');
     if (userProfile.photoURL) {
-      avatarBtn.innerHTML = '';
-      avatarBtn.style.cssText = 'cursor:pointer;width:38px;height:38px;border-radius:50%;overflow:hidden;border:2px solid var(--border);flex-shrink:0';
+      av.innerHTML = '';
+      av.style.cssText = 'cursor:pointer;width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid var(--border);flex-shrink:0;';
       const img = document.createElement('img');
       img.src = userProfile.photoURL;
       img.style.cssText = 'width:100%;height:100%;object-fit:cover';
-      avatarBtn.appendChild(img);
+      av.appendChild(img);
     } else {
-      avatarBtn.textContent = fn[0].toUpperCase();
+      av.textContent = fn[0].toUpperCase();
     }
 
-    const uniShort = userProfile.university?.length > 18
-      ? userProfile.university.split(' ').slice(0,3).join(' ')+'…'
-      : userProfile.university;
-    document.getElementById('chip-uni').textContent     = `🎓 ${uniShort}`;
-    document.getElementById('chip-country').textContent = `🌍 ${userProfile.countryDisplay||cap(userProfile.country)}`;
+    // Update scope chip labels
+    if (userProfile.university) {
+      const uniShort = userProfile.university.split(' ').slice(0,3).join(' ');
+      document.getElementById('sc-uni').textContent = `🎓 ${uniShort}`;
+    }
+    if (userProfile.countryDisplay || userProfile.country) {
+      document.getElementById('sc-country').textContent =
+        `🌍 ${userProfile.countryDisplay || cap(userProfile.country)}`;
+    }
   }
 
+  // ── Load rooms ────────────────────────────────────────────
   window.loadRooms = async function() {
-    // Reset states
-    document.getElementById('skeleton-loader').style.display = 'block';
-    document.getElementById('error-state').style.display     = 'none';
-    document.getElementById('rooms-container').style.display = 'none';
-    document.getElementById('empty-state').style.display     = 'none';
-
+    showState('loading');
     try {
-      // Timeout after 12 seconds
-      allRooms = await Promise.race([
-        getRooms(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 12000))
-      ]);
-
-      document.getElementById('skeleton-loader').style.display = 'none';
-      document.getElementById('rooms-container').style.display = 'flex';
-      filterRooms();
+      allRooms = await getRooms();
+      applyFilters();
     } catch(e) {
-      console.error('loadRooms error:', e);
-      document.getElementById('skeleton-loader').style.display = 'none';
-      document.getElementById('error-state').style.display     = 'flex';
-      const detail = e.message === 'timeout'
-        ? 'Request timed out. Check your connection.'
-        : `Error: ${e.message}`;
-      document.getElementById('error-detail').textContent = detail;
+      console.error('getRooms failed:', e);
+      document.getElementById('error-msg').textContent =
+        `Error: ${e.message || 'Could not reach database.'}`;
+      showState('error');
     }
-  }
+  };
 
-  function renderRooms(rooms) {
-    const container = document.getElementById('rooms-container');
-    const empty     = document.getElementById('empty-state');
-    document.getElementById('room-count').textContent = `${rooms.length} listing${rooms.length!==1?'s':''}`;
+  // ── Apply all filters ─────────────────────────────────────
+  window.applyFilters = function() {
+    const q = document.getElementById('search-input').value.toLowerCase().trim();
 
-    if (!rooms.length) {
-      container.style.display='none'; empty.style.display='flex';
-      const m = {
-        uni:     ['No rooms at your university yet','Switch to "My Country" or "All Schools" to see more.'],
-        country: ['No rooms in your country yet','Switch to "All Schools" to see worldwide listings.'],
-        all:     ['No rooms match your filters','Try removing some filters.']
+    let list = allRooms.filter(r => {
+      // text search
+      if (q && !r.title?.toLowerCase().includes(q) && !(r.location||'').toLowerCase().includes(q)) return false;
+      // price
+      if (maxPrice && r.price > maxPrice) return false;
+      // scope
+      if (scope === 'uni' && userProfile)
+        if ((r.ownerUniversity||'').toLowerCase() !== (userProfile.university||'').toLowerCase()) return false;
+      if (scope === 'country' && userProfile)
+        if ((r.ownerCountry||'').toLowerCase() !== (userProfile.country||'').toLowerCase()) return false;
+      // amenities
+      if (amenityF.size) {
+        const ra = new Set(r.amenities||[]);
+        for (const a of amenityF) { if (!ra.has(a)) return false; }
+      }
+      // gender
+      if (genderF !== 'any' && r.genderPref && r.genderPref !== 'any' && r.genderPref !== genderF) return false;
+      // type
+      if (typeF !== 'all' && r.type !== typeF) return false;
+      return true;
+    });
+
+    // Sort: same university first
+    if (userProfile && scope !== 'uni') {
+      list.sort((a,b) => {
+        const am = (a.ownerUniversity||'').toLowerCase() === (userProfile.university||'').toLowerCase();
+        const bm = (b.ownerUniversity||'').toLowerCase() === (userProfile.university||'').toLowerCase();
+        return bm - am;
+      });
+    }
+
+    document.getElementById('room-count').textContent =
+      `${list.length} listing${list.length!==1?'s':''}`;
+
+    if (!list.length) {
+      const emptyMsgs = {
+        uni:     ['No rooms at your university yet', 'Switch to "All Rooms" to see everything.'],
+        country: ['No rooms in your country yet',    'Switch to "All Rooms" to see everything.'],
+        all:     ['No rooms match your filters',     'Try clearing some filters.']
       };
-      document.getElementById('empty-title').textContent = m[scopeFilter][0];
-      document.getElementById('empty-sub').textContent   = m[scopeFilter][1];
+      const [t,s] = emptyMsgs[scope] || emptyMsgs.all;
+      document.getElementById('empty-title').textContent = t;
+      document.getElementById('empty-sub').textContent   = s;
+      showState('empty');
       return;
     }
-    container.style.display='flex'; empty.style.display='none';
 
-    const AMENITY_LABELS = {
-      wifi:'📶 WiFi',water:'🚿 Water',electricity:'⚡ 24hr Power',generator:'🔌 Generator',
-      furnished:'🛋️ Furnished',bathroom:'🚽 Private WC',kitchen:'🍳 Kitchen',
-      security:'🔐 Security',parking:'🚗 Parking',ac:'❄️ AC',laundry:'👕 Laundry',pets:'🐾 Pets OK'
-    };
+    renderRooms(list);
+    showState('rooms');
+    updateDot();
+  };
 
-    container.innerHTML = rooms.map(room => {
-      const isFav      = favourites.includes(room.id);
-      const isOccupied = room.status === 'occupied';
-      const sameUni    = userProfile && room.ownerUniversity?.toLowerCase() === userProfile.university?.toLowerCase();
-      const amenities  = (room.amenities || []).slice(0,4);
+  function renderRooms(list) {
+    const container = document.getElementById('state-rooms');
+    container.innerHTML = list.map(r => {
+      const isFav  = favs.includes(r.id);
+      const isOcc  = r.status === 'occupied';
+      const isOwn  = r.ownerUid === uid;
+      const sameUni = userProfile &&
+        (r.ownerUniversity||'').toLowerCase() === (userProfile.university||'').toLowerCase();
 
-      const imgSection = room.imageURLs?.length
+      const imgHtml = r.imageURLs?.length
         ? `<div style="position:relative">
-             <img class="card-img" src="${room.imageURLs[0]}" alt="${room.title}"
-               onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>📷 No image</div>'"/>
-             ${isOccupied?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center"><span style="background:var(--danger);color:#fff;font-family:Syne,sans-serif;font-weight:700;font-size:12px;padding:5px 12px;border-radius:20px">🔒 Occupied</span></div>':''}
-             <button class="fav-btn" onclick="event.stopPropagation();toggleFav('${room.id}',this)">${isFav?'❤️':'🤍'}</button>
+             <img class="card-img" src="${r.imageURLs[0]}" alt=""
+               onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>📷</div>'"/>
+             ${isOcc ? '<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center"><span style="background:var(--danger);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;font-family:Syne,sans-serif">🔒 Occupied</span></div>' : ''}
+             <button class="fav-btn" onclick="event.stopPropagation();doFav('${r.id}',this)">${isFav?'❤️':'🤍'}</button>
            </div>`
         : `<div class="card-img-placeholder">📷 No image</div>`;
 
-      const uniLine = scopeFilter!=='uni' && room.ownerUniversity
-        ? `<div class="card-meta">🎓 ${escHtml(room.ownerUniversity)}</div>` : '';
+      const badges = (r.amenities||[]).slice(0,3).map(a =>
+        `<span class="a-badge">${AL[a]||a}</span>`).join('');
 
-      const amenityBadges = amenities.length
-        ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin:6px 0">
-             ${amenities.map(a=>`<span class="amenity-badge">${AMENITY_LABELS[a]||a}</span>`).join('')}
-             ${room.amenities?.length>4?`<span class="amenity-badge">+${room.amenities.length-4}</span>`:''}
-           </div>` : '';
+      const uniTag = (!isOwn && sameUni && scope !== 'uni')
+        ? '<span class="card-tag" style="margin-bottom:6px;display:inline-block">🎓 Your Uni</span>' : '';
 
-      const genderBadge = room.genderPref && room.genderPref!=='any'
-        ? `<span style="font-size:11px;color:var(--muted)">${room.genderPref==='female'?'👩 Female only':'👨 Male only'}</span>` : '';
+      const uniLine = scope !== 'uni' && r.ownerUniversity
+        ? `<div class="card-meta" style="font-size:12px">🎓 ${esc(r.ownerUniversity)}</div>` : '';
 
-      const isOwn = room.ownerUid === user.uid;
       return `
-        <div class="card" style="${isOccupied?'opacity:.75':''}">
-          <div onclick="window.location.href='room.html?id=${room.id}'" style="cursor:pointer">
-            ${imgSection}
+        <div class="card" style="${isOcc?'opacity:.75':''}">
+          <div onclick="location.href='room.html?id=${r.id}'" style="cursor:pointer">
+            ${imgHtml}
             <div class="card-body">
-              ${sameUni&&scopeFilter!=='uni'?'<span class="card-tag" style="margin-bottom:6px;display:inline-block">🎓 Your University</span>':''}
-              <div class="card-title">${escHtml(room.title)}</div>
-              <div class="card-meta">📍 ${escHtml(room.location||'Location not specified')}</div>
+              ${uniTag}
+              <div class="card-title">${esc(r.title)}</div>
+              <div class="card-meta">📍 ${esc(r.location||'Location not set')}</div>
               ${uniLine}
-              ${amenityBadges}
+              ${badges ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin:6px 0">${badges}</div>` : ''}
               <div class="flex-between" style="margin-top:6px">
-                <span class="card-price">₦${Number(room.price).toLocaleString()}<span style="font-size:12px;font-weight:400;color:var(--muted)">/mo</span></span>
-                ${genderBadge}
-                ${isOccupied?'<span style="font-size:12px;color:var(--danger);font-weight:600">Occupied</span>':''}
+                <span class="card-price">₦${Number(r.price).toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--muted)">/mo</span></span>
+                ${r.genderPref && r.genderPref!=='any' ? `<span style="font-size:11px;color:var(--muted)">${r.genderPref==='female'?'👩 Female':'👨 Male'}</span>` : ''}
               </div>
             </div>
           </div>
-          ${!isOwn ? `
-          <div style="display:flex;gap:8px;padding:0 16px 14px">
-            <button onclick="window.location.href='room.html?id=${room.id}'"
-              style="flex:2;padding:9px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif">
-              View Room
-            </button>
-            <button onclick="window.location.href='chat.html?uid=${room.ownerUid}&name=${encodeURIComponent(room.ownerName||'Owner')}'"
-              style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif">
-              ✉️
-            </button>
-            <button onclick="window.location.href='user-profile.html?uid=${room.ownerUid}'"
-              style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif">
-              👤
-            </button>
-          </div>` : `
-          <div style="padding:0 16px 14px">
-            <button onclick="window.location.href='room.html?id=${room.id}'"
-              style="width:100%;padding:9px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif">
-              View Room ✏️ (Your listing)
-            </button>
-          </div>`}
+          <div class="card-actions">
+            <button class="btn-view" onclick="location.href='room.html?id=${r.id}'">View Room</button>
+            ${!isOwn ? `
+            <button class="btn-icon" onclick="location.href='chat.html?uid=${r.ownerUid}&name=${encodeURIComponent(r.ownerName||'Owner')}'" title="Message">✉️</button>
+            <button class="btn-icon" onclick="location.href='user-profile.html?uid=${r.ownerUid}'" title="Profile">👤</button>
+            ` : ''}
+          </div>
         </div>`;
     }).join('');
   }
 
-  window.filterRooms = function() {
-    const q = document.getElementById('search-input').value.toLowerCase();
-    let filtered = allRooms.filter(r => {
-      if (!r.title.toLowerCase().includes(q) && !(r.location||'').toLowerCase().includes(q)) return false;
-      if (maxPrice && r.price > maxPrice) return false;
-      if (scopeFilter==='uni' && userProfile)
-        if (r.ownerUniversity?.toLowerCase() !== userProfile.university?.toLowerCase()) return false;
-      if (scopeFilter==='country' && userProfile)
-        if (r.ownerCountry?.toLowerCase() !== userProfile.country?.toLowerCase()) return false;
-      // Amenity filter — must have ALL selected amenities
-      if (activeAmenities.size) {
-        const rAm = new Set(r.amenities||[]);
-        for (const a of activeAmenities) { if (!rAm.has(a)) return false; }
-      }
-      // Gender filter
-      if (genderFilter !== 'any') {
-        if (r.genderPref && r.genderPref !== 'any' && r.genderPref !== genderFilter) return false;
-      }
-      // Type filter
-      if (typeFilter !== 'all' && r.type !== typeFilter) return false;
-  
+  // ── Filter controls ───────────────────────────────────────
+  window.togglePanel = function() {
+    panelOpen = !panelOpen;
+    document.getElementById('filter-panel').classList.toggle('open', panelOpen);
+  };
+
+  window.toggleA = function(el) {
+    const key = el.dataset.amenity;
+    el.classList.toggle('on');
+    amenityF.has(key) ? amenityF.delete(key) : amenityF.add(key);
+    applyFilters();
+  };
+
+  window.setGender = function(val, el) {
+    genderF = val;
+    document.querySelectorAll('.gf-btn').forEach(b => b.classList.remove('on'));
+    el.classList.add('on');
+    applyFilters();
+  };
+
+  window.setType = function(val, el) {
+    typeF = val;
+    document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('on'));
+    el.classList.add('on');
+    applyFilters();
+  };
+
+  window.setScope = function(val, el) {
+    scope = val;
+    ['sc-all','sc-uni','sc-country'].forEach(id => document.getElementById(id).classList.remove('active'));
+    el.classList.add('active');
+    const labels = { all:'All Rooms', uni:'My University', country:'My Country' };
+    document.getElementById('section-label').textContent = labels[val];
+    applyFilters();
+  };
+
+  window.setPrice = function(val, el) {
+    maxPrice = val;
+    document.querySelectorAll('.filter-row').forEach(row =>
+      row.querySelectorAll('.filter-chip').forEach(c => {
+        if (c.textContent.includes('₦') || c.textContent === 'Any price') c.classList.remove('active');
+      })
+    );
+    el.classList.add('active');
+    applyFilters();
+  };
+
+  window.clearFilters = function() {
+    amenityF.clear(); genderF='any'; typeF='all';
+    document.querySelectorAll('.af-chip').forEach(c => c.classList.remove('on'));
+    document.querySelectorAll('[data-type]').forEach(c => c.classList.remove('on'));
+    document.querySelector('[data-type="all"]').classList.add('on');
+    document.querySelectorAll('.gf-btn').forEach(b => b.classList.remove('on'));
+    document.getElementById('gf-any').classList.add('on');
+    applyFilters();
+  };
+
+  window.doFav = async function(roomId, btn) {
+    const saved = await toggleFavourite(uid, roomId);
+    btn.textContent = saved ?
