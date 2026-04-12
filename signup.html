@@ -7,21 +7,18 @@
   <link rel="stylesheet" href="style.css"/>
   <style>
     .social-btn {
-      display:flex; align-items:center; justify-content:center; gap:10px;
-      width:100%; padding:13px 20px; border-radius:var(--radius-sm);
-      font-size:15px; font-weight:600; font-family:'Syne',sans-serif;
-      cursor:pointer; transition:all .2s; border:1.5px solid var(--border);
-      background:var(--card); color:var(--text); margin-bottom:10px;
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      width:100%;padding:13px 20px;border-radius:var(--radius-sm);
+      font-size:15px;font-weight:600;font-family:'Syne',sans-serif;
+      cursor:pointer;transition:all .2s;border:1.5px solid var(--border);
+      background:var(--card);color:var(--text);margin-bottom:10px;
     }
-    .social-btn:hover { border-color:var(--accent); background:rgba(255,107,53,.05); }
-    .social-btn img { width:20px; height:20px; }
-    .divider-text {
-      display:flex; align-items:center; gap:12px;
-      color:var(--muted); font-size:13px; margin:16px 0;
+    .social-btn:hover{border-color:var(--accent);background:rgba(255,107,53,.05);}
+    .divider-text{
+      display:flex;align-items:center;gap:12px;
+      color:var(--muted);font-size:13px;margin:16px 0;
     }
-    .divider-text::before,.divider-text::after {
-      content:''; flex:1; height:1px; background:var(--border);
-    }
+    .divider-text::before,.divider-text::after{content:'';flex:1;height:1px;background:var(--border);}
   </style>
 </head>
 <body>
@@ -31,57 +28,87 @@
     <div class="auth-logo">Room<span>ie</span></div>
     <p class="auth-subtitle">Create your account to get started</p>
 
-    <!-- GOOGLE -->
-    <button class="social-btn" onclick="handleGoogle()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
-      Continue with Google
-    </button>
-
-    <!-- APPLE -->
-    <button class="social-btn" onclick="handleApple()" style="background:#000;color:#fff;border-color:#000">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-      Continue with Apple
-    </button>
-
-    <div class="divider-text">or sign up with email</div>
-
-    <!-- EMAIL -->
-    <div class="form-group">
-      <label>Email address</label>
-      <input type="email" id="email" placeholder="you@university.edu"/>
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="password" placeholder="Min. 6 characters"/>
-    </div>
-    <div class="form-group">
-      <label>Confirm password</label>
-      <input type="password" id="confirm" placeholder="Repeat password"/>
+    <div id="redirect-loading" style="display:none;text-align:center;padding:20px 0">
+      <div style="font-size:2rem;margin-bottom:8px">⏳</div>
+      <div style="color:var(--muted);font-size:14px">Signing you in…</div>
     </div>
 
-    <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;line-height:1.5"></p>
+    <div id="auth-form">
+      <button class="social-btn" onclick="handleGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px"/>
+        Continue with Google
+      </button>
 
-    <button class="btn btn-primary" id="signup-btn" onclick="handleSignup()">Create Account</button>
+      <button class="social-btn" onclick="handleApple()" style="background:#000;color:#fff;border-color:#000">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        Continue with Apple
+      </button>
 
-    <div class="auth-footer">Already have an account? <a href="login.html">Log in</a></div>
+      <div class="divider-text">or sign up with email</div>
+
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="email" placeholder="you@university.edu"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Min. 6 characters"/>
+      </div>
+      <div class="form-group">
+        <label>Confirm password</label>
+        <input type="password" id="confirm" placeholder="Repeat password"/>
+      </div>
+
+      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;line-height:1.5"></p>
+
+      <button class="btn btn-primary" id="signup-btn" onclick="handleSignup()">Create Account</button>
+      <div class="auth-footer">Already have an account? <a href="login.html">Log in</a></div>
+    </div>
   </div>
 </div>
 
 <script type="module">
-  import { signUp, signInWithGoogle, signInWithApple, handleSocialRedirect } from './firebase.js';
+  import { auth, signUp, signInWithApple, getProfile, saveProfile } from './firebase.js';
+  import { getRedirectResult, GoogleAuthProvider, signInWithRedirect }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  // Handle redirect result (for mobile Google/Apple)
-  await handleSocialRedirect();
+  // Check redirect result first
+  async function checkRedirect() {
+    try {
+      document.getElementById('redirect-loading').style.display = 'block';
+      document.getElementById('auth-form').style.display = 'none';
+
+      const result = await getRedirectResult(auth);
+      if (result && result.user) {
+        const u = result.user;
+        let profile = await getProfile(u.uid);
+        if (!profile) {
+          await saveProfile(u.uid, {
+            uid: u.uid, email: u.email||'',
+            name: u.displayName||'', photoURL: u.photoURL||'',
+            createdAt: new Date().toISOString()
+          });
+          window.location.href = 'setup.html';
+        } else {
+          window.location.href = 'home.html';
+        }
+        return;
+      }
+      document.getElementById('redirect-loading').style.display = 'none';
+      document.getElementById('auth-form').style.display = 'block';
+    } catch(err) {
+      document.getElementById('redirect-loading').style.display = 'none';
+      document.getElementById('auth-form').style.display = 'block';
+    }
+  }
+  await checkRedirect();
 
   window.handleGoogle = async () => {
     showError('');
     try {
-      const result = await signInWithGoogle();
-      if (result) window.location.href = 'setup.html';
-      // if null = redirect mode, page will reload
-    } catch(err) {
-      showError(getFriendlyError(err));
-    }
+      const provider = new GoogleAuthProvider();
+      await signInWithRedirect(auth, provider);
+    } catch(err) { showError(getFriendlyError(err)); }
   };
 
   window.handleApple = async () => {
@@ -90,9 +117,8 @@
       const result = await signInWithApple();
       if (result) window.location.href = 'setup.html';
     } catch(err) {
-      if (err.code === 'auth/operation-not-supported-in-this-environment' ||
-          err.code === 'auth/cancelled-popup-request') return;
-      showError('Apple Sign-In requires an Apple Developer account to be configured. Use Google or Email for now.');
+      if (err.code==='auth/cancelled-popup-request') return;
+      showError('Apple Sign-In requires Apple Developer setup. Use Google or Email.');
     }
   };
 
@@ -101,39 +127,34 @@
     const password = document.getElementById('password').value;
     const confirm  = document.getElementById('confirm').value;
     const btn      = document.getElementById('signup-btn');
-
     showError('');
-    if (!email || !password)     { showError('Please fill in all fields.'); return; }
-    if (password !== confirm)    { showError('Passwords do not match.'); return; }
-    if (password.length < 6)     { showError('Password must be at least 6 characters.'); return; }
-
-    btn.textContent = 'Creating account…'; btn.disabled = true;
+    if (!email||!password)    { showError('Please fill in all fields.'); return; }
+    if (password!==confirm)   { showError('Passwords do not match.'); return; }
+    if (password.length<6)    { showError('Password must be at least 6 characters.'); return; }
+    btn.textContent='Creating account…'; btn.disabled=true;
     try {
       await signUp(email, password);
       window.location.href = 'setup.html';
     } catch(err) {
       showError(getFriendlyError(err));
-      btn.textContent = 'Create Account'; btn.disabled = false;
+      btn.textContent='Create Account'; btn.disabled=false;
     }
   };
 
   function getFriendlyError(err) {
     const map = {
-      'auth/unauthorized-domain':   '⚠️ Add ' + location.hostname + ' to Firebase → Auth → Authorized Domains.',
-      'auth/operation-not-allowed': '⚠️ Email/Password sign-in not enabled in Firebase Console.',
+      'auth/unauthorized-domain':   '⚠️ Add '+location.hostname+' to Firebase → Auth → Authorized Domains.',
+      'auth/operation-not-allowed': '⚠️ Email sign-in not enabled in Firebase Console.',
       'auth/email-already-in-use':  'This email is already registered. Try logging in.',
       'auth/invalid-email':         'Please enter a valid email address.',
       'auth/weak-password':         'Password too weak. Use at least 6 characters.',
       'auth/network-request-failed':'Network error. Check your connection.',
-      'auth/too-many-requests':     'Too many attempts. Please wait and try again.',
     };
-    return map[err.code] || 'Error: ' + err.message;
+    return map[err.code]||'Error: '+err.message;
   }
-
   function showError(msg) {
-    const el = document.getElementById('error-msg');
-    el.textContent = msg;
-    el.style.display = msg ? 'block' : 'none';
+    const el=document.getElementById('error-msg');
+    el.textContent=msg; el.style.display=msg?'block':'none';
   }
 </script>
 </body>
