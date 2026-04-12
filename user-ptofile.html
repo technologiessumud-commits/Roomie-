@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Roomie – User Profile</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .profile-photo-lg {
+      width:88px;height:88px;border-radius:50%;
+      object-fit:cover;border:3px solid var(--border);
+    }
+    .avatar-xl {
+      width:88px;height:88px;border-radius:50%;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#fff;
+      border:3px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading" style="padding:20px">
+  <div class="skeleton" style="height:220px;border-radius:var(--radius);margin-bottom:16px"></div>
+  <div class="skeleton skeleton-text"></div>
+  <div class="skeleton skeleton-text short"></div>
+</div>
+
+<div id="content" style="display:none;padding-bottom:120px">
+
+  <!-- Back -->
+  <div class="topbar">
+    <button class="back-btn" onclick="history.back()">
+      <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div style="font-family:'Syne',sans-serif;font-weight:700">Profile</div>
+    <div style="width:40px"></div>
+  </div>
+
+  <!-- Header -->
+  <div class="profile-header" style="padding-top:20px">
+    <div id="avatar-wrap"></div>
+    <div class="profile-name" id="p-name">—</div>
+    <div class="profile-university" id="p-uni">—</div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center" id="p-chips"></div>
+  </div>
+
+  <!-- Action buttons -->
+  <div style="padding:16px 20px;display:flex;gap:10px" id="action-btns">
+    <button class="btn btn-primary" id="msg-btn" onclick="goMessage()" style="flex:1">
+      ✉️ Send Message
+    </button>
+    <button class="btn btn-whatsapp" id="wa-btn" style="flex:1;display:none">
+      💬 WhatsApp
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="profile-stats">
+    <div class="profile-stat">
+      <div class="profile-stat-num" id="p-rooms">0</div>
+      <div class="profile-stat-label">Rooms Posted</div>
+    </div>
+    <div class="profile-stat">
+      <div class="profile-stat-num" id="p-joined">—</div>
+      <div class="profile-stat-label">Joined</div>
+    </div>
+    <div class="profile-stat">
+      <div class="profile-stat-num" id="p-uni-short">—</div>
+      <div class="profile-stat-label">University</div>
+    </div>
+  </div>
+
+  <div style="padding:20px">
+
+    <!-- Contact info -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+        <div class="flex-gap">
+          <span style="font-size:1.1rem">🎓</span>
+          <div><div style="font-size:12px;color:var(--muted)">University</div>
+          <div style="font-size:14px" id="p-uni-full">—</div></div>
+        </div>
+        <div class="flex-gap" id="p-country-row" style="display:none">
+          <span style="font-size:1.1rem">🌍</span>
+          <div><div style="font-size:12px;color:var(--muted)">Country</div>
+          <div style="font-size:14px" id="p-country">—</div></div>
+        </div>
+        <div class="flex-gap" id="p-course-row" style="display:none">
+          <span style="font-size:1.1rem">📚</span>
+          <div><div style="font-size:12px;color:var(--muted)">Course</div>
+          <div style="font-size:14px" id="p-course">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Their room listings -->
+    <h3 style="font-family:'Syne',sans-serif;margin-bottom:12px">Room Listings</h3>
+    <div id="p-rooms-list" style="display:flex;flex-direction:column;gap:12px"></div>
+    <div id="p-rooms-empty" style="display:none;color:var(--muted);font-size:14px;padding:8px 0">
+      No rooms posted yet.
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+  import { requireAuth, getProfile, getUserRooms } from './firebase.js';
+
+  const user   = await requireAuth();
+  const params = new URLSearchParams(location.search);
+  const uid    = params.get('uid');
+
+  if (!uid || uid === user.uid) {
+    window.location.href = 'profile.html'; // redirect to own profile
+  }
+
+  const [profile, rooms] = await Promise.all([
+    getProfile(uid),
+    getUserRooms(uid)
+  ]);
+
+  if (!profile) {
+    showToast('User not found', 'error');
+    setTimeout(() => history.back(), 1500);
+  } else {
+    renderProfile(profile, rooms);
+  }
+
+  function renderProfile(p, rooms) {
+    // Avatar
+    const wrap = document.getElementById('avatar-wrap');
+    if (p.photoURL) {
+      wrap.innerHTML = `<img src="${p.photoURL}" class="profile-photo-lg" onerror="this.outerHTML='<div class=avatar-xl>${p.name[0].toUpperCase()}</div>'"/>`;
+    } else {
+      wrap.innerHTML = `<div class="avatar-xl">${(p.name||'U')[0].toUpperCase()}</div>`;
+    }
+
+    document.getElementById('p-name').textContent    = p.name || 'Anonymous';
+    document.getElementById('p-uni').textContent     = p.university || '';
+    document.getElementById('p-uni-full').textContent = p.university || '—';
+    document.getElementById('p-rooms').textContent   = rooms.length;
+    document.getElementById('p-joined').textContent  = p.createdAt
+      ? new Date(p.createdAt).toLocaleDateString('en', { month:'short', year:'numeric' })
+      : '—';
+    document.getElementById('p-uni-short').textContent = p.university
+      ? p.university.split(' ').slice(0,2).join(' ')
+      : '—';
+
+    // Chips
+    const chips = document.getElementById('p-chips');
+    if (p.year)   chips.innerHTML += `<span class="badge">🎓 ${p.year}</span>`;
+    if (p.course) chips.innerHTML += `<span class="badge">📚 ${p.course}</span>`;
+    if (p.city)   chips.innerHTML += `<span class="badge">📍 ${p.city}</span>`;
+
+    // Info rows
+    if (p.countryDisplay || p.country) {
+      document.getElementById('p-country').textContent = p.countryDisplay || p.country;
+      document.getElementById('p-country-row').style.display = 'flex';
+    }
+    if (p.course) {
+      document.getElementById('p-course').textContent = p.course;
+      document.getElementById('p-course-row').style.display = 'flex';
+    }
+
+    // WhatsApp button
+    if (p.phone) {
+      const waBtn = document.getElementById('wa-btn');
+      waBtn.style.display = 'flex';
+      const clean = p.phone.replace(/\D/g,'');
+      const msg   = encodeURIComponent(`Hi ${p.name}! I saw your profile on Roomie.`);
+      waBtn.onclick = () => window.open(`https://wa.me/${clean}?text=${msg}`,'_blank');
+    }
+
+    // Rooms
+    const list  = document.getElementById('p-rooms-list');
+    const empty = document.getElementById('p-rooms-empty');
+    if (!rooms.length) {
+      empty.style.display = 'block';
+    } else {
+      list.innerHTML = rooms.map(r => {
+        const thumb = r.imageURLs?.length
+          ? `<img src="${r.imageURLs[0]}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
+          : `<div style="width:64px;height:64px;border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🏠</div>`;
+        const isOcc = r.status === 'occupied';
+        return `
+          <div class="card" onclick="window.location.href='room.html?id=${r.id}'" style="cursor:pointer">
+            <div class="card-body" style="display:flex;align-items:center;gap:12px">
+              ${thumb}
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(r.title)}</div>
+                <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location||'—')}</div>
+                ${isOcc?'<span style="font-size:11px;color:var(--danger);font-weight:600">🔒 Occupied</span>':''}
+              </div>
+              <span class="card-price" style="font-size:13px;white-space:nowrap">₦${Number(r.price).toLocaleString()}</span>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+  }
+
+  window.goMessage = function() {
+    const name = document.getElementById('p-name').textContent;
+    window.location.href = `chat.html?uid=${uid}&name=${encodeURIComponent(name)}`;
+  };
+
+  function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+  function showToast(msg,type=''){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.className=`toast ${type} show`;
+    setTimeout(()=>t.classList.remove('show'),3000);
+  }
+</script>
+</body>
+</html>
