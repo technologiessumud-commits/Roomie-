@@ -146,6 +146,14 @@
   <div class="skeleton skeleton-card"></div>
 </div>
 
+<!-- Error state -->
+<div id="error-state" style="display:none" class="empty-state">
+  <div class="empty-icon">⚠️</div>
+  <div class="empty-title">Couldn't load rooms</div>
+  <p class="empty-sub" id="error-detail">Check your connection and try again.</p>
+  <button onclick="loadRooms()" class="btn btn-primary btn-sm mt-16">Retry</button>
+</div>
+
 <div id="rooms-container" class="rooms-grid" style="display:none"></div>
 
 <div id="empty-state" class="empty-state" style="display:none">
@@ -180,8 +188,31 @@
   let typeFilter      = 'all';
   let filterOpen      = false;
 
-  const user = await requireAuth();
-  [userProfile, favourites] = await Promise.all([getProfile(user.uid), getFavourites(user.uid)]);
+  // Auth guard with timeout safety
+  let user;
+  try {
+    user = await Promise.race([
+      requireAuth(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('auth-timeout')), 10000))
+    ]);
+  } catch(e) {
+    if (e.message === 'auth-timeout') {
+      window.location.href = 'login.html';
+    }
+    // otherwise requireAuth already redirected
+    throw e;
+  }
+
+  // Load profile and favourites — don't let favourites failure block everything
+  try {
+    [userProfile, favourites] = await Promise.all([
+      getProfile(user.uid),
+      getFavourites(user.uid).catch(() => [])   // graceful fallback
+    ]);
+  } catch(e) {
+    console.warn('Profile load error:', e);
+    userProfile = null; favourites = [];
+  }
 
   if (userProfile) {
     const fn = userProfile.name.split(' ')[0];
@@ -208,13 +239,32 @@
     document.getElementById('chip-country').textContent = `🌍 ${userProfile.countryDisplay||cap(userProfile.country)}`;
   }
 
-  async function loadRooms() {
+  window.loadRooms = async function() {
+    // Reset states
+    document.getElementById('skeleton-loader').style.display = 'block';
+    document.getElementById('error-state').style.display     = 'none';
+    document.getElementById('rooms-container').style.display = 'none';
+    document.getElementById('empty-state').style.display     = 'none';
+
     try {
-      allRooms = await getRooms();
+      // Timeout after 12 seconds
+      allRooms = await Promise.race([
+        getRooms(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 12000))
+      ]);
+
       document.getElementById('skeleton-loader').style.display = 'none';
       document.getElementById('rooms-container').style.display = 'flex';
       filterRooms();
-    } catch(e) { showToast('Failed to load rooms','error'); }
+    } catch(e) {
+      console.error('loadRooms error:', e);
+      document.getElementById('skeleton-loader').style.display = 'none';
+      document.getElementById('error-state').style.display     = 'flex';
+      const detail = e.message === 'timeout'
+        ? 'Request timed out. Check your connection.'
+        : `Error: ${e.message}`;
+      document.getElementById('error-detail').textContent = detail;
+    }
   }
 
   function renderRooms(rooms) {
@@ -353,45 +403,4 @@
 
   window.clearAllFilters = function() {
     activeAmenities.clear(); genderFilter='any'; typeFilter='all'; maxPrice=0;
-    document.querySelectorAll('.af-chip').forEach(e=>e.classList.remove('on'));
-    document.getElementById('tf-all').classList.add('on');
-    ['gf-any','gf-female','gf-male'].forEach(id=>document.getElementById(id).classList.remove('on'));
-    document.getElementById('gf-any').classList.add('on');
-    filterRooms();
-  };
-
-  window.setScopeFilter = function(scope,el) {
-    scopeFilter = scope;
-    ['chip-uni','chip-country','chip-all'].forEach(id=>document.getElementById(id).classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('section-label').textContent = {uni:'My University',country:'My Country',all:'All Schools'}[scope];
-    if (userProfile) {
-      document.getElementById('hero-sub').textContent = {
-        uni:`Showing rooms at ${userProfile.university}`,
-        country:`Showing rooms in ${userProfile.countryDisplay||cap(userProfile.country)}`,
-        all:'Showing all rooms worldwide'
-      }[scope];
-    }
-    filterRooms();
-  };
-
-  window.setPriceFilter = function(price, el) {
-    maxPrice = price;
-    document.querySelectorAll('.filter-row').forEach(row=>
-      row.querySelectorAll('.filter-chip').forEach(c=>{
-        if (c.textContent.includes('₦')||c.textContent==='Any price') c.classList.remove('active');
-      })
-    );
-    el.classList.add('active'); filterRooms();
-  };
-
-  window.toggleFav = async (roomId, btn) => {
-    const saved = await toggleFavourite(user.uid, roomId);
-    btn.textContent = saved?'❤️':'🤍';
-    if (saved) favourites.push(roomId);
-    else favourites=favourites.filter(id=>id!==roomId);
-    showToast(saved?'Saved ❤️':'Removed from saved', saved?'success':'');
-  };
-
-  function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
-  function escHtml(s){const d=document.c
+    d
