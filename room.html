@@ -67,6 +67,13 @@
       <span class="room-price-per">/month</span>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 20px" id="chips-row"></div>
+    <!-- Amenities section -->
+    <div id="amenities-section" style="display:none;margin-bottom:4px">
+      <div class="divider"></div>
+      <h3 style="margin-bottom:12px;font-family:'Syne',sans-serif">Amenities</h3>
+      <div id="amenities-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:4px"></div>
+    </div>
+
     <div class="divider"></div>
     <h3 style="margin-bottom:10px;font-family:'Syne',sans-serif">About this room</h3>
     <p class="room-desc" id="room-desc">—</p>
@@ -91,7 +98,10 @@
 
 <!-- BOTTOM ACTION BAR -->
 <div id="action-bar" style="position:fixed;bottom:0;left:0;right:0;padding:16px 20px;background:var(--bg);border-top:1px solid var(--border);display:none">
-  <button class="btn btn-whatsapp" id="wa-btn">💬 Contact on WhatsApp</button>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-whatsapp" id="wa-btn" style="flex:1">💬 WhatsApp</button>
+    <button class="btn btn-secondary" id="msg-btn" style="flex:1" onclick="openChat()">✉️ Message</button>
+  </div>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -170,6 +180,28 @@
     document.getElementById('room-title').textContent   = room.title;
     document.getElementById('room-price').textContent   = `₦${Number(room.price).toLocaleString()}`;
     document.getElementById('room-desc').textContent    = room.description || 'No description.';
+
+    // Amenities
+    const AMENITY_LABELS = {
+      wifi:'📶 WiFi',water:'🚿 Running Water',electricity:'⚡ 24hr Electricity',
+      generator:'🔌 Generator',furnished:'🛋️ Furnished',bathroom:'🚽 Private Bathroom',
+      kitchen:'🍳 Kitchen Access',security:'🔐 Security/Gate',parking:'🚗 Parking',
+      ac:'❄️ Air Conditioning',laundry:'👕 Laundry',pets:'🐾 Pets Allowed'
+    };
+    if (room.amenities?.length) {
+      document.getElementById('amenities-section').style.display = 'block';
+      document.getElementById('amenities-grid').innerHTML = room.amenities.map(a=>
+        `<div style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px">${AMENITY_LABELS[a]||a}</div>`
+      ).join('');
+    }
+    // Gender pref
+    if (room.genderPref && room.genderPref !== 'any') {
+      const gpLabel = room.genderPref === 'female' ? '👩 Female tenants only' : '👨 Male tenants only';
+      const gpDiv = document.createElement('div');
+      gpDiv.style.cssText = 'background:rgba(62,207,142,.1);color:var(--success);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-top:8px';
+      gpDiv.textContent = gpLabel;
+      document.getElementById('chips-row').after(gpDiv);
+    }
     document.getElementById('room-type-badge').textContent = room.type ? room.type.charAt(0).toUpperCase()+room.type.slice(1) : 'Room';
 
     // Chips
@@ -189,6 +221,11 @@
     }
 
     // Owner controls
+    // Hide message btn for own listing
+    if (user.uid === room.ownerUid) {
+      document.getElementById('msg-btn').style.display = 'none';
+    }
+
     if (user.uid === room.ownerUid) {
       const controls = document.getElementById('owner-controls');
       controls.style.display = 'flex';
@@ -250,6 +287,13 @@
       showToast('Listing deleted','success');
       setTimeout(()=>window.location.href='home.html',1200);
     } catch(e) { showToast('Failed to delete','error'); }
+  };
+
+  window.openChat = function() {
+    if (!room.ownerUid || room.ownerUid === user.uid) {
+      showToast("You can't message yourself", 'error'); return;
+    }
+    window.location.href = `chat.html?uid=${room.ownerUid}&name=${encodeURIComponent(room.ownerName||'Owner')}`;
   };
 
   function escHtml(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
