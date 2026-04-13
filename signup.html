@@ -19,9 +19,7 @@
       display:flex;align-items:center;gap:12px;
       color:var(--muted);font-size:13px;margin:16px 0;
     }
-    .divider-text::before,.divider-text::after{
-      content:'';flex:1;height:1px;background:var(--border);
-    }
+    .divider-text::before,.divider-text::after{content:'';flex:1;height:1px;background:var(--border);}
   </style>
 </head>
 <body>
@@ -80,124 +78,75 @@ const app  = initializeApp({
   messagingSenderId:"896474185176",
   appId:"1:896474185176:web:0e4543682f594daf0a86ad"
 });
-
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-let redirectHandled = false;
-
-// ✅ HANDLE GOOGLE REDIRECT FIRST
+// Check redirect result first
 try {
   const result = await getRedirectResult(auth);
-  redirectHandled = true;
-
   if (result?.user) {
     const u = result.user;
     const snap = await getDoc(doc(db,'users',u.uid));
-
     if (!snap.exists()) {
-      // 🆕 NEW USER → CREATE PROFILE → SETUP
       await setDoc(doc(db,'users',u.uid), {
-        uid: u.uid,
-        email: u.email || '',
-        name: u.displayName || '',
-        photoURL: u.photoURL || '',
+        uid:u.uid, email:u.email||'',
+        name:u.displayName||'', photoURL:u.photoURL||'',
         createdAt: new Date().toISOString()
-      }, { merge: true });
-
-      location.href = 'setup.html';
-    } else {
-      // 🔁 EXISTING USER → HOME
-      location.href = 'home.html';
-    }
+      }, {merge:true});
+      location.href='setup.html';
+    } else { location.href='home.html'; }
     return;
   }
-} catch(e) {
-  showErr(friendly(e));
-}
+} catch(e) { showErr(friendly(e)); }
 
-// ✅ AUTH STATE (ONLY AFTER REDIRECT HANDLED)
 onAuthStateChanged(auth, user => {
-  if (user && !redirectHandled) {
-    location.href = 'home.html';
-    return;
-  }
-
-  document.getElementById('redirect-check').style.display = 'none';
-  document.getElementById('auth-form').style.display = 'block';
+  if (user) { location.href='home.html'; return; }
+  document.getElementById('redirect-check').style.display='none';
+  document.getElementById('auth-form').style.display='block';
 });
 
-// 🔵 GOOGLE SIGN-IN
 window.googleSignIn = async () => {
-  const btn = document.getElementById('google-btn');
-  btn.textContent = '⏳ Redirecting…';
-  btn.disabled = true;
-
+  document.getElementById('google-btn').textContent='⏳ Redirecting…';
+  document.getElementById('google-btn').disabled=true;
   await signInWithRedirect(auth, new GoogleAuthProvider());
 };
 
-// 📧 EMAIL SIGN-UP
 window.emailSignUp = async () => {
   const email  = document.getElementById('email').value.trim();
   const pass   = document.getElementById('password').value;
   const confirm= document.getElementById('confirm').value;
   const btn    = document.getElementById('signup-btn');
-
   showErr('');
-
-  if (!email || !pass) {
-    showErr('Please fill in all fields.');
-    return;
-  }
-  if (pass !== confirm) {
-    showErr('Passwords do not match.');
-    return;
-  }
-  if (pass.length < 6) {
-    showErr('Password must be at least 6 characters.');
-    return;
-  }
-
-  btn.textContent = 'Creating account…';
-  btn.disabled = true;
-
+  if (!email||!pass)  { showErr('Please fill in all fields.'); return; }
+  if (pass!==confirm) { showErr('Passwords do not match.'); return; }
+  if (pass.length<6)  { showErr('Password must be at least 6 characters.'); return; }
+  btn.textContent='Creating account…'; btn.disabled=true;
   try {
-    const { user } = await createUserWithEmailAndPassword(auth, email, pass);
-
-    try {
-      await sendEmailVerification(user, { url: location.origin + '/home.html' });
-    } catch(_) {}
-
-    location.href = 'setup.html';
+    const {user} = await createUserWithEmailAndPassword(auth,email,pass);
+    // Send verification email
+    try { await sendEmailVerification(user,{url:location.origin+'/home.html'}); } catch(_){}
+    location.href='setup.html';
   } catch(e) {
-    showErr(friendly(e));
-    btn.textContent = 'Create Account';
-    btn.disabled = false;
+    showErr(friendly(e)); btn.textContent='Create Account'; btn.disabled=false;
   }
 };
 
-// ❗ ERROR HANDLING
 function friendly(e) {
   const m = {
     'auth/email-already-in-use':  'This email is already registered. Try logging in.',
     'auth/invalid-email':         'Please enter a valid email address.',
     'auth/weak-password':         'Password too weak. Use at least 6 characters.',
     'auth/network-request-failed':'No internet connection.',
-    'auth/unauthorized-domain':   '⚠️ Add ' + location.hostname + ' to Firebase → Auth → Authorized Domains.',
+    'auth/unauthorized-domain':   '⚠️ Add '+location.hostname+' to Firebase → Auth → Authorized Domains.',
   };
-  return m[e.code] || e.message;
+  return m[e.code]||e.message;
 }
-
 function showErr(msg) {
-  const el = document.getElementById('err');
-  el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
+  const el=document.getElementById('err');
+  el.textContent=msg; el.style.display=msg?'block':'none';
 }
 
-// 📦 SERVICE WORKER
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
 </body>
 </html>
