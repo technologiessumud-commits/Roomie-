@@ -6,68 +6,57 @@
   <title>Roomie – Chat</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
-    body { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+    body { display:flex; flex-direction:column; height:100vh; overflow:hidden; background:var(--bg); }
 
     .chat-topbar {
       display:flex; align-items:center; gap:12px;
       padding:12px 16px; background:var(--surface);
-      border-bottom:1px solid var(--border);
-      flex-shrink:0;
+      border-bottom:1px solid var(--border); flex-shrink:0;
     }
-    .chat-avatar-sm {
-      width:40px; height:40px; border-radius:50%;
-      object-fit:cover; flex-shrink:0;
+    .chat-av {
+      width:40px; height:40px; border-radius:50%; object-fit:cover; flex-shrink:0;
     }
-    .chat-avatar-sm-init {
+    .chat-av-init {
       width:40px; height:40px; border-radius:50%;
       background:linear-gradient(135deg,var(--accent),var(--accent2));
       display:flex; align-items:center; justify-content:center;
-      font-family:'Syne',sans-serif; font-weight:800; color:#fff;
-      font-size:.95rem; flex-shrink:0;
+      font-family:'Syne',sans-serif; font-weight:800; color:#fff; font-size:.95rem; flex-shrink:0;
     }
 
-    .messages-area {
-      flex:1; overflow-y:auto; padding:16px;
-      display:flex; flex-direction:column; gap:10px;
-      scroll-behavior:smooth;
+    /* Message area */
+    .msg-area {
+      flex:1; overflow-y:auto; padding:16px 16px 8px;
+      display:flex; flex-direction:column; gap:6px;
     }
 
-    .bubble-wrap {
-      display:flex; flex-direction:column;
-      max-width:78%;
+    /* Date divider */
+    .date-div {
+      display:flex; align-items:center; gap:10px;
+      color:var(--muted); font-size:11px; margin:8px 0; text-align:center;
     }
-    .bubble-wrap.mine  { align-self:flex-end; align-items:flex-end; }
-    .bubble-wrap.theirs { align-self:flex-start; align-items:flex-start; }
+    .date-div::before, .date-div::after { content:''; flex:1; height:1px; background:var(--border); }
 
+    /* Bubble containers */
+    .msg-sent, .msg-received {
+      display:flex; flex-direction:column; max-width:78%;
+    }
+    .msg-sent     { align-self:flex-end;   align-items:flex-end; }
+    .msg-received { align-self:flex-start; align-items:flex-start; }
+
+    /* Bubbles */
     .bubble {
       padding:10px 14px; border-radius:18px;
       font-size:14px; line-height:1.5; word-break:break-word;
     }
-    .bubble.mine {
-      background:var(--accent); color:#fff;
-      border-bottom-right-radius:4px;
-    }
-    .bubble.theirs {
-      background:var(--card); color:var(--text);
-      border: 1px solid var(--border);
-      border-bottom-left-radius:4px;
-    }
-    .bubble-time {
-      font-size:11px; color:var(--muted); margin-top:3px; padding:0 4px;
-    }
+    .msg-sent     .bubble { background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+    .msg-received .bubble { background:var(--card); color:var(--text); border:1px solid var(--border); border-bottom-left-radius:4px; }
 
-    /* date divider */
-    .date-divider {
-      display:flex; align-items:center; gap:10px;
-      color:var(--muted); font-size:12px; margin:8px 0;
-    }
-    .date-divider::before,.date-divider::after {
-      content:''; flex:1; height:1px; background:var(--border);
-    }
+    .timestamp { font-size:11px; color:var(--muted); margin-top:3px; padding:0 4px; }
 
+    /* Input bar */
     .input-bar {
       display:flex; align-items:flex-end; gap:10px;
-      padding:10px 14px; background:var(--surface);
+      padding:10px 14px 14px; background:var(--surface);
       border-top:1px solid var(--border); flex-shrink:0;
     }
     .msg-input {
@@ -84,12 +73,14 @@
       display:flex; align-items:center; justify-content:center;
       cursor:pointer; flex-shrink:0; transition:transform .15s;
     }
-    .send-btn:active { transform:scale(.93); }
-    .send-btn:disabled { background:var(--border); }
+    .send-btn:active  { transform:scale(.93); }
+    .send-btn:disabled { background:var(--border); cursor:not-allowed; }
 
-    .typing-indicator {
-      display:none; padding:0 16px 8px;
-      font-size:12px; color:var(--muted); font-style:italic;
+    /* Empty state inside chat */
+    .chat-empty {
+      flex:1; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      text-align:center; padding:40px 20px; gap:8px;
     }
   </style>
 </head>
@@ -97,25 +88,23 @@
 
 <!-- TOP BAR -->
 <div class="chat-topbar">
-  <button class="back-btn" onclick="history.back()" style="flex-shrink:0">
+  <button class="back-btn" onclick="history.back()">
     <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <div id="their-avatar-wrap"></div>
+  <div id="av-wrap"></div>
   <div style="flex:1;min-width:0">
-    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="their-name">—</div>
-    <div style="font-size:12px;color:var(--muted)" id="their-uni"></div>
+    <div id="their-name" style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+    <div id="their-uni"  style="font-size:12px;color:var(--muted)"></div>
   </div>
+  <a id="profile-link" href="#" style="font-size:12px;color:var(--accent);font-weight:600">Profile →</a>
 </div>
 
 <!-- MESSAGES -->
-<div class="messages-area" id="messages-area">
-  <div style="text-align:center;color:var(--muted);font-size:13px;padding:20px 0" id="loading-msgs">Loading messages…</div>
+<div class="msg-area" id="msg-area">
+  <div style="text-align:center;color:var(--muted);font-size:13px;padding:20px">Loading…</div>
 </div>
 
-<!-- TYPING -->
-<div class="typing-indicator" id="typing-indicator">typing…</div>
-
-<!-- INPUT BAR -->
+<!-- INPUT -->
 <div class="input-bar">
   <textarea class="msg-input" id="msg-input" placeholder="Message…" rows="1"
     oninput="autoResize(this)"
@@ -127,111 +116,150 @@
 </div>
 
 <script type="module">
-  import { requireAuth, getProfile, getOrCreateChat, sendMessage, listenMessages, chatId } from './firebase.js';
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, addDoc, updateDoc,
+    collection, query, orderBy, onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const app  = initializeApp({
+    apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+    authDomain:"roomie-f3103.firebaseapp.com",
+    projectId:"roomie-f3103",
+    storageBucket:"roomie-f3103.firebasestorage.app",
+    messagingSenderId:"896474185176",
+    appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+  });
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
 
   const params   = new URLSearchParams(location.search);
   const theirUid = params.get('uid');
-  const theirNameParam = params.get('name') || 'User';
+  const theirNameParam = decodeURIComponent(params.get('name') || 'User');
 
-  if (!theirUid) { window.location.href = 'messages.html'; }
+  if (!theirUid) { location.href = 'messages.html'; }
 
-  const user = await requireAuth();
-  if (user.uid === theirUid) { window.location.href = 'messages.html'; }
+  let myUid, chatDocId, unsub;
 
-  // Load both profiles
-  const [myProfile, theirProfile] = await Promise.all([
-    getProfile(user.uid),
-    getProfile(theirUid)
-  ]);
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { location.href = 'login.html'; return; }
+    if (user.uid === theirUid) { location.href = 'messages.html'; return; }
+    myUid = user.uid;
 
-  const theirName  = theirProfile?.name    || theirNameParam;
-  const theirPhoto = theirProfile?.photoURL || '';
-  const theirUni   = theirProfile?.university || '';
+    // Load both profiles
+    const [mySnap, theirSnap] = await Promise.all([
+      getDoc(doc(db, 'users', myUid)),
+      getDoc(doc(db, 'users', theirUid))
+    ]);
+    const myProfile    = mySnap.exists()    ? mySnap.data()    : { name: user.email, photoURL: '' };
+    const theirProfile = theirSnap.exists() ? theirSnap.data() : { name: theirNameParam, photoURL: '' };
 
-  // Set header
-  document.getElementById('their-name').textContent = theirName;
-  document.getElementById('their-uni').textContent  = theirUni;
-  const avatarWrap = document.getElementById('their-avatar-wrap');
-  if (theirPhoto) {
-    avatarWrap.innerHTML = `<img src="${theirPhoto}" class="chat-avatar-sm" onerror="this.outerHTML='<div class=chat-avatar-sm-init>${theirName[0].toUpperCase()}</div>'"/>`;
-  } else {
-    avatarWrap.innerHTML = `<div class="chat-avatar-sm-init">${theirName[0].toUpperCase()}</div>`;
-  }
+    const theirName  = theirProfile.name  || theirNameParam;
+    const theirPhoto = theirProfile.photoURL || '';
+    const theirUni   = theirProfile.university || '';
 
-  // Get or create chat
-  const chatDocId = await getOrCreateChat(user.uid, theirUid, myProfile, theirProfile || { name: theirNameParam, photoURL: '' });
+    // Header
+    document.getElementById('their-name').textContent = theirName;
+    document.getElementById('their-uni').textContent  = theirUni;
+    document.getElementById('profile-link').href = `user-profile.html?uid=${theirUid}`;
 
-  // Listen for messages
-  let prevDate = '';
-  let unsubscribe;
+    const avWrap = document.getElementById('av-wrap');
+    if (theirPhoto) {
+      avWrap.innerHTML = `<img src="${theirPhoto}" class="chat-av" onerror="this.outerHTML='<div class=chat-av-init>${theirName[0].toUpperCase()}</div>'"/>`;
+    } else {
+      avWrap.innerHTML = `<div class="chat-av-init">${theirName[0].toUpperCase()}</div>`;
+    }
 
-  unsubscribe = listenMessages(chatDocId, messages => {
-    const area = document.getElementById('messages-area');
-    document.getElementById('loading-msgs').style.display = 'none';
+    // Get or create chat doc
+    chatDocId = [myUid, theirUid].sort().join('_');
+    const chatRef = doc(db, 'chats', chatDocId);
+    const chatSnap = await getDoc(chatRef);
+    if (!chatSnap.exists()) {
+      await setDoc(chatRef, {
+        participants:      [myUid, theirUid],
+        participantNames:  { [myUid]: myProfile.name, [theirUid]: theirName },
+        participantPhotos: { [myUid]: myProfile.photoURL||'', [theirUid]: theirPhoto },
+        participantUnis:   { [myUid]: myProfile.university||'', [theirUid]: theirUni },
+        lastMessage: '', lastMessageTime: serverTimestamp(), createdAt: serverTimestamp()
+      });
+    }
+
+    // Listen to messages
+    const q = query(collection(db, 'chats', chatDocId, 'messages'), orderBy('timestamp', 'asc'));
+    unsub = onSnapshot(q, snap => renderMessages(snap.docs.map(d => ({ id:d.id, ...d.data() })), myUid, theirName));
+  });
+
+  function renderMessages(messages, myUid, theirName) {
+    const area = document.getElementById('msg-area');
 
     if (!messages.length) {
       area.innerHTML = `
-        <div style="text-align:center;padding:40px 20px">
-          <div style="font-size:2.5rem;margin-bottom:12px">👋</div>
-          <div style="font-weight:600;font-family:'Syne',sans-serif;margin-bottom:6px">Say hello!</div>
-          <div style="color:var(--muted);font-size:13px">Start the conversation with ${escHtml(theirName)}</div>
+        <div class="chat-empty">
+          <div style="font-size:2.5rem">👋</div>
+          <div style="font-weight:700;font-family:'Syne',sans-serif;font-size:1.1rem">Say hello!</div>
+          <div style="color:var(--muted);font-size:13px">Start your conversation with ${esc(theirName)}</div>
         </div>`;
       return;
     }
 
-    prevDate = '';
+    let prevDate = '';
     area.innerHTML = messages.map(msg => {
-      const isMine  = msg.senderUid === user.uid;
-      const time    = msg.timestamp?.seconds
-        ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString('en', { hour:'2-digit', minute:'2-digit' })
-        : '';
-      const dateStr = msg.timestamp?.seconds
-        ? new Date(msg.timestamp.seconds * 1000).toLocaleDateString('en', { weekday:'short', month:'short', day:'numeric' })
-        : '';
+      const isMine = msg.senderUid === myUid;
+      const ts     = msg.timestamp?.seconds
+        ? new Date(msg.timestamp.seconds * 1000) : null;
+      const timeStr = ts
+        ? ts.toLocaleTimeString('en', { hour:'2-digit', minute:'2-digit' }) : '';
+      const dateStr = ts
+        ? ts.toLocaleDateString('en', { weekday:'short', month:'short', day:'numeric' }) : '';
 
       let divider = '';
       if (dateStr && dateStr !== prevDate) {
-        divider   = `<div class="date-divider">${dateStr}</div>`;
-        prevDate  = dateStr;
+        divider  = `<div class="date-div">${dateStr}</div>`;
+        prevDate = dateStr;
       }
 
       return `
         ${divider}
-        <div class="bubble-wrap ${isMine?'mine':'theirs'}">
-          <div class="bubble ${isMine?'mine':'theirs'}">${escHtml(msg.text)}</div>
-          <div class="bubble-time">${time}</div>
+        <div class="${isMine ? 'msg-sent' : 'msg-received'}">
+          <div class="bubble">${esc(msg.text)}</div>
+          <div class="timestamp">${timeStr}</div>
         </div>`;
     }).join('');
 
     // Scroll to bottom
     area.scrollTop = area.scrollHeight;
-  });
+  }
 
   window.sendMsg = async () => {
     const input = document.getElementById('msg-input');
-    const text  = input.value.trim();
-    if (!text) return;
-    const btn   = document.getElementById('send-btn');
+    const text  = (input.value || '').trim();
+    if (!text || !chatDocId) return;
+    const btn = document.getElementById('send-btn');
     btn.disabled = true;
     input.value  = '';
     input.style.height = 'auto';
     try {
-      await sendMessage(chatDocId, user.uid, text);
+      await addDoc(collection(db, 'chats', chatDocId, 'messages'), {
+        senderUid: myUid, text, timestamp: serverTimestamp(), read: false
+      });
+      await updateDoc(doc(db, 'chats', chatDocId), {
+        lastMessage: text.slice(0, 80), lastMessageTime: serverTimestamp()
+      });
     } catch(e) {
-      input.value = text; // restore if failed
-      console.error(e);
+      input.value = text; // restore on fail
     }
     btn.disabled = false;
     input.focus();
   };
 
-  window.autoResize = function(el) {
+  window.autoResize = (el) => {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   };
 
-  function escHtml(s) { const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+  function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 </script>
 </body>
-  </html>
-
+</html>
