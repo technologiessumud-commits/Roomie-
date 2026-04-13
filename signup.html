@@ -133,7 +133,14 @@
     if (password.length<6)    { showError('Password must be at least 6 characters.'); return; }
     btn.textContent='Creating account…'; btn.disabled=true;
     try {
-      await signUp(email, password);
+      const cred = await signUp(email, password);
+      // Send verification email
+      try {
+        const { sendEmailVerification } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+        await sendEmailVerification(cred.user, {
+          url: window.location.origin + '/home.html'
+        });
+      } catch(e) { console.warn('Verification email failed:', e); }
       window.location.href = 'setup.html';
     } catch(err) {
       showError(getFriendlyError(err));
