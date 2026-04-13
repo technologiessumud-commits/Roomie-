@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Roomie – Log In</title>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#ff6b35"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Roomie"/>
   <style>
     .social-btn {
       display:flex;align-items:center;justify-content:center;gap:10px;
@@ -13,7 +18,7 @@
       cursor:pointer;transition:all .2s;border:1.5px solid var(--border);
       background:var(--card);color:var(--text);margin-bottom:10px;
     }
-    .social-btn:hover{border-color:var(--accent);background:rgba(255,107,53,.05);}
+    .social-btn:hover{border-color:var(--accent);}
     .divider-text{
       display:flex;align-items:center;gap:12px;
       color:var(--muted);font-size:13px;margin:16px 0;
@@ -24,25 +29,19 @@
 <body>
 <div class="page-full" style="background:radial-gradient(ellipse at 20% 90%,rgba(255,179,71,.1) 0%,transparent 55%)">
   <div class="auth-wrap">
-
     <div class="auth-logo">Room<span>ie</span></div>
     <p class="auth-subtitle">Welcome back 👋</p>
 
-    <!-- Loading state for redirect -->
-    <div id="redirect-loading" style="display:none;text-align:center;padding:20px 0">
-      <div style="font-size:2rem;margin-bottom:8px">⏳</div>
-      <div style="color:var(--muted);font-size:14px">Signing you in…</div>
+    <!-- Loading spinner shown during redirect check -->
+    <div id="redirect-check" style="text-align:center;padding:24px 0">
+      <div style="color:var(--muted);font-size:14px">⏳ Checking sign-in…</div>
     </div>
 
-    <div id="auth-form">
-      <button class="social-btn" onclick="handleGoogle()">
+    <div id="auth-form" style="display:none">
+      <!-- Google only — Apple removed -->
+      <button class="social-btn" id="google-btn" onclick="googleSignIn()">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px"/>
         Continue with Google
-      </button>
-
-      <button class="social-btn" onclick="handleApple()" style="background:#000;color:#fff;border-color:#000">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-        Continue with Apple
       </button>
 
       <div class="divider-text">or log in with email</div>
@@ -56,9 +55,9 @@
         <input type="password" id="password" placeholder="Your password"/>
       </div>
 
-      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;line-height:1.5"></p>
+      <p id="err" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;line-height:1.5"></p>
 
-      <button class="btn btn-primary" id="login-btn" onclick="handleLogin()">Log In</button>
+      <button class="btn btn-primary" id="login-btn" onclick="emailSignIn()">Log In</button>
       <div class="auth-footer" style="margin-top:16px">
         Don't have an account? <a href="signup.html">Sign up</a>
       </div>
@@ -67,117 +66,89 @@
 </div>
 
 <script type="module">
-  import {
-    auth, logIn, signInWithGoogle, signInWithApple,
-    getProfile, saveProfile
-  } from './firebase.js';
-  import { getRedirectResult } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider, signInWithRedirect, getRedirectResult
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // ── Handle Google/Apple redirect result first ──────────────
-  async function checkRedirect() {
-    try {
-      document.getElementById('redirect-loading').style.display = 'block';
-      document.getElementById('auth-form').style.display = 'none';
+const app  = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+  storageBucket:"roomie-f3103.firebasestorage.app",
+  messagingSenderId:"896474185176",
+  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-      const result = await getRedirectResult(auth);
+async function goHome(user) {
+  const snap = await getDoc(doc(db, 'users', user.uid));
+  location.href = snap.exists() ? 'home.html' : 'setup.html';
+}
 
-      if (result && result.user) {
-        // Successfully signed in via redirect
-        const u = result.user;
-        let profile = await getProfile(u.uid);
+// 1. Check if returning from Google redirect
+try {
+  const result = await getRedirectResult(auth);
+  if (result?.user) { await goHome(result.user); return; }
+} catch(e) { showErr(friendly(e)); }
 
-        if (!profile) {
-          // New user — pre-fill from Google and go to setup
-          await saveProfile(u.uid, {
-            uid:       u.uid,
-            email:     u.email      || '',
-            name:      u.displayName || '',
-            photoURL:  u.photoURL    || '',
-            createdAt: new Date().toISOString()
-          });
-          window.location.href = 'setup.html';
-        } else {
-          window.location.href = 'home.html';
-        }
-        return;
-      }
+// 2. Check if already logged in
+onAuthStateChanged(auth, async user => {
+  if (user) { await goHome(user); return; }
+  // Show form
+  document.getElementById('redirect-check').style.display = 'none';
+  document.getElementById('auth-form').style.display = 'block';
+});
 
-      // No redirect result — show normal form
-      document.getElementById('redirect-loading').style.display = 'none';
-      document.getElementById('auth-form').style.display = 'block';
+// Google — always use redirect (works on mobile + Vercel)
+window.googleSignIn = async () => {
+  document.getElementById('google-btn').textContent = '⏳ Redirecting…';
+  document.getElementById('google-btn').disabled = true;
+  await signInWithRedirect(auth, new GoogleAuthProvider());
+};
 
-    } catch(err) {
-      console.error('Redirect check error:', err);
-      document.getElementById('redirect-loading').style.display = 'none';
-      document.getElementById('auth-form').style.display = 'block';
-      showError(getFriendlyError(err));
-    }
+// Email
+window.emailSignIn = async () => {
+  const email = document.getElementById('email').value.trim();
+  const pass  = document.getElementById('password').value;
+  const btn   = document.getElementById('login-btn');
+  showErr('');
+  if (!email||!pass) { showErr('Please enter your email and password.'); return; }
+  btn.textContent='Logging in…'; btn.disabled=true;
+  try {
+    const {user} = await signInWithEmailAndPassword(auth, email, pass);
+    await goHome(user);
+  } catch(e) {
+    showErr(friendly(e)); btn.textContent='Log In'; btn.disabled=false;
   }
+};
 
-  // Run redirect check on page load
-  await checkRedirect();
+document.addEventListener('keydown', e => { if(e.key==='Enter') window.emailSignIn(); });
 
-  window.handleGoogle = async () => {
-    showError('');
-    try {
-      // Always use redirect (works on mobile + Vercel)
-      const { signInWithRedirect, GoogleAuthProvider } =
-        await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-      const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
-      // Page will reload and checkRedirect() will handle the result
-    } catch(err) { showError(getFriendlyError(err)); }
+function friendly(e) {
+  const m = {
+    'auth/user-not-found':         'No account with this email.',
+    'auth/wrong-password':         'Incorrect password.',
+    'auth/invalid-credential':     'Incorrect email or password.',
+    'auth/too-many-requests':      'Too many attempts. Wait a moment.',
+    'auth/network-request-failed': 'No internet connection.',
+    'auth/unauthorized-domain':    '⚠️ Add '+location.hostname+' to Firebase → Auth → Authorized Domains.',
   };
+  return m[e.code] || e.message;
+}
+function showErr(msg) {
+  const el=document.getElementById('err');
+  el.textContent=msg; el.style.display=msg?'block':'none';
+}
 
-  window.handleApple = async () => {
-    showError('');
-    try {
-      const result = await signInWithApple();
-      if (result) {
-        const profile = await getProfile(result.user.uid);
-        window.location.href = profile ? 'home.html' : 'setup.html';
-      }
-    } catch(err) {
-      if (err.code === 'auth/cancelled-popup-request') return;
-      showError('Apple Sign-In requires Apple Developer setup. Use Google or Email.');
-    }
-  };
-
-  window.handleLogin = async () => {
-    const email    = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const btn      = document.getElementById('login-btn');
-    showError('');
-    if (!email || !password) { showError('Please enter your email and password.'); return; }
-    btn.textContent = 'Logging in…'; btn.disabled = true;
-    try {
-      const { user } = await logIn(email, password);
-      const profile = await getProfile(user.uid);
-      window.location.href = profile ? 'home.html' : 'setup.html';
-    } catch(err) {
-      showError(getFriendlyError(err));
-      btn.textContent = 'Log In'; btn.disabled = false;
-    }
-  };
-
-  document.addEventListener('keydown', e => { if (e.key==='Enter') window.handleLogin(); });
-
-  function getFriendlyError(err) {
-    const map = {
-      'auth/unauthorized-domain':    '⚠️ Add '+location.hostname+' to Firebase → Auth → Authorized Domains.',
-      'auth/user-not-found':         'No account found with this email.',
-      'auth/wrong-password':         'Incorrect password.',
-      'auth/invalid-credential':     'Incorrect email or password.',
-      'auth/too-many-requests':      'Too many attempts. Please wait.',
-      'auth/network-request-failed': 'Network error. Check your connection.',
-      'auth/popup-blocked':          'Popup blocked. Please allow popups for this site.',
-    };
-    return map[err.code] || 'Error: ' + err.message;
-  }
-  function showError(msg) {
-    const el = document.getElementById('error-msg');
-    el.textContent = msg; el.style.display = msg ? 'block' : 'none';
-  }
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>
