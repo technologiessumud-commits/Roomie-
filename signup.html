@@ -5,35 +5,49 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Roomie – Sign Up</title>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#ff6b35"/>
+
+  <style>
+    .divider-text{
+      display:flex;align-items:center;gap:12px;
+      color:var(--muted);font-size:13px;margin:16px 0;
+    }
+    .divider-text::before,.divider-text::after{
+      content:'';flex:1;height:1px;background:var(--border);
+    }
+  </style>
 </head>
 
 <body>
-<div class="page-full">
+<div class="page-full" style="background:radial-gradient(ellipse at 80% 10%,rgba(255,107,53,.12) 0%,transparent 55%)">
   <div class="auth-wrap">
     <div class="auth-logo">Room<span>ie</span></div>
     <p class="auth-subtitle">Create your free account</p>
 
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="email" placeholder="you@university.edu"/>
-    </div>
+    <div id="auth-form">
+      <div class="divider-text">Sign up with email</div>
 
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="password" placeholder="Min 6 characters"/>
-    </div>
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="email" placeholder="you@university.edu"/>
+      </div>
 
-    <div class="form-group">
-      <label>Confirm Password</label>
-      <input type="password" id="confirm" placeholder="Repeat password"/>
-    </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Min. 6 characters"/>
+      </div>
 
-    <p id="err" style="color:red;display:none"></p>
+      <div class="form-group">
+        <label>Confirm password</label>
+        <input type="password" id="confirm" placeholder="Repeat password"/>
+      </div>
 
-    <button id="signup-btn" onclick="emailSignUp()">Create Account</button>
+      <p id="err" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;"></p>
 
-    <div class="auth-footer">
-      Already have an account? <a href="login.html">Log in</a>
+      <button class="btn btn-primary" id="signup-btn" onclick="emailSignUp()">Create Account</button>
+
+      <div class="auth-footer">Already have an account? <a href="login.html">Log in</a></div>
     </div>
   </div>
 </div>
@@ -42,62 +56,66 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getAuth,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const app = initializeApp({
-  apiKey:"YOUR_KEY",
-  authDomain:"YOUR_DOMAIN",
-  projectId:"YOUR_ID"
+const app  = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+  storageBucket:"roomie-f3103.firebasestorage.app",
+  messagingSenderId:"896474185176",
+  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
 });
 
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db   = getFirestore(app);
 
 window.emailSignUp = async () => {
-  const email = document.getElementById('email').value.trim();
-  const pass  = document.getElementById('password').value;
-  const confirm = document.getElementById('confirm').value;
+  const email  = document.getElementById('email').value.trim();
+  const pass   = document.getElementById('password').value;
+  const confirm= document.getElementById('confirm').value;
+  const btn    = document.getElementById('signup-btn');
 
   showErr('');
 
-  if (!email || !pass) {
-    showErr('Fill all fields');
-    return;
-  }
+  if (!email || !pass) { showErr('Please fill in all fields.'); return; }
+  if (pass !== confirm) { showErr('Passwords do not match.'); return; }
+  if (pass.length < 6) { showErr('Password must be at least 6 characters.'); return; }
 
-  if (pass !== confirm) {
-    showErr('Passwords do not match');
-    return;
-  }
-
-  if (pass.length < 6) {
-    showErr('Password must be at least 6 characters');
-    return;
-  }
+  btn.textContent = 'Creating account…';
+  btn.disabled = true;
 
   try {
     const { user } = await createUserWithEmailAndPassword(auth, email, pass);
 
-    // create user doc
-    await setDoc(doc(db, 'users', user.uid), {
-      uid: user.uid,
-      email: user.email,
-      createdAt: new Date().toISOString()
+    await setDoc(doc(db,'users',user.uid), {
+      uid:user.uid,
+      email:user.email,
+      createdAt:new Date().toISOString()
     });
+
+    try { await sendEmailVerification(user); } catch(_) {}
 
     location.href = 'setup.html';
 
   } catch(e) {
     showErr(e.message);
+    btn.textContent = 'Create Account';
+    btn.disabled = false;
   }
 };
 
-function showErr(msg){
+function showErr(msg) {
   const el = document.getElementById('err');
   el.textContent = msg;
   el.style.display = msg ? 'block' : 'none';
+}
+
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
 </script>
 </body>
