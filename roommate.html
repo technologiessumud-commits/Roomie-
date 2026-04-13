@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#ff6b35"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
   <title>Roomie – Roommates</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -32,6 +35,32 @@
     <div class="form-group">
       <label>Description *</label>
       <textarea id="rm-desc" rows="3" placeholder="Tell others about yourself, schedule, preferences…"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Budget / Rent range <span style="color:var(--muted)">(optional)</span></label>
+      <div style="display:flex;gap:8px">
+        <select id="rm-currency" style="width:auto;flex-shrink:0;min-width:110px;padding-right:32px">
+          <option value="NGN" data-symbol="₦">₦ NGN</option>
+          <option value="USD" data-symbol="$">$ USD</option>
+          <option value="GBP" data-symbol="£">£ GBP</option>
+          <option value="EUR" data-symbol="€">€ EUR</option>
+          <option value="GHS" data-symbol="₵">₵ GHS</option>
+          <option value="KES" data-symbol="KSh">KSh KES</option>
+          <option value="ZAR" data-symbol="R">R ZAR</option>
+          <option value="CAD" data-symbol="C$">C$ CAD</option>
+          <option value="AUD" data-symbol="A$">A$ AUD</option>
+          <option value="INR" data-symbol="₹">₹ INR</option>
+          <option value="XOF" data-symbol="CFA">CFA XOF</option>
+          <option value="EGP" data-symbol="E£">E£ EGP</option>
+          <option value="TZS" data-symbol="TSh">TSh TZS</option>
+          <option value="UGX" data-symbol="USh">USh UGX</option>
+          <option value="ETB" data-symbol="Br">Br ETB</option>
+          <option value="AED" data-symbol="AED">AED</option>
+          <option value="MYR" data-symbol="RM">RM MYR</option>
+          <option value="BRL" data-symbol="R$">R$ BRL</option>
+        </select>
+        <input type="number" id="rm-budget" placeholder="Max budget per month" min="0" style="flex:1"/>
+      </div>
     </div>
     <div class="form-group">
       <label>WhatsApp number *</label>
@@ -219,6 +248,7 @@
                   <div style="font-weight:600;font-size:14px;margin-top:6px">${escHtml(item.ownerName || 'Anonymous')}</div>
                   ${uniLine}
                   <div style="font-size:12px;color:var(--muted);margin-top:2px">📍 ${escHtml(item.location || 'Location not specified')}</div>
+                  ${item.budget ? `<div style="font-size:12px;color:var(--success);margin-top:2px">💰 Budget: ${item.currencySymbol||''}${Number(item.budget).toLocaleString()}/${item.currency||''}</div>` : ''}
                 </div>
                 <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" style="flex-shrink:0;margin-top:4px"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
@@ -271,6 +301,9 @@
       try {
         await postRoommate({
           type, location, description: desc, whatsapp,
+          budget:   document.getElementById('rm-budget').value || '',
+          currency: document.getElementById('rm-currency').value,
+          currencySymbol: document.getElementById('rm-currency').options[document.getElementById('rm-currency').selectedIndex]?.dataset?.symbol || '',
           uid:             user.uid,
           email:           user.email,
           ownerName:       userProfile ? userProfile.name : '',
@@ -304,6 +337,7 @@
     }
 
     loadRoommates();
-  </script>
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
 </body>
 </html>
