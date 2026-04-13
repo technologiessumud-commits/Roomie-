@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Roomie – Home</title>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#ff6b35"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Roomie"/>
   <style>
     .card { position:relative; }
     .fav-btn {
@@ -22,6 +27,17 @@
       color:var(--text); font-size:13px; font-weight:600;
       cursor:pointer; font-family:'Syne',sans-serif;
     }
+    /* Unread badge */
+    .nav-badge {
+      position:absolute; top:-4px; right:-4px;
+      min-width:18px; height:18px; border-radius:9px;
+      background:var(--danger); color:#fff;
+      font-size:10px; font-weight:700;
+      display:flex; align-items:center; justify-content:center;
+      padding:0 4px; border:2px solid var(--bg);
+      line-height:1;
+    }
+    .nav-item { position:relative; }
     .card-actions .btn-main {
       flex:2; background:var(--accent); color:#fff; border-color:var(--accent);
     }
@@ -115,8 +131,9 @@
   <a href="list-room.html" class="nav-item">
     <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post
   </a>
-  <a href="messages.html" class="nav-item">
+  <a href="messages.html" class="nav-item" id="nav-messages">
     <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages
+    <span id="msg-badge" class="nav-badge" style="display:none">0</span>
   </a>
   <a href="profile.html" class="nav-item">
     <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile
@@ -201,6 +218,7 @@ onAuthStateChanged(auth, async user => {
       '🌍 ' + (profile.countryDisplay || profile.country);
   }
 
+  listenUnread(myUid);
   loadRooms();
 });
 
@@ -277,7 +295,7 @@ function render(list) {
             <div class="card-meta">📍 ${e(r.location||'—')}</div>
             ${uniLine}
             <div style="margin-top:8px">
-              <span class="card-price">₦${Number(r.price||0).toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--muted)">/mo</span></span>
+              <span class="card-price">${r.currencySymbol||'₦'}${Number(r.price||0).toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--muted)">/mo</span></span>
             </div>
           </div>
         </div>
@@ -355,6 +373,41 @@ function toast(msg) {
 function e(s) {
   const d = document.createElement('div');
   d.textContent = s; return d.innerHTML;
+}
+
+// ── Unread message badge ──────────────────────────────────
+import { onSnapshot, query as q2, collection as col2, where as w2 }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+function listenUnread(uid) {
+  // Listen to chats where user is participant
+  const chatsQ = q2(col2(db, 'chats'), w2('participants', 'array-contains', uid));
+  onSnapshot(chatsQ, async snap => {
+    let total = 0;
+    for (const chatDoc of snap.docs) {
+      // Count unread messages (not sent by me, read=false)
+      const msgsQ = q2(
+        col2(db, 'chats', chatDoc.id, 'messages'),
+        w2('senderUid', '!=', uid),
+        w2('read', '==', false)
+      );
+      const msgsSnap = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+        .then(m => m.getDocs(msgsQ));
+      total += msgsSnap.size;
+    }
+    const badge = document.getElementById('msg-badge');
+    if (total > 0) {
+      badge.textContent = total > 99 ? '99+' : total;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  });
+}
+
+// Register SW
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
 </script>
 </body>
