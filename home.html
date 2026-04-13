@@ -8,9 +8,8 @@
   <style>
     .fav-btn {
       position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;
-      background:rgba(13,15,20,.7);backdrop-filter:blur(6px);
-      border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
-      font-size:1.1rem;z-index:2;
+      background:rgba(13,15,20,.7);backdrop-filter:blur(6px);border:none;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;font-size:1.1rem;z-index:2;
     }
     .card { position:relative; }
     .filter-panel {
@@ -34,23 +33,29 @@
     }
     .gf-btn.on { border-color:var(--accent);background:rgba(255,107,53,.1);color:var(--accent); }
     .a-badge {
-      display:inline-flex;align-items:center;gap:3px;
-      background:rgba(255,107,53,.1);color:var(--accent);
-      font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;
+      display:inline-flex;align-items:center;gap:3px;background:rgba(255,107,53,.1);
+      color:var(--accent);font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;
     }
-    .card-actions {
-      display:flex;gap:8px;padding:0 14px 14px;
-    }
+    .card-actions { display:flex;gap:8px;padding:0 14px 14px; }
     .card-actions button {
       padding:9px;border-radius:8px;border:1.5px solid var(--border);
       background:transparent;color:var(--text);font-size:13px;font-weight:600;
       cursor:pointer;font-family:'Syne',sans-serif;transition:background .15s;
     }
-    .card-actions button:hover { background:var(--border); }
-    .card-actions .btn-view {
-      flex:2;background:var(--accent);color:#fff;border-color:var(--accent);
-    }
+    .card-actions .btn-view { flex:2;background:var(--accent);color:#fff;border-color:var(--accent); }
     .card-actions .btn-icon { flex:1; }
+
+    /* Verify banner */
+    .verify-banner {
+      margin:0 20px 16px;padding:12px 16px;border-radius:var(--radius-sm);
+      background:rgba(255,179,71,.12);border:1px solid rgba(255,179,71,.3);
+      display:flex;align-items:center;gap:10px;font-size:13px;
+    }
+    .verify-banner button {
+      margin-left:auto;flex-shrink:0;padding:6px 14px;border-radius:6px;
+      background:var(--accent2);color:#000;border:none;font-weight:600;
+      font-size:12px;cursor:pointer;font-family:'Syne',sans-serif;
+    }
   </style>
 </head>
 <body>
@@ -62,6 +67,13 @@
     <a href="favourites.html" title="Saved" style="color:var(--muted);font-size:1.2rem;line-height:1">❤️</a>
     <div id="avatar-btn" class="avatar" style="cursor:pointer;width:36px;height:36px;font-size:.95rem" onclick="location.href='profile.html'">?</div>
   </div>
+</div>
+
+<!-- EMAIL VERIFICATION BANNER -->
+<div class="verify-banner" id="verify-banner" style="display:none">
+  <span>📧</span>
+  <span id="verify-text">Please verify your email to unlock all features.</span>
+  <button onclick="resendVerification()">Resend</button>
 </div>
 
 <div class="hero-section">
@@ -76,8 +88,7 @@
     <svg width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="text" id="search-input" placeholder="Search title or location…" oninput="applyFilters()"/>
   </div>
-  <button id="filter-btn" onclick="togglePanel()"
-    style="width:44px;height:44px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative">
+  <button id="filter-btn" onclick="togglePanel()" style="width:44px;height:44px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative">
     <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
     <span id="filter-dot" style="display:none;position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent)"></span>
   </button>
@@ -110,12 +121,12 @@
   <div>
     <div class="fp-title">Room Type</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <div class="af-chip on" data-type="all"      onclick="setType('all',this)">All</div>
-      <div class="af-chip"    data-type="self-con"  onclick="setType('self-con',this)">Self-con</div>
-      <div class="af-chip"    data-type="single"    onclick="setType('single',this)">Single</div>
-      <div class="af-chip"    data-type="shared"    onclick="setType('shared',this)">Shared</div>
-      <div class="af-chip"    data-type="flat"      onclick="setType('flat',this)">Flat</div>
-      <div class="af-chip"    data-type="studio"    onclick="setType('studio',this)">Studio</div>
+      <div class="af-chip on" data-type="all"     onclick="setType('all',this)">All</div>
+      <div class="af-chip"    data-type="self-con" onclick="setType('self-con',this)">Self-con</div>
+      <div class="af-chip"    data-type="single"   onclick="setType('single',this)">Single</div>
+      <div class="af-chip"    data-type="shared"   onclick="setType('shared',this)">Shared</div>
+      <div class="af-chip"    data-type="flat"     onclick="setType('flat',this)">Flat</div>
+      <div class="af-chip"    data-type="studio"   onclick="setType('studio',this)">Studio</div>
     </div>
   </div>
   <button onclick="clearFilters()" style="background:none;border:none;color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;padding:0;text-align:left">✕ Clear filters</button>
@@ -128,11 +139,11 @@
   <button class="filter-chip"        id="sc-country" onclick="setScope('country',this)">🌍 My Country</button>
 </div>
 <div class="filter-row" style="padding-top:0">
-  <button class="filter-chip active" onclick="setPrice(0,this)">Any price</button>
-  <button class="filter-chip" onclick="setPrice(50000,this)">Under ₦50k</button>
-  <button class="filter-chip" onclick="setPrice(100000,this)">Under ₦100k</button>
-  <button class="filter-chip" onclick="setPrice(200000,this)">Under ₦200k</button>
-  <button class="filter-chip" onclick="setPrice(500000,this)">Under ₦500k</button>
+  <button class="filter-chip active" id="p-any"   onclick="setPrice(0,this)">Any price</button>
+  <button class="filter-chip"        onclick="setPrice(50000,this)">Under ₦50k</button>
+  <button class="filter-chip"        onclick="setPrice(100000,this)">Under ₦100k</button>
+  <button class="filter-chip"        onclick="setPrice(200000,this)">Under ₦200k</button>
+  <button class="filter-chip"        onclick="setPrice(500000,this)">Under ₦500k</button>
 </div>
 
 <div class="section-header">
@@ -140,50 +151,77 @@
   <span id="room-count" class="text-muted" style="font-size:13px"></span>
 </div>
 
-<!-- STATES -->
-<div id="state-loading">
-  <div class="skeleton skeleton-card"></div>
+<!-- STATES — all unique IDs -->
+<div id="state-loading" style="padding:0 20px">
+  <div class="skeleton skeleton-card" style="margin-bottom:16px"></div>
   <div class="skeleton skeleton-card"></div>
 </div>
 
-<div id="state-error" class="empty-state" style="display:none">
+<div id="state-error" style="display:none" class="empty-state">
   <div class="empty-icon">⚠️</div>
   <div class="empty-title">Couldn't load rooms</div>
-  <p class="empty-sub" id="error-msg">Check your connection.</p>
-  <button onclick="loadRooms()" class="btn btn-primary btn-sm mt-16">Retry</button>
+  <p class="empty-sub" id="state-error-msg">Check your internet connection.</p>
+  <button onclick="loadRooms()" class="btn btn-primary btn-sm mt-16">↺ Retry</button>
 </div>
 
-<div id="state-empty" class="empty-state" style="display:none">
+<div id="state-empty" style="display:none" class="empty-state">
   <div class="empty-icon">🏠</div>
-  <div class="empty-title" id="empty-title">No rooms found</div>
-  <p class="empty-sub" id="empty-sub">Be the first to post!</p>
+  <div class="empty-title" id="state-empty-title">No rooms found</div>
+  <p class="empty-sub" id="state-empty-sub">Be the first to post!</p>
   <a href="list-room.html" class="btn btn-primary btn-sm mt-16">Post a room</a>
 </div>
 
-<div id="state-rooms" class="rooms-grid" style="display:none"></div>
+<div id="state-rooms" class="rooms-grid" style="display:none;padding-bottom:120px"></div>
 
 <a href="list-room.html" class="fab">+</a>
 
 <nav class="navbar">
-  <a href="home.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
-  <a href="roommate.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Roommates</a>
-  <a href="list-room.html" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post</a>
-  <a href="messages.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
-  <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
+  <a href="home.html" class="nav-item active">
+    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
+  </a>
+  <a href="roommate.html" class="nav-item">
+    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Roommates
+  </a>
+  <a href="list-room.html" class="nav-item">
+    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post
+  </a>
+  <a href="messages.html" class="nav-item">
+    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages
+  </a>
+  <a href="profile.html" class="nav-item">
+    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile
+  </a>
 </nav>
 
 <div id="toast" class="toast"></div>
 
 <script type="module">
-  import { auth, getProfile, getRooms, getFavourites, toggleFavourite } from './firebase.js';
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  // ── Direct Firebase imports — no custom wrapper that can hang ──
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, sendEmailVerification
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    getFirestore, collection, getDocs, doc, getDoc, setDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const app  = initializeApp({
+    apiKey:            "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+    authDomain:        "roomie-f3103.firebaseapp.com",
+    projectId:         "roomie-f3103",
+    storageBucket:     "roomie-f3103.firebasestorage.app",
+    messagingSenderId: "896474185176",
+    appId:             "1:896474185176:web:0e4543682f594daf0a86ad"
+  });
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
 
   // ── State ─────────────────────────────────────────────────
   let allRooms    = [];
   let favs        = [];
   let userProfile = null;
   let uid         = null;
-  let scope       = 'all';   // default: show everything
+  let scope       = 'all';
   let maxPrice    = 0;
   let genderF     = 'any';
   let typeF       = 'all';
@@ -191,34 +229,65 @@
   let panelOpen   = false;
 
   const AL = {
-    wifi:'📶 WiFi',water:'🚿 Water',electricity:'⚡ 24hr Power',
-    generator:'🔌 Generator',furnished:'🛋️ Furnished',bathroom:'🚽 Private WC',
-    kitchen:'🍳 Kitchen',security:'🔐 Security',ac:'❄️ AC',
-    parking:'🚗 Parking',laundry:'👕 Laundry',pets:'🐾 Pets OK'
+    wifi:'📶 WiFi', water:'🚿 Water', electricity:'⚡ 24hr Power',
+    generator:'🔌 Generator', furnished:'🛋️ Furnished', bathroom:'🚽 Private WC',
+    kitchen:'🍳 Kitchen', security:'🔐 Security', ac:'❄️ AC',
+    parking:'🚗 Parking', laundry:'👕 Laundry', pets:'🐾 Pets OK'
   };
 
-  // ── Auth ──────────────────────────────────────────────────
+  // ── Step 1: Auth — fires from cache instantly ──────────────
   onAuthStateChanged(auth, async (user) => {
-    if (!user) { location.href = 'login.html'; return; }
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+
     uid = user.uid;
 
-    // Load profile + favs in parallel, don't block on errors
-    [userProfile, favs] = await Promise.all([
-      getProfile(uid).catch(() => null),
-      getFavourites(uid).catch(() => [])
-    ]);
+    // Step 2: Email verification banner
+    if (!user.emailVerified && user.providerData[0]?.providerId === 'password') {
+      const banner = document.getElementById('verify-banner');
+      document.getElementById('verify-text').textContent =
+        `Please verify your email (${user.email}) to unlock all features.`;
+      banner.style.display = 'flex';
+    }
 
+    // Step 3: Load profile (non-blocking)
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      userProfile = snap.exists() ? snap.data() : null;
+    } catch(e) {
+      console.warn('Profile fetch failed:', e.message);
+    }
+
+    if (!userProfile) {
+      window.location.href = 'setup.html';
+      return;
+    }
+
+    // Step 4: Load favourites (non-blocking, don't fail if missing)
+    try {
+      const fsnap = await getDoc(doc(db, 'favourites', uid));
+      favs = fsnap.exists() ? (fsnap.data().items || []) : [];
+    } catch(e) {
+      favs = [];
+    }
+
+    // Step 5: Update UI header
     updateHeader();
+
+    // Step 6: Load rooms
     loadRooms();
   });
 
+  // ── Header ────────────────────────────────────────────────
   function updateHeader() {
     if (!userProfile) return;
-    const fn = userProfile.name.split(' ')[0];
+    const fn = userProfile.name ? userProfile.name.split(' ')[0] : 'there';
     document.getElementById('hero-greeting').innerHTML =
       `Hey, <span style="color:var(--accent)">${fn}</span> 👋`;
     document.getElementById('hero-sub').textContent =
-      `${userProfile.university || 'Browse student rooms'}`;
+      userProfile.university || 'Browse student rooms';
 
     const av = document.getElementById('avatar-btn');
     if (userProfile.photoURL) {
@@ -227,15 +296,15 @@
       const img = document.createElement('img');
       img.src = userProfile.photoURL;
       img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      img.onerror = () => { av.textContent = fn[0].toUpperCase(); };
       av.appendChild(img);
     } else {
       av.textContent = fn[0].toUpperCase();
     }
 
-    // Update scope chip labels
     if (userProfile.university) {
-      const uniShort = userProfile.university.split(' ').slice(0,3).join(' ');
-      document.getElementById('sc-uni').textContent = `🎓 ${uniShort}`;
+      const s = userProfile.university.split(' ').slice(0,3).join(' ');
+      document.getElementById('sc-uni').textContent = `🎓 ${s}`;
     }
     if (userProfile.countryDisplay || userProfile.country) {
       document.getElementById('sc-country').textContent =
@@ -243,49 +312,46 @@
     }
   }
 
-  // ── Load rooms ────────────────────────────────────────────
+  // ── Load rooms directly from Firestore ────────────────────
   window.loadRooms = async function() {
-    showState('loading');
+    show('loading');
     try {
-      allRooms = await getRooms();
+      const snap = await getDocs(collection(db, 'rooms'));
+      allRooms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       applyFilters();
     } catch(e) {
-      console.error('getRooms failed:', e);
-      document.getElementById('error-msg').textContent =
-        `Error: ${e.message || 'Could not reach database.'}`;
-      showState('error');
+      console.error('Rooms fetch error:', e);
+      document.getElementById('state-error-msg').textContent =
+        'Error: ' + (e.message || 'Could not reach database. Check Firestore rules.');
+      show('error');
     }
   };
 
-  // ── Apply all filters ─────────────────────────────────────
+  // ── Filter + render ───────────────────────────────────────
   window.applyFilters = function() {
-    const q = document.getElementById('search-input').value.toLowerCase().trim();
+    const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
 
     let list = allRooms.filter(r => {
-      // text search
-      if (q && !r.title?.toLowerCase().includes(q) && !(r.location||'').toLowerCase().includes(q)) return false;
-      // price
+      if (q && !(r.title||'').toLowerCase().includes(q) && !(r.location||'').toLowerCase().includes(q)) return false;
       if (maxPrice && r.price > maxPrice) return false;
-      // scope
-      if (scope === 'uni' && userProfile)
+      if (scope === 'uni' && userProfile) {
         if ((r.ownerUniversity||'').toLowerCase() !== (userProfile.university||'').toLowerCase()) return false;
-      if (scope === 'country' && userProfile)
+      }
+      if (scope === 'country' && userProfile) {
         if ((r.ownerCountry||'').toLowerCase() !== (userProfile.country||'').toLowerCase()) return false;
-      // amenities
+      }
       if (amenityF.size) {
         const ra = new Set(r.amenities||[]);
         for (const a of amenityF) { if (!ra.has(a)) return false; }
       }
-      // gender
       if (genderF !== 'any' && r.genderPref && r.genderPref !== 'any' && r.genderPref !== genderF) return false;
-      // type
       if (typeF !== 'all' && r.type !== typeF) return false;
       return true;
     });
 
-    // Sort: same university first
+    // Same-uni first when viewing broadly
     if (userProfile && scope !== 'uni') {
-      list.sort((a,b) => {
+      list.sort((a, b) => {
         const am = (a.ownerUniversity||'').toLowerCase() === (userProfile.university||'').toLowerCase();
         const bm = (b.ownerUniversity||'').toLowerCase() === (userProfile.university||'').toLowerCase();
         return bm - am;
@@ -293,137 +359,58 @@
     }
 
     document.getElementById('room-count').textContent =
-      `${list.length} listing${list.length!==1?'s':''}`;
+      `${list.length} listing${list.length !== 1 ? 's' : ''}`;
 
     if (!list.length) {
-      const emptyMsgs = {
+      const msgs = {
         uni:     ['No rooms at your university yet', 'Switch to "All Rooms" to see everything.'],
         country: ['No rooms in your country yet',    'Switch to "All Rooms" to see everything.'],
-        all:     ['No rooms match your filters',     'Try clearing some filters.']
+        all:     ['No rooms match your filters',     'Try clearing some filters or post the first room.']
       };
-      const [t,s] = emptyMsgs[scope] || emptyMsgs.all;
-      document.getElementById('empty-title').textContent = t;
-      document.getElementById('empty-sub').textContent   = s;
-      showState('empty');
+      const [t, s] = msgs[scope] || msgs.all;
+      document.getElementById('state-empty-title').textContent = t;
+      document.getElementById('state-empty-sub').textContent   = s;
+      show('empty');
       return;
     }
 
-    renderRooms(list);
-    showState('rooms');
-    updateDot();
-  };
-
-  function renderRooms(list) {
-    const container = document.getElementById('state-rooms');
-    container.innerHTML = list.map(r => {
+    // Render
+    document.getElementById('state-rooms').innerHTML = list.map(r => {
       const isFav  = favs.includes(r.id);
       const isOcc  = r.status === 'occupied';
       const isOwn  = r.ownerUid === uid;
       const sameUni = userProfile &&
         (r.ownerUniversity||'').toLowerCase() === (userProfile.university||'').toLowerCase();
 
-      const imgHtml = r.imageURLs?.length
+      const imgHtml = (r.imageURLs && r.imageURLs.length)
         ? `<div style="position:relative">
              <img class="card-img" src="${r.imageURLs[0]}" alt=""
                onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>📷</div>'"/>
-             ${isOcc ? '<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center"><span style="background:var(--danger);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;font-family:Syne,sans-serif">🔒 Occupied</span></div>' : ''}
-             <button class="fav-btn" onclick="event.stopPropagation();doFav('${r.id}',this)">${isFav?'❤️':'🤍'}</button>
+             ${isOcc ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center"><span style="background:var(--danger);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;font-family:Syne,sans-serif">🔒 Occupied</span></div>` : ''}
+             <button class="fav-btn" onclick="event.stopPropagation();doFav('${r.id}',this)">${isFav ? '❤️' : '🤍'}</button>
            </div>`
         : `<div class="card-img-placeholder">📷 No image</div>`;
 
-      const badges = (r.amenities||[]).slice(0,3).map(a =>
-        `<span class="a-badge">${AL[a]||a}</span>`).join('');
+      const badges = (r.amenities || []).slice(0, 3)
+        .map(a => `<span class="a-badge">${AL[a] || a}</span>`).join('');
 
-      const uniTag = (!isOwn && sameUni && scope !== 'uni')
+      const uniTag = sameUni && scope !== 'uni' && !isOwn
         ? '<span class="card-tag" style="margin-bottom:6px;display:inline-block">🎓 Your Uni</span>' : '';
 
       const uniLine = scope !== 'uni' && r.ownerUniversity
         ? `<div class="card-meta" style="font-size:12px">🎓 ${esc(r.ownerUniversity)}</div>` : '';
 
       return `
-        <div class="card" style="${isOcc?'opacity:.75':''}">
+        <div class="card" style="${isOcc ? 'opacity:.75' : ''}">
           <div onclick="location.href='room.html?id=${r.id}'" style="cursor:pointer">
             ${imgHtml}
             <div class="card-body">
               ${uniTag}
               <div class="card-title">${esc(r.title)}</div>
-              <div class="card-meta">📍 ${esc(r.location||'Location not set')}</div>
+              <div class="card-meta">📍 ${esc(r.location || 'Location not set')}</div>
               ${uniLine}
               ${badges ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin:6px 0">${badges}</div>` : ''}
               <div class="flex-between" style="margin-top:6px">
-                <span class="card-price">₦${Number(r.price).toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--muted)">/mo</span></span>
-                ${r.genderPref && r.genderPref!=='any' ? `<span style="font-size:11px;color:var(--muted)">${r.genderPref==='female'?'👩 Female':'👨 Male'}</span>` : ''}
-              </div>
-            </div>
-          </div>
-          <div class="card-actions">
-            <button class="btn-view" onclick="location.href='room.html?id=${r.id}'">View Room</button>
-            ${!isOwn ? `
-            <button class="btn-icon" onclick="location.href='chat.html?uid=${r.ownerUid}&name=${encodeURIComponent(r.ownerName||'Owner')}'" title="Message">✉️</button>
-            <button class="btn-icon" onclick="location.href='user-profile.html?uid=${r.ownerUid}'" title="Profile">👤</button>
-            ` : ''}
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  // ── Filter controls ───────────────────────────────────────
-  window.togglePanel = function() {
-    panelOpen = !panelOpen;
-    document.getElementById('filter-panel').classList.toggle('open', panelOpen);
-  };
-
-  window.toggleA = function(el) {
-    const key = el.dataset.amenity;
-    el.classList.toggle('on');
-    amenityF.has(key) ? amenityF.delete(key) : amenityF.add(key);
-    applyFilters();
-  };
-
-  window.setGender = function(val, el) {
-    genderF = val;
-    document.querySelectorAll('.gf-btn').forEach(b => b.classList.remove('on'));
-    el.classList.add('on');
-    applyFilters();
-  };
-
-  window.setType = function(val, el) {
-    typeF = val;
-    document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('on'));
-    el.classList.add('on');
-    applyFilters();
-  };
-
-  window.setScope = function(val, el) {
-    scope = val;
-    ['sc-all','sc-uni','sc-country'].forEach(id => document.getElementById(id).classList.remove('active'));
-    el.classList.add('active');
-    const labels = { all:'All Rooms', uni:'My University', country:'My Country' };
-    document.getElementById('section-label').textContent = labels[val];
-    applyFilters();
-  };
-
-  window.setPrice = function(val, el) {
-    maxPrice = val;
-    document.querySelectorAll('.filter-row').forEach(row =>
-      row.querySelectorAll('.filter-chip').forEach(c => {
-        if (c.textContent.includes('₦') || c.textContent === 'Any price') c.classList.remove('active');
-      })
-    );
-    el.classList.add('active');
-    applyFilters();
-  };
-
-  window.clearFilters = function() {
-    amenityF.clear(); genderF='any'; typeF='all';
-    document.querySelectorAll('.af-chip').forEach(c => c.classList.remove('on'));
-    document.querySelectorAll('[data-type]').forEach(c => c.classList.remove('on'));
-    document.querySelector('[data-type="all"]').classList.add('on');
-    document.querySelectorAll('.gf-btn').forEach(b => b.classList.remove('on'));
-    document.getElementById('gf-any').classList.add('on');
-    applyFilters();
-  };
-
-  window.doFav = async function(roomId, btn) {
-    const saved = await toggleFavourite(uid, roomId);
-    btn.textContent = saved ?
+                <span class="card-price">₦${Number(r.price || 0).toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--muted)">/mo</span></span>
+                ${r.genderPref && r.genderPref !== 'any' ? `<span style="font-size:11px;color:var(--muted)">${r.genderPref === 'female' ? '👩 Female' : '👨 Male'}</span>` : ''}
+          
