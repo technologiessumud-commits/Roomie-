@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Roomie – Email Verification</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="page-full">
+  <div style="max-width:420px;margin:0 auto;width:100%;text-align:center">
+
+    <div id="state-checking" style="padding:40px 0">
+      <div style="font-size:3rem;margin-bottom:16px">⏳</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700">Checking verification…</div>
+    </div>
+
+    <div id="state-verified" style="display:none;padding:40px 0">
+      <div style="font-size:3.5rem;margin-bottom:16px">✅</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:8px">Email Verified!</div>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:28px">
+        Your email address has been verified. You can now access all of Roomie's features.
+      </p>
+      <a href="home.html" class="btn btn-primary">Continue to Roomie →</a>
+    </div>
+
+    <div id="state-unverified" style="display:none;padding:40px 0">
+      <div style="font-size:3.5rem;margin-bottom:16px">📧</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:8px">Verify Your Email</div>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:8px">
+        A verification link has been sent to:
+      </p>
+      <p id="user-email" style="font-weight:600;font-size:15px;margin-bottom:24px;color:var(--accent)">—</p>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:24px">
+        Click the link in the email to verify your account. Check your spam folder if you don't see it.
+      </p>
+      <button class="btn btn-primary" onclick="resend()" id="resend-btn">Resend Verification Email</button>
+      <div style="margin-top:12px">
+        <button class="btn btn-secondary" onclick="checkNow()">I've verified — Continue</button>
+      </div>
+    </div>
+
+    <div id="state-invalid" style="display:none;padding:40px 0">
+      <div style="font-size:3.5rem;margin-bottom:16px">❌</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:8px">Invalid Link</div>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:28px">
+        This verification link is invalid or has expired. Please request a new one.
+      </p>
+      <button class="btn btn-primary" onclick="resend()">Request New Link</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, sendEmailVerification, reload
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const app  = initializeApp({
+    apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+    authDomain:"roomie-f3103.firebaseapp.com",
+    projectId:"roomie-f3103",
+    storageBucket:"roomie-f3103.firebasestorage.app",
+    messagingSenderId:"896474185176",
+    appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+  });
+  const auth = getAuth(app);
+
+  function show(s) {
+    ['checking','verified','unverified','invalid'].forEach(id =>
+      document.getElementById('state-'+id).style.display = id===s ? 'block' : 'none'
+    );
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { location.href = 'login.html'; return; }
+
+    // Check for oobCode in URL (from email link)
+    const params = new URLSearchParams(location.search);
+    const mode   = params.get('mode');
+
+    if (mode === 'verifyEmail') {
+      // Firebase handled it automatically — reload user and check
+      await reload(user);
+      if (auth.currentUser.emailVerified) {
+        show('verified');
+      } else {
+        show('invalid');
+      }
+      return;
+    }
+
+    // Normal visit — check current status
+    await reload(user);
+    if (auth.currentUser.emailVerified) {
+      show('verified');
+    } else {
+      document.getElementById('user-email').textContent = user.email;
+      show('unverified');
+    }
+  });
+
+  window.resend = async () => {
+    const user = auth.currentUser;
+    const btn  = document.getElementById('resend-btn');
+    if (!user) return;
+    try {
+      await sendEmailVerification(user, { url: window.location.origin+'/home.html' });
+      btn.textContent = 'Email Sent ✓';
+      btn.disabled = true;
+      toast('Verification email sent! Check your inbox.', 'success');
+    } catch(e) {
+      toast('Error: ' + e.message, 'error');
+    }
+  };
+
+  window.checkNow = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    await reload(user);
+    if (auth.currentUser.emailVerified) {
+      show('verified');
+    } else {
+      toast('Email not verified yet. Please check your inbox.', 'error');
+    }
+  };
+
+  function toast(msg, type='') {
+    const t = document.getElementById('toast');
+    t.textContent=msg; t.className=`toast ${type} show`;
+    setTimeout(()=>t.classList.remove('show'),3500);
+  }
+</script>
+</body>
+</html>
+
