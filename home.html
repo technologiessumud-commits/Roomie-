@@ -4,379 +4,157 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
   <title>Roomie – Home</title>
+
   <link rel="stylesheet" href="style.css"/>
   <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#0d0f14"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <link rel="manifest" href="manifest.json"/>
+
   <meta name="theme-color" content="#ff6b35"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
 </head>
+
 <body>
 
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-logo">Room<span>ie</span></div>
+
   <div style="display:flex;gap:10px;align-items:center">
-    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+
     <a href="messages.html" style="position:relative;color:var(--muted);display:flex">
-      <svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
       <span id="msg-badge" class="nav-badge" style="display:none">0</span>
     </a>
+
     <a href="favourites.html" style="color:var(--muted);display:flex">
-      <svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
     </a>
-    <div id="av" class="avatar" style="cursor:pointer" onclick="location.href='profile.html'">?</div>
+
+    <div id="av" class="avatar" onclick="location.href='profile.html'">?</div>
+
   </div>
 </div>
 
 <!-- HERO -->
-<div class="hero-section fade-up">
+<div class="hero-section">
   <div class="hero-eyebrow">👋 Welcome back</div>
   <h2 class="hero-title" id="greeting">Find your <span>next room</span></h2>
-  <p style="color:var(--muted);font-size:14px" id="sub">Browse student rooms near you</p>
+  <p id="sub">Browse student rooms near you</p>
 </div>
 
 <!-- SEARCH -->
-<div class="search-wrap fade-up fade-up-1" style="display:flex;gap:8px;align-items:center">
-  <div class="search-bar" style="flex:1">
-    <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="search" placeholder="Search title or location…" oninput="doFilter()"/>
-  </div>
-  <button id="filter-btn" onclick="togglePanel()" style="width:44px;height:44px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative">
-    <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-    <span id="filter-dot" style="display:none;position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent)"></span>
-  </button>
-</div>
-
-<!-- FILTER PANEL -->
-<div class="filter-panel" id="filter-panel">
-  <div>
-    <div class="fp-title">Amenities</div>
-    <div class="af-grid">
-      <div class="af-chip" data-amenity="wifi"        onclick="toggleA(this)">📶 WiFi</div>
-      <div class="af-chip" data-amenity="water"       onclick="toggleA(this)">🚿 Water</div>
-      <div class="af-chip" data-amenity="electricity" onclick="toggleA(this)">⚡ Power</div>
-      <div class="af-chip" data-amenity="generator"   onclick="toggleA(this)">🔌 Gen</div>
-      <div class="af-chip" data-amenity="furnished"   onclick="toggleA(this)">🛋️ Furnished</div>
-      <div class="af-chip" data-amenity="bathroom"    onclick="toggleA(this)">🚽 Pvt WC</div>
-      <div class="af-chip" data-amenity="kitchen"     onclick="toggleA(this)">🍳 Kitchen</div>
-      <div class="af-chip" data-amenity="security"    onclick="toggleA(this)">🔐 Security</div>
-      <div class="af-chip" data-amenity="ac"          onclick="toggleA(this)">❄️ AC</div>
-    </div>
-  </div>
-  <div>
-    <div class="fp-title">Tenant</div>
-    <div class="gf-row">
-      <div class="gf-btn on" id="gf-any"    onclick="setGender('any',this)">👥 Anyone</div>
-      <div class="gf-btn"    id="gf-female" onclick="setGender('female',this)">👩 Female</div>
-      <div class="gf-btn"    id="gf-male"   onclick="setGender('male',this)">👨 Male</div>
-    </div>
-  </div>
-  <div>
-    <div class="fp-title">Room Type</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <div class="af-chip on" data-type="all"     onclick="setType('all',this)">All</div>
-      <div class="af-chip"    data-type="self-con" onclick="setType('self-con',this)">Self-con</div>
-      <div class="af-chip"    data-type="single"   onclick="setType('single',this)">Single</div>
-      <div class="af-chip"    data-type="shared"   onclick="setType('shared',this)">Shared</div>
-      <div class="af-chip"    data-type="flat"     onclick="setType('flat',this)">Flat</div>
-      <div class="af-chip"    data-type="studio"   onclick="setType('studio',this)">Studio</div>
-    </div>
-  </div>
-  <button onclick="clearFilters()" style="background:none;border:none;color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;padding:0">✕ Clear filters</button>
-</div>
-
-<!-- SCOPE -->
-<div class="filter-row fade-up fade-up-2">
-  <button class="filter-chip active" id="sc-all"     onclick="setScope('all',this)">🌐 All</button>
-  <button class="filter-chip"        id="sc-uni"     onclick="setScope('uni',this)">🎓 My Uni</button>
-  <button class="filter-chip"        id="sc-country" onclick="setScope('country',this)">🌍 My Country</button>
-  <button class="filter-chip"        id="sc-near"    onclick="setScope('near',this)">📍 Nearby</button>
-</div>
-
-<!-- PRICE -->
-<div class="filter-row" style="padding-top:0">
-  <button class="filter-chip active" onclick="setPrice(0,this)">Any price</button>
-  <button class="filter-chip" onclick="setPrice(50000,this)">Under ₦50k</button>
-  <button class="filter-chip" onclick="setPrice(100000,this)">Under ₦100k</button>
-  <button class="filter-chip" onclick="setPrice(200000,this)">Under ₦200k</button>
-  <button class="filter-chip" onclick="setPrice(500000,this)">Under ₦500k</button>
-</div>
-
-<div class="section-header">
-  <span class="section-title" id="section-title">All Rooms</span>
-  <span id="count" style="font-size:13px;color:var(--muted)"></span>
+<div class="search-wrap">
+  <input id="search" placeholder="Search..." oninput="doFilter()"/>
 </div>
 
 <!-- STATES -->
-<div id="s-loading" style="padding:0 20px">
-  <div class="skeleton skeleton-card"></div>
-  <div class="skeleton skeleton-card"></div>
-</div>
-<div id="s-error" class="empty-state" style="display:none">
-  <div style="font-size:2.5rem">⚠️</div>
-  <div class="empty-title">Couldn't load rooms</div>
-  <p class="empty-sub" id="err-msg"></p>
-  <button onclick="loadRooms()" class="btn btn-primary btn-sm mt-16">↺ Retry</button>
-</div>
-<div id="s-empty" class="empty-state" style="display:none">
-  <div style="font-size:2.5rem">🏠</div>
-  <div class="empty-title" id="empty-title">No rooms yet</div>
-  <p class="empty-sub" id="empty-sub">Be the first to post!</p>
-  <a href="list-room.html" class="btn btn-primary btn-sm mt-16">Post a room</a>
-</div>
-<div id="s-rooms" class="rooms-grid" style="display:none;padding-bottom:120px"></div>
+<div id="s-loading">Loading...</div>
 
-<a href="list-room.html" class="fab">
-  <svg width="24" height="24" viewBox="0 0 24 24" stroke="white" fill="none" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-</a>
+<div id="s-error" style="display:none">
+  <p id="err-msg"></p>
+</div>
 
-<!-- NAVBAR with SVG icons -->
-<nav class="navbar">
-  <a href="home.html" class="nav-item active">
-    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    Home
-  </a>
-  <a href="roommate.html" class="nav-item">
-    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    Roommates
-  </a>
-  <a href="list-room.html" class="nav-item">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-    Post
-  </a>
-  <a href="messages.html" class="nav-item" id="nav-msgs" style="position:relative">
-    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    Messages
-    <span id="nav-badge" class="nav-badge" style="display:none">0</span>
-  </a>
-  <a href="profile.html" class="nav-item">
-    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    Profile
-  </a>
-</nav>
+<div id="s-empty" style="display:none">
+  <p>No rooms yet</p>
+</div>
 
-<div id="toast" class="toast"></div>
+<div id="s-rooms" style="display:none"></div>
 
 <script type="module">
-import { initTheme, toggleTheme as _toggle, registerSW, FIREBASE_CONFIG, getUserCoords, getDistanceKm, fmtDist } from './app.js';
-import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import {
-  getFirestore, collection, getDocs, doc, getDoc, setDoc,
-  query, where, onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Theme
-const theme = initTheme();
-document.querySelector('.theme-btn').textContent = theme==='dark'?'☀️':'🌙';
-window.toggleTheme = () => {
-  const t = _toggle();
-  document.querySelector('.theme-btn').textContent = t==='dark'?'☀️':'🌙';
-};
-registerSW();
-
-const app  = initializeApp(FIREBASE_CONFIG);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-
-let rooms=[], favs=[], profile=null, myUid=null;
-let scope='all', maxP=0, genderF='any', typeF='all', amenityF=new Set();
-let panelOpen=false, userCoords=null;
-
-const AL = {
-  wifi:'📶 WiFi',water:'🚿 Water',electricity:'⚡ 24hr Power',
-  generator:'🔌 Generator',furnished:'🛋️ Furnished',bathroom:'🚽 Private WC',
-  kitchen:'🍳 Kitchen',security:'🔐 Security',ac:'❄️ AC',
-  parking:'🚗 Parking',laundry:'👕 Laundry',pets:'🐾 Pets OK'
-};
-
-onAuthStateChanged(auth, async user => {
-  if (!user) { location.href='login.html'; return; }
-  myUid = user.uid;
-
-  try {
-    const s = await getDoc(doc(db,'users',myUid));
-    if (!s.exists()) { location.href='setup.html'; return; }
-    profile = s.data();
-  } catch(e) { showErr('Profile error: '+e.message); return; }
-
-  try { const s=await getDoc(doc(db,'favourites',myUid)); favs=s.exists()?(s.data().items||[]): []; }
-  catch(_){ favs=[]; }
-
-  updateHeader();
-  listenBadge();
-  loadRooms();
-
-  // Get location silently in background
-  getUserCoords().then(c => { userCoords = c; });
+const app = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
 });
 
-function updateHeader() {
-  if (!profile) return;
-  const fn = (profile.name||'there').split(' ')[0];
-  document.getElementById('greeting').innerHTML = `Hey <span style="color:var(--accent)">${fn}</span> 👋`;
-  document.getElementById('sub').textContent = profile.university || 'Browse student rooms';
-  const av = document.getElementById('av');
-  if (profile.photoURL) {
-    av.innerHTML=''; av.style.cssText='width:36px;height:36px;border-radius:50%;overflow:hidden;cursor:pointer;border:2px solid var(--border);flex-shrink:0;';
-    const img=document.createElement('img'); img.src=profile.photoURL;
-    img.style.cssText='width:100%;height:100%;object-fit:cover';
-    img.onerror=()=>{ av.textContent=fn[0]; };
-    av.appendChild(img);
-  } else { av.textContent=fn[0].toUpperCase(); }
-  if (profile.university) document.getElementById('sc-uni').textContent='🎓 '+profile.university.split(' ').slice(0,2).join(' ');
-  if (profile.countryDisplay||profile.country) document.getElementById('sc-country').textContent='🌍 '+(profile.countryDisplay||profile.country);
-}
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-function listenBadge() {
-  try {
-    const q2 = query(collection(db,'chats'), where('participants','array-contains',myUid));
-    onSnapshot(q2, snap => {
-      let total=0;
-      snap.forEach(d => {
-        const data=d.data();
-        const unread = data.unreadCounts?.[myUid] || 0;
-        total += unread;
-      });
-      ['msg-badge','nav-badge'].forEach(id => {
-        const el=document.getElementById(id);
-        if(!el) return;
-        if(total>0){ el.textContent=total>99?'99+':total; el.style.display='flex'; }
-        else { el.style.display='none'; }
-      });
-    });
-  } catch(_){}
-}
+let rooms = [];
+let profile = null;
 
-window.loadRooms = async function() {
+// AUTH
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    location.href = 'login.html';
+    return;
+  }
+
+  const snap = await getDoc(doc(db,'users',user.uid));
+  if (!snap.exists()) {
+    location.href = 'setup.html';
+    return;
+  }
+
+  profile = snap.data();
+
+  document.getElementById('greeting').innerHTML =
+    `Hey <span style="color:orange">${profile.name || 'there'}</span> 👋`;
+
+  loadRooms();
+});
+
+// LOAD ROOMS
+async function loadRooms(){
   show('loading');
+
   try {
     const snap = await getDocs(collection(db,'rooms'));
-    rooms = snap.docs.map(d=>({id:d.id,...d.data()}));
+    rooms = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+
     doFilter();
-  } catch(e) {
-    document.getElementById('err-msg').textContent='Error: '+e.message;
+
+  } catch(e){
+    document.getElementById('err-msg').textContent = e.message;
     show('error');
   }
-};
+}
 
-window.doFilter = function() {
-  const q = (document.getElementById('search').value||'').toLowerCase();
-  let list = rooms.filter(r => {
-    if(q && !(r.title||'').toLowerCase().includes(q) && !(r.location||'').toLowerCase().includes(q)) return false;
-    if(maxP && r.price>maxP) return false;
-    if(scope==='uni'&&profile && (r.ownerUniversity||'').toLowerCase()!==(profile.university||'').toLowerCase()) return false;
-    if(scope==='country'&&profile && (r.ownerCountry||'').toLowerCase()!==(profile.country||'').toLowerCase()) return false;
-    if(scope==='near'&&userCoords) {
-      if(!r.lat||!r.lng) return false;
-      if(getDistanceKm(userCoords.lat,userCoords.lng,r.lat,r.lng)>10) return false;
-    }
-    if(amenityF.size){ const ra=new Set(r.amenities||[]); for(const a of amenityF){ if(!ra.has(a)) return false; } }
-    if(genderF!=='any'&&r.genderPref&&r.genderPref!=='any'&&r.genderPref!==genderF) return false;
-    if(typeF!=='all'&&r.type!==typeF) return false;
-    return true;
-  });
+// FILTER
+window.doFilter = function(){
+  const q = search.value.toLowerCase();
 
-  // Sort: same-uni first, then by distance if coords available
-  list.sort((a,b) => {
-    const am=(a.ownerUniversity||'').toLowerCase()===(profile?.university||'').toLowerCase();
-    const bm=(b.ownerUniversity||'').toLowerCase()===(profile?.university||'').toLowerCase();
-    if(am!==bm) return bm-am;
-    if(userCoords&&a.lat&&b.lat) {
-      const da=getDistanceKm(userCoords.lat,userCoords.lng,a.lat,a.lng);
-      const db2=getDistanceKm(userCoords.lat,userCoords.lng,b.lat,b.lng);
-      return da-db2;
-    }
-    return 0;
-  });
+  const list = rooms.filter(r =>
+    (r.title || '').toLowerCase().includes(q) ||
+    (r.location || '').toLowerCase().includes(q)
+  );
 
-  document.getElementById('count').textContent=list.length+' listing'+(list.length!==1?'s':'');
-
-  if(!list.length){
-    const msgs={
-      all:     ['No rooms posted yet','Be the first to post!'],
-      uni:     ['No rooms at your university yet','Switch to All to see more.'],
-      country: ['No rooms in your country yet','Switch to All to see more.'],
-      near:    ['No rooms nearby','Make sure location is enabled, or switch to All.']
-    };
-    const[t,s]=msgs[scope]||msgs.all;
-    document.getElementById('empty-title').textContent=t;
-    document.getElementById('empty-sub').textContent=s;
-    show('empty'); return;
+  if (!list.length) {
+    show('empty');
+    return;
   }
 
   renderRooms(list);
   show('rooms');
-  updateDot();
 };
 
-function renderRooms(list) {
-  const box = document.getElementById('s-rooms');
-  box.innerHTML = list.map((r,i) => {
-    const isFav=favs.includes(r.id), isOcc=r.status==='occupied', isOwn=r.ownerUid===myUid;
-    const sameUni=profile&&(r.ownerUniversity||'').toLowerCase()===(profile.university||'').toLowerCase();
-    const dist = userCoords&&r.lat&&r.lng ? fmtDist(getDistanceKm(userCoords.lat,userCoords.lng,r.lat,r.lng)) : null;
-    const badges=(r.amenities||[]).slice(0,3).map(a=>`<span class="a-badge">${AL[a]||a}</span>`).join('');
-    const uniLine=scope!=='uni'&&r.ownerUniversity?`<div class="card-meta">🎓 ${e(r.ownerUniversity)}</div>`:'';
-
-    const img = r.imageURLs?.length
-      ? `<div style="position:relative">
-           <img class="card-img" src="${r.imageURLs[0]}" alt="" onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>📷</div>'"/>
-           ${isOcc?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center"><span style="background:var(--danger);color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;font-family:Syne,sans-serif">🔒 Occupied</span></div>':''}
-           <button class="fav-btn" onclick="event.stopPropagation();doFav('${r.id}',this)">${isFav?'❤️':'🤍'}</button>
-         </div>`
-      : `<div class="card-img-placeholder">📷 No image</div>`;
-
-    return `
-      <div class="card" style="${isOcc?'opacity:.75':''};animation-delay:${i*0.05}s">
-        <div onclick="location.href='room.html?id=${r.id}'" style="cursor:pointer">
-          ${img}
-          <div class="card-body">
-            ${sameUni&&scope!=='uni'&&!isOwn?'<span class="card-tag" style="margin-bottom:6px;display:inline-block">🎓 Your Uni</span>':''}
-            <div class="card-title">${e(r.title)}</div>
-            <div class="card-meta">📍 ${e(r.location||'—')}</div>
-            ${uniLine}
-            ${dist?`<div class="card-meta"><span class="dist-badge">📍 ${dist}</span></div>`:''}
-            ${badges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin:6px 0">${badges}</div>`:''}
-            <div class="flex-between" style="margin-top:6px">
-              <span class="card-price">${r.currencySymbol||'₦'}${Number(r.price||0).toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--muted)">/mo</span></span>
-              ${r.genderPref&&r.genderPref!=='any'?`<span style="font-size:11px;color:var(--muted)">${r.genderPref==='female'?'👩 Female':'👨 Male'}</span>`:''}
-            </div>
-          </div>
-        </div>
-        <div class="card-actions">
-          <button class="btn-main" onclick="location.href='room.html?id=${r.id}'">View</button>
-          ${!isOwn?`
-          <button class="btn-icon" title="Message" onclick="location.href='chat.html?uid=${r.ownerUid}&name=${encodeURIComponent(r.ownerName||'Owner')}'">
-            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          </button>
-          <button class="btn-icon" title="Profile" onclick="location.href='user-profile.html?uid=${r.ownerUid}'">
-            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </button>`:''}
-        </div>
-      </div>`;
-  }).join('');
+// RENDER
+function renderRooms(list){
+  s-rooms.innerHTML = list.map(r => `
+    <div class="card">
+      <h3>${r.title || 'Room'}</h3>
+      <p>${r.location || 'No location'}</p>
+      <strong>₦${Number(r.price || 0).toLocaleString()}</strong>
+    </div>
+  `).join('');
 }
 
-window.doFav = async (id,btn) => {
-  try {
-    const ref=doc(db,'favourites',myUid),snap=await getDoc(ref);
-    const items=snap.exists()?(snap.data().items||[]):[];
-    const idx=items.indexOf(id);
-    if(idx===-1) items.push(id); else items.splice(idx,1);
-    await setDoc(ref,{items},{merge:true});
-    const saved=items.includes(id);
-    btn.textContent=saved?'❤️':'🤍';
-    saved?favs.push(id):(favs=favs.filter(i=>i!==id));
-    toast(saved?'Saved ❤️':'Removed');
-  } catch(er){ toast('Error'); }
-};
+// STATES
+function show(state){
+  ['s-loading','s-error','s-empty','s-rooms'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
 
-window.togglePanel=()=>{ panelOpen=!panelOpen; document.getElementById('filter-panel').classList.toggle('open',panelOpen); };
-window.toggleA=(el)=>{ const k=el.dataset.amenity; el.classList.toggle('on'); amenityF.has(k)?amenityF.delete(k):amenityF.add(k); doFilter(); };
-window.setGender=(v,el)=>{ genderF=v; document.querySelectorAll('.gf-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); doFilter(); };
-window.setType=(v,el)=>{ typeF=v; document.querySelectorAll('[data-type]').forEach(b=>b.classList.remove('on')); el.classList.add('on'); doFilter(); };
-window.clearFilters=()=>{ amenityF.clear(); genderF='any'; typeF='all'; document.querySelectorAll('.af-chip').forEach(c=>c.classList.remove('on')); document.querySelector('[data-type="all"]').classList.add('on'); document.getElementById('gf-any').classList.add('on'); doFilter(); };
-window.setScope=(v,el)=>{ scope=v; ['sc-all','sc-uni','sc-country','sc-near'].forEach(id=>{const el2=document.getElementById(id);if(el2)el2.classList.remove('active');}); el.classList.add('active'); document.getElementById('section-title').textContent={all:'All Rooms',uni:'My University',country:'My Country',near:'Nearby'}[v]; if(v==='near'&&!userCoords){ getUserCoords().then(c=>{userCoords=c;do
+  document.getElementById('s-'+state).style.display='block';
+}
+</script>
+
+</body>
+</html>
