@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Roomie – Delete Account</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0d0f14"/>
+  <style>
+    .legal-body{max-width:480px;margin:0 auto;padding:24px 20px 80px;}
+    .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-size:14px;font-weight:600;margin-bottom:24px;}
+    .warning-box{background:rgba(255,77,109,.08);border:1px solid rgba(255,77,109,.3);border-radius:var(--radius-sm);padding:16px;margin-bottom:24px;}
+  </style>
+</head>
+<body>
+<script type="module" src="theme.js"></script>
+<div class="legal-body">
+  <a href="javascript:history.back()" class="back-link">← Back</a>
+
+  <h1 style="margin-bottom:8px">Delete Account</h1>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:24px">
+    You can permanently delete your Roomie account and all associated data.
+  </p>
+
+  <div class="warning-box">
+    <div style="font-weight:700;color:var(--danger);margin-bottom:8px">⚠️ This action is permanent</div>
+    <p style="color:var(--muted);font-size:13px;line-height:1.7;margin:0">
+      Deleting your account will permanently remove:
+      your profile, all room listings you've posted,
+      all messages and conversations, your saved favourites,
+      and all other data associated with your account.
+      This cannot be undone.
+    </p>
+  </div>
+
+  <!-- Option 1: logged in users -->
+  <div id="logged-in" style="display:none">
+    <div class="form-group">
+      <label>Type DELETE to confirm</label>
+      <input type="text" id="confirm-input" placeholder="Type DELETE"/>
+    </div>
+    <p id="del-err" style="color:var(--danger);font-size:13px;display:none;margin-bottom:12px"></p>
+    <button class="btn btn-danger" id="del-btn" onclick="deleteAccount()">
+      🗑️ Permanently Delete My Account
+    </button>
+    <div style="margin-top:12px">
+      <a href="profile.html" class="btn btn-secondary">Cancel</a>
+    </div>
+  </div>
+
+  <!-- Option 2: not logged in -->
+  <div id="not-logged-in">
+    <p style="color:var(--muted);font-size:14px;margin-bottom:20px">
+      To delete your account, please log in first. Alternatively, email us and we'll delete it manually within 48 hours.
+    </p>
+    <a href="login.html" class="btn btn-primary" style="margin-bottom:12px">Log In to Delete</a>
+    <a href="mailto:support@roomieapp.com?subject=Account%20Deletion%20Request"
+      class="btn btn-secondary">
+      📧 Email Deletion Request
+    </a>
+  </div>
+
+  <div style="margin-top:32px;padding-top:20px;border-top:1px solid var(--border)">
+    <p style="color:var(--muted);font-size:12px;line-height:1.7">
+      For data requests or questions about your data, contact us at
+      <a href="mailto:support@roomieapp.com" style="color:var(--accent)">support@roomieapp.com</a>
+    </p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, deleteUser }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, deleteDoc, getDocs, collection, query, where }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app  = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+  storageBucket:"roomie-f3103.firebasestorage.app",
+  messagingSenderId:"896474185176",
+  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById('logged-in').style.display    = 'block';
+    document.getElementById('not-logged-in').style.display = 'none';
+  }
+});
+
+window.deleteAccount = async () => {
+  const input = document.getElementById('confirm-input').value.trim();
+  const errEl = document.getElementById('del-err');
+  const btn   = document.getElementById('del-btn');
+
+  if (input !== 'DELETE') {
+    errEl.textContent = 'Please type DELETE to confirm.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const user = auth.currentUser;
+  if (!user) { location.href='login.html'; return; }
+
+  btn.textContent = 'Deleting…'; btn.disabled = true;
+  errEl.style.display = 'none';
+
+  try {
+    const uid = user.uid;
+    // Delete user data from Firestore
+    await Promise.allSettled([
+      deleteDoc(doc(db,'users',uid)),
+      deleteDoc(doc(db,'favourites',uid)),
+      // Delete their rooms
+      getDocs(query(collection(db,'rooms'),where('ownerUid','==',uid)))
+        .then(s => Promise.all(s.docs.map(d => deleteDoc(d.ref)))),
+      // Delete their roommate listings
+      getDocs(query(collection(db,'roommates'),where('uid','==',uid)))
+        .then(s => Promise.all(s.docs.map(d => deleteDoc(d.ref)))),
+    ]);
+    // Delete auth account
+    await deleteUser(user);
+    location.href = 'index.html';
+  } catch(e) {
+    if (e.code === 'auth/requires-recent-login') {
+      errEl.textContent = 'For security, please log out and log back in, then try again.';
+    } else {
+      errEl.textContent = 'Error: ' + e.message;
+    }
+    errEl.style.display = 'block';
+    btn.textContent = '🗑️ Permanently Delete My Account';
+    btn.disabled = false;
+  }
+};
+</script>
+</body>
+</html>
