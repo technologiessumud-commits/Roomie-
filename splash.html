@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Roomie</title>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0d0f14"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="Roomie"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      background:#0d0f14;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      height:100vh;height:100dvh;overflow:hidden;
+      font-family:'DM Sans',sans-serif;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@400;500&display=swap');
+
+    .logo-wrap{position:relative;width:160px;height:160px;margin-bottom:28px;}
+
+    /* Spinning gradient ring */
+    .ring{
+      position:absolute;inset:0;
+      animation:spin 2s linear infinite;
+    }
+    /* Glowing R */
+    .logo-r{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      filter:drop-shadow(0 0 18px rgba(255,107,53,.7));
+    }
+
+    @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+    @keyframes pulse{0%,100%{filter:drop-shadow(0 0 12px rgba(255,107,53,.6));}50%{filter:drop-shadow(0 0 28px rgba(255,107,53,.95));}}
+
+    .logo-r{animation:pulse 2s ease-in-out infinite;}
+
+    .wordmark{
+      font-family:'Syne',sans-serif;font-size:2.6rem;font-weight:800;
+      color:#f0f2f8;letter-spacing:-.5px;margin-bottom:8px;
+    }
+    .tagline{color:#7b82a0;font-size:14px;font-weight:500;letter-spacing:.3px;}
+
+    /* Animated dots */
+    .dots{display:flex;gap:6px;margin-top:40px;}
+    .dot{
+      width:8px;height:8px;border-radius:50%;background:#ff6b35;
+      animation:bounce .8s ease-in-out infinite;
+    }
+    .dot:nth-child(2){animation-delay:.15s;}
+    .dot:nth-child(3){animation-delay:.3s;}
+    @keyframes bounce{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-8px);opacity:1;}}
+  </style>
+</head>
+<body>
+
+<div class="logo-wrap">
+  <!-- Spinning gradient ring (SVG) -->
+  <svg class="ring" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%"   stop-color="#ff6b35"/>
+        <stop offset="50%"  stop-color="#ffb347"/>
+        <stop offset="100%" stop-color="#ff4d6d" stop-opacity="0.3"/>
+      </linearGradient>
+    </defs>
+    <!-- Partial arc like in the logo -->
+    <path d="M80 14 A66 66 0 1 1 24 114" stroke="url(#ringGrad)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+  </svg>
+
+  <!-- R with house icon (static, glowing) -->
+  <svg class="logo-r" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="rGrad" x1="40" y1="35" x2="120" y2="130" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="#ffb347"/>
+        <stop offset="100%" stop-color="#ff6b35"/>
+      </linearGradient>
+    </defs>
+    <!-- Letter R body -->
+    <!-- Vertical stem -->
+    <line x1="52" y1="38" x2="52" y2="122" stroke="url(#rGrad)" stroke-width="7" stroke-linecap="round"/>
+    <!-- Top horizontal bar -->
+    <path d="M52 38 Q52 38 80 38 Q100 38 100 55 Q100 72 80 72 L52 72" stroke="url(#rGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- Diagonal leg -->
+    <line x1="80" y1="72" x2="108" y2="122" stroke="url(#rGrad)" stroke-width="7" stroke-linecap="round"/>
+
+    <!-- House inside the R bow -->
+    <!-- Roof triangle -->
+    <polyline points="68,62 76,52 84,62" stroke="url(#rGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- House walls -->
+    <rect x="69.5" y="62" width="13" height="10" rx="1" stroke="url(#rGrad)" stroke-width="4.5" fill="none"/>
+  </svg>
+</div>
+
+<div class="wordmark">Roomie</div>
+<div class="tagline">Finding your perfect room…</div>
+
+<div class="dots">
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+</div>
+
+<script type="module">
+  // Check auth then redirect
+  import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const app  = initializeApp({
+    apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+    authDomain:"roomie-f3103.firebaseapp.com",
+    projectId:"roomie-f3103",
+    storageBucket:"roomie-f3103.firebasestorage.app",
+    messagingSenderId:"896474185176",
+    appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+  });
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  // Minimum display time for splash (feels intentional)
+  const MIN_SHOW = 2000;
+  const start    = Date.now();
+
+  onAuthStateChanged(auth, async user => {
+    let dest;
+    if (!user) {
+      dest = 'login.html';
+    } else {
+      try {
+        const snap = await getDoc(doc(db,'users',user.uid));
+        dest = snap.exists() ? 'home.html' : 'setup.html';
+      } catch(_) { dest = 'login.html'; }
+    }
+
+    // Wait minimum time then navigate
+    const elapsed = Date.now() - start;
+    const wait    = Math.max(0, MIN_SHOW - elapsed);
+    setTimeout(() => { location.replace(dest); }, wait);
+  });
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
+</body>
+</html>
