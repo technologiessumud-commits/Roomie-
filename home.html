@@ -19,7 +19,6 @@
   <div class="topbar-logo">Room<span>ie</span></div>
 
   <div style="display:flex;gap:10px;align-items:center">
-
     <a href="messages.html" style="position:relative;color:var(--muted);display:flex">
       <svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -34,22 +33,19 @@
     </a>
 
     <div id="av" class="avatar" onclick="location.href='profile.html'">?</div>
-
   </div>
 </div>
 
 <!-- HERO -->
-<div class="hero-section fade-up">
+<div class="hero-section">
   <div class="hero-eyebrow">👋 Welcome back</div>
   <h2 class="hero-title" id="greeting">Find your <span>next room</span></h2>
-  <p style="color:var(--muted);font-size:14px" id="sub">Browse student rooms near you</p>
+  <p id="sub">Browse student rooms near you</p>
 </div>
 
 <!-- SEARCH -->
-<div class="search-wrap fade-up fade-up-1">
-  <div class="search-bar">
-    <input type="text" id="search" placeholder="Search title or location…" oninput="doFilter()"/>
-  </div>
+<div class="search-wrap">
+  <input id="search" placeholder="Search..." oninput="doFilter()"/>
 </div>
 
 <!-- STATES -->
@@ -65,22 +61,69 @@
 
 <div id="s-rooms" class="rooms-grid" style="display:none"></div>
 
+<!-- FLOAT BUTTON -->
+<a href="list-room.html" class="fab">＋</a>
+
+<!-- 🔥 NAVBAR RESTORED -->
+<nav class="navbar">
+  <a href="home.html" class="nav-item active">
+    <svg viewBox="0 0 24 24">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    Home
+  </a>
+
+  <a href="roommate.html" class="nav-item">
+    <svg viewBox="0 0 24 24">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+    </svg>
+    Roommates
+  </a>
+
+  <a href="list-room.html" class="nav-item">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="16"/>
+      <line x1="8" y1="12" x2="16" y2="12"/>
+    </svg>
+    Post
+  </a>
+
+  <a href="messages.html" class="nav-item">
+    <svg viewBox="0 0 24 24">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14z"/>
+    </svg>
+    Messages
+  </a>
+
+  <a href="profile.html" class="nav-item">
+    <svg viewBox="0 0 24 24">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+    Profile
+  </a>
+</nav>
+
 <script type="module">
-import { registerSW, FIREBASE_CONFIG } from './app.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-registerSW();
+const app = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+});
 
-const app  = initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+const db = getFirestore(app);
 
 let rooms = [];
 let profile = null;
 
-// AUTH
 onAuthStateChanged(auth, async user => {
   if (!user) {
     location.href = 'login.html';
@@ -88,7 +131,6 @@ onAuthStateChanged(auth, async user => {
   }
 
   const snap = await getDoc(doc(db,'users',user.uid));
-
   if (!snap.exists()) {
     location.href = 'setup.html';
     return;
@@ -96,39 +138,25 @@ onAuthStateChanged(auth, async user => {
 
   profile = snap.data();
 
-  updateHeader();
+  document.getElementById('greeting').innerHTML =
+    `Hey <span style="color:var(--accent)">${profile.name || 'there'}</span> 👋`;
+
   loadRooms();
 });
 
-// HEADER
-function updateHeader(){
-  const fn = (profile.name || 'there').split(' ')[0];
-  document.getElementById('greeting').innerHTML =
-    `Hey <span style="color:var(--accent)">${fn}</span> 👋`;
-
-  document.getElementById('sub').textContent =
-    profile.university || 'Browse student rooms';
-
-  document.getElementById('av').textContent = fn[0].toUpperCase();
-}
-
-// LOAD ROOMS
 async function loadRooms(){
   show('loading');
 
   try {
     const snap = await getDocs(collection(db,'rooms'));
     rooms = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-
     doFilter();
-
   } catch(e){
     document.getElementById('err-msg').textContent = e.message;
     show('error');
   }
 }
 
-// FILTER
 window.doFilter = function(){
   const q = (document.getElementById('search').value || '').toLowerCase();
 
@@ -146,24 +174,18 @@ window.doFilter = function(){
   show('rooms');
 };
 
-// RENDER
 function renderRooms(list){
-  const box = document.getElementById('s-rooms');
-
-  box.innerHTML = list.map(r => `
+  document.getElementById('s-rooms').innerHTML = list.map(r => `
     <div class="card">
-      <div onclick="location.href='room.html?id=${r.id}'" style="cursor:pointer">
-        <div class="card-body">
-          <div class="card-title">${r.title || 'Room'}</div>
-          <div class="card-meta">📍 ${r.location || 'No location'}</div>
-          <div class="card-price">₦${Number(r.price || 0).toLocaleString()}</div>
-        </div>
+      <div onclick="location.href='room.html?id=${r.id}'">
+        <h3>${r.title || 'Room'}</h3>
+        <p>${r.location || 'No location'}</p>
+        <strong>₦${Number(r.price||0).toLocaleString()}</strong>
       </div>
     </div>
   `).join('');
 }
 
-// STATES
 function show(state){
   ['s-loading','s-error','s-empty','s-rooms'].forEach(id=>{
     document.getElementById(id).style.display='none';
