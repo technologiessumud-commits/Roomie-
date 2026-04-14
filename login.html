@@ -2,92 +2,267 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
   <title>Roomie – Log In</title>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0d0f14"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="Roomie"/>
+  <style>
+    .social-btn{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      width:100%;padding:14px 20px;border-radius:var(--radius-sm);
+      font-size:15px;font-weight:600;font-family:'Syne',sans-serif;
+      cursor:pointer;transition:all .2s;border:1.5px solid var(--border);
+      background:var(--card);color:var(--text);margin-bottom:12px;
+    }
+    .social-btn:hover{border-color:var(--accent);background:rgba(255,107,53,.06);}
+    .social-btn:disabled{opacity:.6;cursor:not-allowed;}
+    .divider-text{
+      display:flex;align-items:center;gap:12px;
+      color:var(--muted);font-size:13px;margin:20px 0;
+    }
+    .divider-text::before,.divider-text::after{content:'';flex:1;height:1px;background:var(--border);}
+    .page-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+    .r-mark{width:48px;height:48px;filter:drop-shadow(0 0 10px rgba(255,107,53,.6));}
+    .wordmark{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;}
+    .wordmark span{color:var(--accent);}
+  </style>
 </head>
-
 <body>
-<div class="page-full">
-  <div class="auth-wrap">
-    <div class="auth-logo">Room<span>ie</span></div>
-    <p class="auth-subtitle">Welcome back 👋</p>
+<script type="module" src="theme.js"></script>
 
-    <div id="auth-form">
-      <div class="form-group">
-        <label>Email address</label>
-        <input type="email" id="email" placeholder="you@university.edu"/>
+<div class="page-full" style="background:radial-gradient(ellipse at 30% 10%,rgba(255,107,53,.12) 0%,transparent 55%),radial-gradient(ellipse at 80% 90%,rgba(255,179,71,.08) 0%,transparent 50%)">
+<div class="auth-wrap">
+
+  <!-- Top bar -->
+  <div style="display:flex;justify-content:flex-end;margin-bottom:24px">
+    <button class="theme-toggle" onclick="import('./theme.js').then(m=>m.toggleTheme())">☀️</button>
+  </div>
+
+  <!-- Logo -->
+  <div class="page-logo">
+    <svg class="r-mark" viewBox="0 0 80 80" fill="none">
+      <defs>
+        <linearGradient id="rg1" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6b35"/>
+        </linearGradient>
+        <linearGradient id="rg2" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ff6b35"/><stop offset="60%" stop-color="#ffb347"/>
+          <stop offset="100%" stop-color="#ff4d6d" stop-opacity=".3"/>
+        </linearGradient>
+      </defs>
+      <path d="M40 7 A33 33 0 1 1 12 57" stroke="url(#rg2)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+      <line x1="26" y1="20" x2="26" y2="60" stroke="url(#rg1)" stroke-width="5.5" stroke-linecap="round"/>
+      <path d="M26 20 Q26 20 42 20 Q54 20 54 30 Q54 40 42 40 L26 40" stroke="url(#rg1)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="42" y1="40" x2="56" y2="60" stroke="url(#rg1)" stroke-width="5.5" stroke-linecap="round"/>
+      <polyline points="34,35 38,29 42,35" stroke="url(#rg1)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <rect x="34.5" y="35" width="7" height="5" rx="0.5" stroke="url(#rg1)" stroke-width="3.5" fill="none"/>
+    </svg>
+    <div class="wordmark">Room<span>ie</span></div>
+  </div>
+  <p class="auth-subtitle">Welcome back 👋</p>
+
+  <!-- Loading state -->
+  <div id="state-loading" style="display:none">
+    <div class="roomie-loader">
+      <div class="roomie-loader-logo">
+        <svg class="ring-svg" viewBox="0 0 80 80" fill="none">
+          <defs><linearGradient id="rl1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ff6b35"/>
+            <stop offset="70%" stop-color="#ffb347"/>
+            <stop offset="100%" stop-color="#ff4d6d" stop-opacity=".1"/>
+          </linearGradient></defs>
+          <path d="M40 5 A35 35 0 1 1 10 60" stroke="url(#rl1)" stroke-width="5" stroke-linecap="round" fill="none"/>
+        </svg>
+        <svg class="r-svg" viewBox="0 0 80 80" fill="none">
+          <defs><linearGradient id="rl2" x1="15" y1="15" x2="65" y2="65" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6b35"/>
+          </linearGradient></defs>
+          <line x1="26" y1="20" x2="26" y2="60" stroke="url(#rl2)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M26 20 Q26 20 42 20 Q54 20 54 30 Q54 40 42 40 L26 40" stroke="url(#rl2)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <line x1="42" y1="40" x2="56" y2="60" stroke="url(#rl2)" stroke-width="5" stroke-linecap="round"/>
+          <polyline points="34,35 38,29 42,35" stroke="url(#rl2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="34.5" y="35" width="7" height="5" rx="0.5" stroke="url(#rl2)" stroke-width="3" fill="none"/>
+        </svg>
       </div>
-
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="password" placeholder="Your password"/>
-      </div>
-
-      <p id="err" style="color:var(--danger);display:none;"></p>
-
-      <button class="btn btn-primary" id="login-btn" onclick="emailSignIn()">Log In</button>
-
-      <div class="auth-footer">
-        Don't have an account? <a href="signup.html">Sign up</a>
-      </div>
+      <div class="roomie-loader-text" id="loading-text">Signing you in…</div>
     </div>
   </div>
+
+  <!-- Form -->
+  <div id="state-form">
+    <!-- Google — uses POPUP (works on Vercel, no redirect issues) -->
+    <button class="social-btn" id="google-btn" onclick="googleSignIn()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px" alt="G"/>
+      Continue with Google
+    </button>
+
+    <div class="divider-text">or continue with email</div>
+
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="email" id="email" placeholder="you@university.edu" autocomplete="email"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Your password" autocomplete="current-password"/>
+    </div>
+
+    <p id="err" style="color:var(--danger);font-size:13px;margin-bottom:14px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;line-height:1.6"></p>
+
+    <button class="btn btn-primary" id="login-btn" onclick="emailSignIn()">Log In</button>
+
+    <div class="auth-footer" style="margin-top:20px">
+      Don't have an account? <a href="signup.html">Sign up free</a>
+    </div>
+  </div>
+
+</div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getAuth,
-  signInWithEmailAndPassword
+  getAuth, onAuthStateChanged,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup          // ← POPUP not redirect — fixes Vercel cross-origin issue
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app  = initializeApp({
-  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
-  authDomain:"roomie-f3103.firebaseapp.com",
-  projectId:"roomie-f3103",
-  storageBucket:"roomie-f3103.firebasestorage.app",
-  messagingSenderId:"896474185176",
-  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+  apiKey:            "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:        "roomie-f3103.firebaseapp.com",
+  projectId:         "roomie-f3103",
+  storageBucket:     "roomie-f3103.firebasestorage.app",
+  messagingSenderId: "896474185176",
+  appId:             "1:896474185176:web:0e4543682f594daf0a86ad"
 });
-
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-window.emailSignIn = async () => {
-  const email = document.getElementById('email').value.trim();
-  const pass  = document.getElementById('password').value;
-  const btn   = document.getElementById('login-btn');
-
-  showErr('');
-
-  if (!email || !pass) {
-    showErr('Please enter your email and password.');
-    return;
-  }
-
-  btn.textContent = 'Logging in…';
-  btn.disabled = true;
-
-  try {
-    const { user } = await signInWithEmailAndPassword(auth, email, pass);
-
-    const snap = await getDoc(doc(db, 'users', user.uid));
-    location.href = snap.exists() ? 'home.html' : 'setup.html';
-
-  } catch(e) {
-    showErr(e.message);
-    btn.textContent = 'Log In';
-    btn.disabled = false;
-  }
-};
-
+// ── UI helpers ────────────────────────────────────────────
+function showLoading(msg = 'Signing you in…') {
+  document.getElementById('state-form').style.display    = 'none';
+  document.getElementById('state-loading').style.display = 'block';
+  document.getElementById('loading-text').textContent    = msg;
+}
+function showForm() {
+  document.getElementById('state-form').style.display    = 'block';
+  document.getElementById('state-loading').style.display = 'none';
+}
 function showErr(msg) {
   const el = document.getElementById('err');
   el.textContent = msg;
   el.style.display = msg ? 'block' : 'none';
 }
+
+async function afterLogin(user) {
+  showLoading('Loading your profile…');
+  try {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    location.href = snap.exists() ? 'home.html' : 'setup.html';
+  } catch(_) {
+    location.href = 'setup.html';
+  }
+}
+
+// Check existing session on load
+onAuthStateChanged(auth, user => {
+  if (user) { afterLogin(user); }
+  // else form is already visible
+});
+
+// ── Google sign-in with POPUP ─────────────────────────────
+window.googleSignIn = async () => {
+  const btn = document.getElementById('google-btn');
+  showErr('');
+  btn.disabled = true;
+  btn.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 80 80" fill="none"
+      style="animation:spin .8s linear infinite;flex-shrink:0">
+      <path d="M40 5 A35 35 0 1 1 10 60" stroke="#ff6b35"
+        stroke-width="6" stroke-linecap="round" fill="none"/>
+    </svg> Opening Google…`;
+
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const result = await signInWithPopup(auth, provider);
+
+    // New user? Save basic profile from Google
+    const snap = await getDoc(doc(db, 'users', result.user.uid));
+    if (!snap.exists()) {
+      await setDoc(doc(db, 'users', result.user.uid), {
+        uid:       result.user.uid,
+        email:     result.user.email      || '',
+        name:      result.user.displayName || '',
+        photoURL:  result.user.photoURL    || '',
+        createdAt: new Date().toISOString()
+      }, { merge: true });
+      location.href = 'setup.html';
+    } else {
+      location.href = 'home.html';
+    }
+  } catch(e) {
+    if (e.code === 'auth/popup-closed-by-user' ||
+        e.code === 'auth/cancelled-popup-request') {
+      // User closed the popup — don't show error
+    } else {
+      showErr(friendly(e));
+    }
+    btn.disabled = false;
+    btn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+      style="width:20px;height:20px"/> Continue with Google`;
+  }
+};
+
+// ── Email sign-in ─────────────────────────────────────────
+window.emailSignIn = async () => {
+  const email = document.getElementById('email').value.trim();
+  const pass  = document.getElementById('password').value;
+  const btn   = document.getElementById('login-btn');
+  showErr('');
+  if (!email || !pass) { showErr('Please enter your email and password.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 80 80" fill="none"
+    style="animation:spin .8s linear infinite;margin-right:8px">
+    <path d="M40 5 A35 35 0 1 1 10 60" stroke="white" stroke-width="7"
+      stroke-linecap="round" fill="none"/>
+    </svg> Logging in…`;
+  try {
+    const { user } = await signInWithEmailAndPassword(auth, email, pass);
+    await afterLogin(user);
+  } catch(e) {
+    showErr(friendly(e));
+    btn.textContent = 'Log In';
+    btn.disabled = false;
+  }
+};
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.emailSignIn();
+});
+
+function friendly(e) {
+  const m = {
+    'auth/user-not-found':         'No account found with this email.',
+    'auth/wrong-password':         'Incorrect password. Try again.',
+    'auth/invalid-credential':     'Incorrect email or password.',
+    'auth/too-many-requests':      'Too many attempts. Please wait a moment.',
+    'auth/network-request-failed': 'No internet connection.',
+    'auth/unauthorized-domain':    '⚠️ Add ' + location.hostname + ' to Firebase → Authentication → Authorized Domains.',
+    'auth/popup-blocked':          '⚠️ Popup was blocked. Please allow popups for this site in your browser settings.',
+    'auth/user-disabled':          'This account has been disabled.',
+  };
+  return m[e.code] || e.message || 'Something went wrong. Please try again.';
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 </script>
 </body>
-</html>
+            </html>
+  
