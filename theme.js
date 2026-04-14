@@ -31,4 +31,3 @@ export function applyTheme(theme) {
 
 // Auto-init on load
 initTheme();
-
