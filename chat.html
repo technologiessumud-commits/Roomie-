@@ -2,264 +2,209 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,interactive-widget=resizes-content"/>
   <title>Roomie – Chat</title>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0d0f14"/>
   <style>
-    body { display:flex; flex-direction:column; height:100vh; overflow:hidden; background:var(--bg); }
-
-    .chat-topbar {
-      display:flex; align-items:center; gap:12px;
-      padding:12px 16px; background:var(--surface);
-      border-bottom:1px solid var(--border); flex-shrink:0;
+    /* Full height layout — keyboard pushes input up automatically */
+    html, body {
+      height: 100%;
+      overflow: hidden;
     }
-    .chat-av {
-      width:40px; height:40px; border-radius:50%; object-fit:cover; flex-shrink:0;
+    .chat-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      height: 100dvh; /* dynamic viewport — accounts for mobile keyboard */
     }
-    .chat-av-init {
-      width:40px; height:40px; border-radius:50%;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));
-      display:flex; align-items:center; justify-content:center;
-      font-family:'Syne',sans-serif; font-weight:800; color:#fff; font-size:.95rem; flex-shrink:0;
-    }
-
-    /* Message area */
     .msg-area {
-      flex:1; overflow-y:auto; padding:16px 16px 8px;
-      display:flex; flex-direction:column; gap:6px;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overscroll-behavior: contain;
     }
-
-    /* Date divider */
-    .date-div {
-      display:flex; align-items:center; gap:10px;
-      color:var(--muted); font-size:11px; margin:8px 0; text-align:center;
-    }
-    .date-div::before, .date-div::after { content:''; flex:1; height:1px; background:var(--border); }
-
-    /* Bubble containers */
-    .msg-sent, .msg-received {
-      display:flex; flex-direction:column; max-width:78%;
-    }
-    .msg-sent     { align-self:flex-end;   align-items:flex-end; }
-    .msg-received { align-self:flex-start; align-items:flex-start; }
-
-    /* Bubbles */
-    .bubble {
-      padding:10px 14px; border-radius:18px;
-      font-size:14px; line-height:1.5; word-break:break-word;
-    }
-    .msg-sent     .bubble { background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
-    .msg-received .bubble { background:var(--card); color:var(--text); border:1px solid var(--border); border-bottom-left-radius:4px; }
-
-    .timestamp { font-size:11px; color:var(--muted); margin-top:3px; padding:0 4px; }
-
-    /* Input bar */
     .input-bar {
-      display:flex; align-items:flex-end; gap:10px;
-      padding:10px 14px 14px; background:var(--surface);
-      border-top:1px solid var(--border); flex-shrink:0;
-    }
-    .msg-input {
-      flex:1; background:var(--card); border:1.5px solid var(--border);
-      border-radius:22px; padding:10px 16px;
-      font-size:15px; color:var(--text); resize:none;
-      max-height:120px; overflow-y:auto; line-height:1.4;
-      outline:none; font-family:'DM Sans',sans-serif;
-    }
-    .msg-input:focus { border-color:var(--accent); }
-    .send-btn {
-      width:42px; height:42px; border-radius:50%;
-      background:var(--accent); color:#fff; border:none;
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer; flex-shrink:0; transition:transform .15s;
-    }
-    .send-btn:active  { transform:scale(.93); }
-    .send-btn:disabled { background:var(--border); cursor:not-allowed; }
-
-    /* Empty state inside chat */
-    .chat-empty {
-      flex:1; display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      text-align:center; padding:40px 20px; gap:8px;
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 10px 14px 14px;
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
     }
   </style>
 </head>
 <body>
+<script type="module" src="theme.js"></script>
 
-<!-- TOP BAR -->
-<div class="chat-topbar">
-  <button class="back-btn" onclick="history.back()">
-    <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-  </button>
-  <div id="av-wrap"></div>
-  <div style="flex:1;min-width:0">
-    <div id="their-name" style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
-    <div id="their-uni"  style="font-size:12px;color:var(--muted)"></div>
+<div class="chat-shell">
+
+  <!-- TOP BAR -->
+  <div class="chat-topbar">
+    <button class="back-btn" onclick="history.back()">
+      <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div id="av-wrap"></div>
+    <div style="flex:1;min-width:0">
+      <div id="their-name" style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+      <div id="their-uni" style="font-size:12px;color:var(--muted)"></div>
+    </div>
+    <a id="profile-link" href="#" style="font-size:12px;color:var(--accent);font-weight:600;flex-shrink:0">Profile →</a>
   </div>
-  <a id="profile-link" href="#" style="font-size:12px;color:var(--accent);font-weight:600">Profile →</a>
-</div>
 
-<!-- MESSAGES -->
-<div class="msg-area" id="msg-area">
-  <div style="text-align:center;color:var(--muted);font-size:13px;padding:20px">Loading…</div>
-</div>
+  <!-- MESSAGES -->
+  <div class="msg-area" id="msg-area">
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+    </div>
+  </div>
 
-<!-- INPUT -->
-<div class="input-bar">
-  <textarea class="msg-input" id="msg-input" placeholder="Message…" rows="1"
-    oninput="autoResize(this)"
-    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
-  ></textarea>
-  <button class="send-btn" id="send-btn" onclick="sendMsg()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-  </button>
+  <!-- INPUT BAR — sticks above keyboard automatically -->
+  <div class="input-bar">
+    <textarea class="msg-input" id="msg-input" placeholder="Message…" rows="1"
+      oninput="autoResize(this)"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+    ></textarea>
+    <button class="send-btn" id="send-btn" onclick="sendMsg()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import {
-    getFirestore, doc, getDoc, setDoc, addDoc, updateDoc,
-    collection, query, orderBy, onSnapshot, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, addDoc, updateDoc,
+  collection, query, orderBy, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const app  = initializeApp({
-    apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
-    authDomain:"roomie-f3103.firebaseapp.com",
-    projectId:"roomie-f3103",
-    storageBucket:"roomie-f3103.firebasestorage.app",
-    messagingSenderId:"896474185176",
-    appId:"1:896474185176:web:0e4543682f594daf0a86ad"
-  });
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
+const app  = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+  storageBucket:"roomie-f3103.firebasestorage.app",
+  messagingSenderId:"896474185176",
+  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-  const params   = new URLSearchParams(location.search);
-  const theirUid = params.get('uid');
-  const theirNameParam = decodeURIComponent(params.get('name') || 'User');
+const params       = new URLSearchParams(location.search);
+const theirUid     = params.get('uid');
+const theirNameParam = decodeURIComponent(params.get('name')||'User');
+if (!theirUid) { location.href='messages.html'; }
 
-  if (!theirUid) { location.href = 'messages.html'; }
+let myUid, chatDocId;
 
-  let myUid, chatDocId, unsub;
+onAuthStateChanged(auth, async user => {
+  if (!user) { location.href='login.html'; return; }
+  if (user.uid === theirUid) { location.href='messages.html'; return; }
+  myUid = user.uid;
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) { location.href = 'login.html'; return; }
-    if (user.uid === theirUid) { location.href = 'messages.html'; return; }
-    myUid = user.uid;
+  const [mySnap, theirSnap] = await Promise.all([
+    getDoc(doc(db,'users',myUid)),
+    getDoc(doc(db,'users',theirUid))
+  ]);
+  const me    = mySnap.exists()    ? mySnap.data()    : {name:user.email,photoURL:''};
+  const them  = theirSnap.exists() ? theirSnap.data() : {name:theirNameParam,photoURL:''};
 
-    // Load both profiles
-    const [mySnap, theirSnap] = await Promise.all([
-      getDoc(doc(db, 'users', myUid)),
-      getDoc(doc(db, 'users', theirUid))
-    ]);
-    const myProfile    = mySnap.exists()    ? mySnap.data()    : { name: user.email, photoURL: '' };
-    const theirProfile = theirSnap.exists() ? theirSnap.data() : { name: theirNameParam, photoURL: '' };
+  const theirName  = them.name  || theirNameParam;
+  const theirPhoto = them.photoURL || '';
+  const theirUni   = them.university || '';
 
-    const theirName  = theirProfile.name  || theirNameParam;
-    const theirPhoto = theirProfile.photoURL || '';
-    const theirUni   = theirProfile.university || '';
+  // Header
+  document.getElementById('their-name').textContent = theirName;
+  document.getElementById('their-uni').textContent  = theirUni;
+  document.getElementById('profile-link').href = `user-profile.html?uid=${theirUid}`;
 
-    // Header
-    document.getElementById('their-name').textContent = theirName;
-    document.getElementById('their-uni').textContent  = theirUni;
-    document.getElementById('profile-link').href = `user-profile.html?uid=${theirUid}`;
+  const avWrap = document.getElementById('av-wrap');
+  avWrap.innerHTML = theirPhoto
+    ? `<img src="${theirPhoto}" class="chat-av" onerror="this.outerHTML='<div class=chat-av-init>${theirName[0].toUpperCase()}</div>'"/>`
+    : `<div class="chat-av-init">${theirName[0].toUpperCase()}</div>`;
 
-    const avWrap = document.getElementById('av-wrap');
-    if (theirPhoto) {
-      avWrap.innerHTML = `<img src="${theirPhoto}" class="chat-av" onerror="this.outerHTML='<div class=chat-av-init>${theirName[0].toUpperCase()}</div>'"/>`;
-    } else {
-      avWrap.innerHTML = `<div class="chat-av-init">${theirName[0].toUpperCase()}</div>`;
-    }
-
-    // Get or create chat doc
-    chatDocId = [myUid, theirUid].sort().join('_');
-    const chatRef = doc(db, 'chats', chatDocId);
-    const chatSnap = await getDoc(chatRef);
-    if (!chatSnap.exists()) {
-      await setDoc(chatRef, {
-        participants:      [myUid, theirUid],
-        participantNames:  { [myUid]: myProfile.name, [theirUid]: theirName },
-        participantPhotos: { [myUid]: myProfile.photoURL||'', [theirUid]: theirPhoto },
-        participantUnis:   { [myUid]: myProfile.university||'', [theirUid]: theirUni },
-        lastMessage: '', lastMessageTime: serverTimestamp(), createdAt: serverTimestamp()
-      });
-    }
-
-    // Listen to messages
-    const q = query(collection(db, 'chats', chatDocId, 'messages'), orderBy('timestamp', 'asc'));
-    unsub = onSnapshot(q, snap => renderMessages(snap.docs.map(d => ({ id:d.id, ...d.data() })), myUid, theirName));
-  });
-
-  function renderMessages(messages, myUid, theirName) {
-    const area = document.getElementById('msg-area');
-
-    if (!messages.length) {
-      area.innerHTML = `
-        <div class="chat-empty">
-          <div style="font-size:2.5rem">👋</div>
-          <div style="font-weight:700;font-family:'Syne',sans-serif;font-size:1.1rem">Say hello!</div>
-          <div style="color:var(--muted);font-size:13px">Start your conversation with ${esc(theirName)}</div>
-        </div>`;
-      return;
-    }
-
-    let prevDate = '';
-    area.innerHTML = messages.map(msg => {
-      const isMine = msg.senderUid === myUid;
-      const ts     = msg.timestamp?.seconds
-        ? new Date(msg.timestamp.seconds * 1000) : null;
-      const timeStr = ts
-        ? ts.toLocaleTimeString('en', { hour:'2-digit', minute:'2-digit' }) : '';
-      const dateStr = ts
-        ? ts.toLocaleDateString('en', { weekday:'short', month:'short', day:'numeric' }) : '';
-
-      let divider = '';
-      if (dateStr && dateStr !== prevDate) {
-        divider  = `<div class="date-div">${dateStr}</div>`;
-        prevDate = dateStr;
-      }
-
-      return `
-        ${divider}
-        <div class="${isMine ? 'msg-sent' : 'msg-received'}">
-          <div class="bubble">${esc(msg.text)}</div>
-          <div class="timestamp">${timeStr}</div>
-        </div>`;
-    }).join('');
-
-    // Scroll to bottom
-    area.scrollTop = area.scrollHeight;
+  // Chat doc
+  chatDocId = [myUid,theirUid].sort().join('_');
+  const chatRef = doc(db,'chats',chatDocId);
+  const chatSnap = await getDoc(chatRef);
+  if (!chatSnap.exists()) {
+    await setDoc(chatRef, {
+      participants:      [myUid, theirUid],
+      participantNames:  {[myUid]:me.name,    [theirUid]:theirName},
+      participantPhotos: {[myUid]:me.photoURL||'', [theirUid]:theirPhoto},
+      participantUnis:   {[myUid]:me.university||'', [theirUid]:theirUni},
+      lastMessage:'', lastMessageTime:serverTimestamp(), createdAt:serverTimestamp()
+    });
   }
 
-  window.sendMsg = async () => {
-    const input = document.getElementById('msg-input');
-    const text  = (input.value || '').trim();
-    if (!text || !chatDocId) return;
-    const btn = document.getElementById('send-btn');
-    btn.disabled = true;
-    input.value  = '';
-    input.style.height = 'auto';
-    try {
-      await addDoc(collection(db, 'chats', chatDocId, 'messages'), {
-        senderUid: myUid, text, timestamp: serverTimestamp(), read: false
-      });
-      await updateDoc(doc(db, 'chats', chatDocId), {
-        lastMessage: text.slice(0, 80), lastMessageTime: serverTimestamp()
-      });
-    } catch(e) {
-      input.value = text; // restore on fail
+  // Listen for messages
+  const q = query(collection(db,'chats',chatDocId,'messages'), orderBy('timestamp','asc'));
+  onSnapshot(q, snap => renderMessages(snap.docs.map(d=>({id:d.id,...d.data()})), myUid, theirName));
+});
+
+function renderMessages(msgs, myUid, theirName) {
+  const area = document.getElementById('msg-area');
+  if (!msgs.length) {
+    area.innerHTML = `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;gap:10px">
+        <div style="font-size:2.5rem">👋</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem">Say hello!</div>
+        <div style="color:var(--muted);font-size:13px">Start your conversation with ${esc(theirName)}</div>
+      </div>`;
+    return;
+  }
+  let prevDate = '';
+  area.innerHTML = msgs.map(msg => {
+    const isMine = msg.senderUid === myUid;
+    const ts     = msg.timestamp?.seconds ? new Date(msg.timestamp.seconds*1000) : null;
+    const timeStr = ts ? ts.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}) : '';
+    const dateStr = ts ? ts.toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'}) : '';
+    let divider = '';
+    if (dateStr && dateStr !== prevDate) {
+      divider  = `<div class="date-div">${dateStr}</div>`;
+      prevDate = dateStr;
     }
-    btn.disabled = false;
-    input.focus();
-  };
+    return `${divider}
+      <div class="${isMine?'msg-sent':'msg-received'}">
+        <div class="bubble">${esc(msg.text)}</div>
+        <div class="timestamp">${timeStr}</div>
+      </div>`;
+  }).join('');
+  // Scroll to bottom smoothly
+  requestAnimationFrame(() => { area.scrollTop = area.scrollHeight; });
+}
 
-  window.autoResize = (el) => {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-  };
+window.sendMsg = async () => {
+  const input = document.getElementById('msg-input');
+  const text  = (input.value||'').trim();
+  if (!text||!chatDocId) return;
+  const btn = document.getElementById('send-btn');
+  btn.disabled=true; input.value=''; input.style.height='auto';
+  try {
+    await addDoc(collection(db,'chats',chatDocId,'messages'),{
+      senderUid:myUid, text, timestamp:serverTimestamp(), read:false
+    });
+    await updateDoc(doc(db,'chats',chatDocId),{
+      lastMessage:text.slice(0,80), lastMessageTime:serverTimestamp()
+    });
+  } catch(e) { input.value=text; }
+  btn.disabled=false; input.focus();
+};
 
-  function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+window.autoResize = el => {
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+};
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 </script>
 </body>
 </html>
