@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.roomie_eta_ten.twa",
+        "sha256_cert_fingerprints": ["AD:A2:CC:C4:B3:AF:38:A3:25:71:AE:80:13:9A:99:46:1F:58:75:F1:7E:8A:50:1B:AD:5A:48:C7:BF:EB:22:8B"]
+      }
+    }]
