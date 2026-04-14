@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#ff6b35"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
   <title>Roomie – Profile</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
@@ -50,6 +53,7 @@
   </style>
 </head>
 <body>
+<script type="module" src="theme.js"></script>
 
 <!-- Loading skeleton -->
 <div id="loading" style="padding:20px">
@@ -239,7 +243,7 @@
                 <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location||'—')}</div>
                 ${isOccupied ? '<span style="font-size:11px;color:var(--danger);font-weight:600">🔒 Occupied</span>' : ''}
               </div>
-              <span class="card-price" style="font-size:13px;white-space:nowrap">₦${Number(r.price).toLocaleString()}</span>
+              <span class="card-price" style="font-size:13px;white-space:nowrap">${r.currencySymbol||'₦'}${Number(r.price).toLocaleString()}</span>
             </div>
           </div>`;
       }).join('');
@@ -316,6 +320,7 @@
     t.textContent = msg; t.className = `toast ${type} show`;
     setTimeout(() => t.classList.remove('show'), 3000);
   }
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
 </body>
 </html>
