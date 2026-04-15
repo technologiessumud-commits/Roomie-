@@ -7,21 +7,6 @@
   <link rel="stylesheet" href="style.css"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#0d0f14"/>
-  <style>
-    .otp-row { display:flex; gap:10px; justify-content:center; margin:20px 0; }
-    .otp-box {
-      width:48px; height:56px; border-radius:10px;
-      border:2px solid var(--border); background:var(--card);
-      font-size:1.5rem; font-weight:700; text-align:center;
-      color:var(--text); outline:none; font-family:'Syne',sans-serif;
-      transition:border-color .2s;
-    }
-    .otp-box:focus { border-color:var(--accent); }
-    .otp-box.filled { border-color:var(--success); }
-    .step { display:none; }
-    .step.active { display:block; }
-    .verify-icon { font-size:3rem; text-align:center; margin-bottom:16px; }
-  </style>
 </head>
 <body>
 <script type="module" src="theme.js"></script>
@@ -36,100 +21,94 @@
 
 <div class="container page">
 
-  <!-- STEP 1: Enter phone -->
-  <div id="step-phone" class="step active">
-    <div class="verify-icon">📱</div>
-    <h2 style="text-align:center;margin-bottom:8px">Verify your number</h2>
-    <p style="color:var(--muted);font-size:14px;text-align:center;margin-bottom:28px">
-      Get a ✅ badge and rank higher in search results. Takes 30 seconds.
-    </p>
+  <!-- Step 1: Enter number -->
+  <div id="step-phone">
+    <div style="text-align:center;padding:20px 0 32px">
+      <div style="font-size:3rem;margin-bottom:12px">📱</div>
+      <h2 style="margin-bottom:8px">Verify your number</h2>
+      <p style="color:var(--muted);font-size:14px">Get a trust badge and 3x more replies from landlords</p>
+    </div>
 
     <!-- Benefits -->
     <div style="background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:24px">
-      <div style="font-weight:700;color:var(--success);margin-bottom:8px;font-size:14px">Why verify?</div>
-      <div style="font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px">
-        <div>✅ Get a verified badge on your profile</div>
-        <div>📈 Rank higher in room search results</div>
-        <div>💰 Unlock Refer & Earn ₦100 per referral</div>
-        <div>🔒 Build trust with potential roommates</div>
+      <div style="font-weight:700;font-size:14px;color:var(--success);margin-bottom:8px">✅ After verifying you get:</div>
+      <div style="font-size:13px;color:var(--muted);line-height:2">
+        ✅ Phone Verified badge on your profile<br/>
+        📈 Higher ranking in search results<br/>
+        💸 Eligible for ₦100 referral rewards<br/>
+        🔒 Trusted status with landlords
       </div>
     </div>
 
     <div class="form-group">
-      <label>Phone number</label>
-      <input type="tel" id="phone-input" placeholder="+234 800 000 0000" autocomplete="tel"/>
-      <p class="form-hint">Include country code (e.g. +234 for Nigeria, +1 for USA)</p>
+      <label>Phone number (with country code)</label>
+      <input type="tel" id="phone-input" placeholder="+2348012345678" autocomplete="tel"/>
+      <p class="form-hint">Include country code: +234 for Nigeria, +1 for USA</p>
     </div>
 
-    <!-- reCAPTCHA container (Firebase needs this) -->
+    <p id="phone-err" style="color:var(--danger);font-size:13px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;margin-bottom:12px"></p>
+
+    <!-- Invisible reCAPTCHA anchor -->
     <div id="recaptcha-container"></div>
 
-    <p id="phone-err" style="color:var(--danger);font-size:13px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;margin-bottom:12px;line-height:1.6"></p>
-
-    <button class="btn btn-primary" id="send-btn" onclick="sendOTP()">
+    <button class="btn btn-primary" id="send-btn" onclick="sendCode()">
       Send Verification Code
     </button>
   </div>
 
-  <!-- STEP 2: Enter OTP -->
-  <div id="step-otp" class="step">
-    <div class="verify-icon">🔐</div>
-    <h2 style="text-align:center;margin-bottom:8px">Enter the code</h2>
-    <p style="color:var(--muted);font-size:14px;text-align:center;margin-bottom:4px">
-      We sent a 6-digit code to
-    </p>
-    <p id="otp-phone-display" style="font-weight:700;text-align:center;color:var(--accent);margin-bottom:28px"></p>
-
-    <div class="otp-row">
-      <input class="otp-box" type="number" maxlength="1" id="d0" oninput="otpInput(0)"/>
-      <input class="otp-box" type="number" maxlength="1" id="d1" oninput="otpInput(1)"/>
-      <input class="otp-box" type="number" maxlength="1" id="d2" oninput="otpInput(2)"/>
-      <input class="otp-box" type="number" maxlength="1" id="d3" oninput="otpInput(3)"/>
-      <input class="otp-box" type="number" maxlength="1" id="d4" oninput="otpInput(4)"/>
-      <input class="otp-box" type="number" maxlength="1" id="d5" oninput="otpInput(5)"/>
+  <!-- Step 2: Enter OTP -->
+  <div id="step-otp" style="display:none">
+    <div style="text-align:center;padding:20px 0 32px">
+      <div style="font-size:3rem;margin-bottom:12px">🔢</div>
+      <h2 style="margin-bottom:8px">Enter the code</h2>
+      <p style="color:var(--muted);font-size:14px" id="otp-subtitle">We sent a 6-digit code to your number</p>
     </div>
 
-    <p id="otp-err" style="color:var(--danger);font-size:13px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;margin-bottom:12px;line-height:1.6"></p>
+    <!-- OTP input boxes -->
+    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:24px" id="otp-boxes">
+      <input type="tel" maxlength="1" class="otp-box" style="width:48px;height:56px;text-align:center;font-size:1.4rem;font-weight:700;border-radius:10px;padding:0" oninput="otpInput(this,0)" onkeydown="otpBack(this,event)"/>
+      <input type="tel" maxlength="1" class="otp-box" style="width:48px;height:56px;text-align:center;font-size:1.4rem;font-weight:700;border-radius:10px;padding:0" oninput="otpInput(this,1)" onkeydown="otpBack(this,event)"/>
+      <input type="tel" maxlength="1" class="otp-box" style="width:48px;height:56px;text-align:center;font-size:1.4rem;font-weight:700;border-radius:10px;padding:0" oninput="otpInput(this,2)" onkeydown="otpBack(this,event)"/>
+      <input type="tel" maxlength="1" class="otp-box" style="width:48px;height:56px;text-align:center;font-size:1.4rem;font-weight:700;border-radius:10px;padding:0" oninput="otpInput(this,3)" onkeydown="otpBack(this,event)"/>
+      <input type="tel" maxlength="1" class="otp-box" style="width:48px;height:56px;text-align:center;font-size:1.4rem;font-weight:700;border-radius:10px;padding:0" oninput="otpInput(this,4)" onkeydown="otpBack(this,event)"/>
+      <input type="tel" maxlength="1" class="otp-box" style="width:48px;height:56px;text-align:center;font-size:1.4rem;font-weight:700;border-radius:10px;padding:0" oninput="otpInput(this,5)" onkeydown="otpBack(this,event)"/>
+    </div>
 
-    <button class="btn btn-primary" id="verify-btn" onclick="verifyOTP()">
-      Verify Code
+    <p id="otp-err" style="color:var(--danger);font-size:13px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;margin-bottom:12px;text-align:center"></p>
+
+    <button class="btn btn-primary" id="verify-btn" onclick="verifyCode()" disabled>
+      Verify Number
     </button>
 
-    <button onclick="goBack()" style="background:none;border:none;color:var(--muted);font-size:14px;width:100%;padding:12px;cursor:pointer;margin-top:8px">
-      ← Use a different number
-    </button>
-
-    <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:8px">
-      Didn't receive it? <span id="resend-btn" onclick="resendOTP()" style="color:var(--accent);font-weight:600;cursor:pointer">Resend code</span>
-    </p>
+    <div style="text-align:center;margin-top:16px">
+      <button onclick="resendCode()" id="resend-btn" style="background:none;border:none;color:var(--accent);font-size:14px;font-weight:600;cursor:pointer">
+        Resend code
+      </button>
+      <span id="resend-timer" style="font-size:13px;color:var(--muted);display:none"> (wait <span id="timer-count">30</span>s)</span>
+    </div>
   </div>
 
-  <!-- STEP 3: Success -->
-  <div id="step-success" class="step" style="text-align:center;padding:40px 0">
+  <!-- Step 3: Success -->
+  <div id="step-success" style="display:none;text-align:center;padding:40px 0">
     <div style="font-size:4rem;margin-bottom:16px">🎉</div>
     <h2 style="margin-bottom:8px">Phone Verified!</h2>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:28px">
-      Your profile now has a ✅ verified badge. You've unlocked Refer & Earn!
+    <p style="color:var(--muted);font-size:14px;margin-bottom:24px">
+      You now have a ✅ Verified badge on your profile and listings.
+      You're eligible for referral rewards!
     </p>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px">
-      <div style="font-size:1.5rem;margin-bottom:8px">💰</div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:4px">Refer & Earn is now active</div>
-      <div style="color:var(--muted);font-size:13px">Share your link and earn ₦100 for each friend who verifies</div>
-    </div>
-    <a href="profile.html" class="btn btn-primary">View My Profile ✅</a>
+    <a href="profile.html" class="btn btn-primary">Go to Profile</a>
   </div>
 
 </div>
 
 <script type="module">
-import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getAuth, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, linkWithCredential
+  getAuth, onAuthStateChanged,
+  RecaptchaVerifier, signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, updateDoc, getDoc, serverTimestamp }
+import { getFirestore, doc, updateDoc }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getFunctions, httpsCallable }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
 const app  = initializeApp({
   apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
@@ -142,112 +121,140 @@ const app  = initializeApp({
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-let user, confirmationResult, recaptchaVerifier;
+let myUid, confirmationResult;
 
-onAuthStateChanged(auth, async u => {
-  if (!u) { location.href='login.html'; return; }
-  user = u;
+onAuthStateChanged(auth, user => {
+  if (!user) { location.href='login.html'; return; }
+  myUid = user.uid;
 
-  // Already verified?
-  const snap = await getDoc(doc(db,'users',u.uid));
-  if (snap.exists() && snap.data()?.verification?.phoneVerified) {
-    showStep('success');
-  } else {
-    initRecaptcha();
-  }
+  // Setup invisible reCAPTCHA
+  window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+    size:'invisible', callback:()=>{}
+  });
 });
 
-function initRecaptcha() {
-  recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-    size: 'invisible',
-    callback: () => {}
-  });
-}
-
-function showStep(s) {
-  document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
-  document.getElementById('step-'+s).classList.add('active');
-}
-
-window.sendOTP = async () => {
+window.sendCode = async () => {
   const phone = document.getElementById('phone-input').value.trim();
   const errEl = document.getElementById('phone-err');
   const btn   = document.getElementById('send-btn');
   errEl.style.display='none';
-  if (!phone) { errEl.textContent='Please enter your phone number.'; errEl.style.display='block'; return; }
+
+  if (!phone || !phone.startsWith('+')) {
+    errEl.textContent = 'Please enter your number with country code (e.g. +2348012345678)';
+    errEl.style.display='block'; return;
+  }
+
   btn.textContent='Sending…'; btn.disabled=true;
+
   try {
-    confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-    document.getElementById('otp-phone-display').textContent = phone;
-    showStep('otp');
-    document.getElementById('d0').focus();
+    confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+    document.getElementById('step-phone').style.display='none';
+    document.getElementById('step-otp').style.display='block';
+    document.getElementById('otp-subtitle').textContent = `We sent a 6-digit code to ${phone}`;
+    document.querySelectorAll('.otp-box')[0].focus();
+    startResendTimer();
   } catch(e) {
-    errEl.textContent = e.message || 'Failed to send code. Check the number and try again.';
+    errEl.textContent = friendlyPhoneError(e);
     errEl.style.display='block';
     btn.textContent='Send Verification Code'; btn.disabled=false;
-    // Reset recaptcha on error
-    recaptchaVerifier.clear();
-    initRecaptcha();
+    // Reset recaptcha
+    window.recaptchaVerifier.render().then(id => grecaptcha.reset(id));
   }
 };
 
-window.otpInput = function(idx) {
-  const box = document.getElementById('d'+idx);
-  const val = box.value.replace(/\D/g,'').slice(-1);
-  box.value = val;
-  box.classList.toggle('filled', val.length > 0);
-  if (val && idx < 5) document.getElementById('d'+(idx+1)).focus();
-  // Auto-verify when all 6 entered
-  const code = [0,1,2,3,4,5].map(i => document.getElementById('d'+i).value).join('');
-  if (code.length === 6) window.verifyOTP();
-};
-
-window.verifyOTP = async () => {
-  const code  = [0,1,2,3,4,5].map(i => document.getElementById('d'+i).value).join('');
+window.verifyCode = async () => {
+  const otp  = Array.from(document.querySelectorAll('.otp-box')).map(i=>i.value).join('');
   const errEl = document.getElementById('otp-err');
   const btn   = document.getElementById('verify-btn');
   errEl.style.display='none';
-  if (code.length !== 6) { errEl.textContent='Please enter the full 6-digit code.'; errEl.style.display='block'; return; }
-  btn.textContent='Verifying…'; btn.disabled=true;
-  try {
-    await confirmationResult.confirm(code);
 
-    // Save verified status to Firestore
-    await updateDoc(doc(db,'users',user.uid), {
-      phoneNumber: document.getElementById('phone-input').value.trim(),
+  if (otp.length !== 6) {
+    errEl.textContent='Please enter all 6 digits'; errEl.style.display='block'; return;
+  }
+
+  btn.textContent='Verifying…'; btn.disabled=true;
+
+  try {
+    await confirmationResult.confirm(otp);
+    const phone = document.getElementById('phone-input').value.trim();
+    // Mark verified in Firestore
+    await updateDoc(doc(db,'users',myUid), {
+      phoneNumber: phone,
       'verification.phoneVerified':   true,
-      'verification.phoneVerifiedAt': new Date().toISOString(),
+      'verification.phoneVerifiedAt': new Date().toISOString()
     });
 
-    // Trigger referral check (Cloud Function handles payout)
-    // This is a best-effort call
-    try {
-      const snap = await getDoc(doc(db,'users',user.uid));
-      const data = snap.data();
-      if (data?.referredBy) {
-        // Cloud function will handle payout — just mark it
-        await updateDoc(doc(db,'users',user.uid), {
-          'referralPending': true
-        });
-      }
-    } catch(_) {}
+    // Check if referred — credit referrer
+    const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const { increment } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const userSnap = await getDoc(doc(db,'users',myUid));
+    const userData = userSnap.data();
+    if (userData?.referredBy) {
+      await updateDoc(doc(db,'users',userData.referredBy), {
+        referralBalance:  increment(100),
+        referralEarnings: increment(100),
+        referralCount:    increment(1)
+      });
+    }
 
-    showStep('success');
+    document.getElementById('step-otp').style.display='none';
+    document.getElementById('step-success').style.display='block';
   } catch(e) {
-    errEl.textContent = 'Incorrect code. Please try again.';
+    errEl.textContent = e.code==='auth/invalid-verification-code'
+      ? 'Wrong code. Please check and try again.'
+      : e.message;
     errEl.style.display='block';
-    btn.textContent='Verify Code'; btn.disabled=false;
+    btn.textContent='Verify Number'; btn.disabled=false;
   }
 };
 
-window.resendOTP = async () => {
-  recaptchaVerifier.clear();
-  initRecaptcha();
-  showStep('phone');
+window.resendCode = async () => {
+  document.getElementById('resend-btn').disabled=true;
+  await window.sendCode();
 };
 
-window.goBack = () => showStep('phone');
+function startResendTimer() {
+  let t = 30;
+  document.getElementById('resend-btn').style.display='none';
+  document.getElementById('resend-timer').style.display='inline';
+  const iv = setInterval(() => {
+    document.getElementById('timer-count').textContent = --t;
+    if (t <= 0) {
+      clearInterval(iv);
+      document.getElementById('resend-btn').style.display='inline';
+      document.getElementById('resend-btn').disabled=false;
+      document.getElementById('resend-timer').style.display='none';
+    }
+  }, 1000);
+}
+
+// OTP box navigation
+window.otpInput = function(el, idx) {
+  el.value = el.value.replace(/\D/g,'').slice(-1);
+  const boxes = document.querySelectorAll('.otp-box');
+  if (el.value && idx < 5) boxes[idx+1].focus();
+  // Auto verify when all filled
+  const code = Array.from(boxes).map(b=>b.value).join('');
+  document.getElementById('verify-btn').disabled = code.length !== 6;
+  if (code.length === 6) window.verifyCode();
+};
+window.otpBack = function(el, e) {
+  if (e.key==='Backspace' && !el.value) {
+    const boxes = document.querySelectorAll('.otp-box');
+    const idx = Array.from(boxes).indexOf(el);
+    if (idx > 0) boxes[idx-1].focus();
+  }
+};
+
+function friendlyPhoneError(e) {
+  const m = {
+    'auth/invalid-phone-number':   'Invalid phone number. Make sure to include country code.',
+    'auth/too-many-requests':      'Too many attempts. Please wait before trying again.',
+    'auth/quota-exceeded':         'SMS quota exceeded. Please try again later.',
+    'auth/captcha-check-failed':   'reCAPTCHA failed. Please refresh and try again.',
+  };
+  return m[e.code] || e.message;
+}
 </script>
 </body>
 </html>
-
