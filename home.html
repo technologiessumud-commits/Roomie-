@@ -2,415 +2,421 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
   <title>Roomie – Home</title>
   <link rel="stylesheet" href="style.css"/>
   <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#ff6b35"/>
+  <meta name="theme-color" content="#0d0f14"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="apple-mobile-web-app-title" content="Roomie"/>
-  <link rel="manifest" href="manifest.json">
-  
   <style>
     .card { position:relative; }
     .fav-btn {
-      position:absolute; top:10px; right:10px;
-      width:34px; height:34px; border-radius:50%;
-      background:rgba(0,0,0,.5); border:none; cursor:pointer;
-      font-size:1rem; display:flex; align-items:center; justify-content:center; z-index:2;
+      position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;
+      background:rgba(0,0,0,.6);border:none;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:2;
     }
-    .card-actions {
-      display:flex; gap:8px; padding:0 14px 14px;
-    }
+    .card-actions { display:flex;gap:8px;padding:0 14px 14px; }
     .card-actions button {
-      flex:1; padding:9px; border-radius:8px;
-      border:1.5px solid var(--border); background:transparent;
-      color:var(--text); font-size:13px; font-weight:600;
-      cursor:pointer; font-family:'Syne',sans-serif;
+      padding:9px;border-radius:8px;border:1.5px solid var(--border);
+      background:transparent;color:var(--text);font-size:13px;font-weight:600;
+      cursor:pointer;font-family:'Syne',sans-serif;
     }
-    /* Unread badge */
-    .nav-badge {
-      position:absolute; top:-4px; right:-4px;
-      min-width:18px; height:18px; border-radius:9px;
-      background:var(--danger); color:#fff;
-      font-size:10px; font-weight:700;
-      display:flex; align-items:center; justify-content:center;
-      padding:0 4px; border:2px solid var(--bg);
-      line-height:1;
+    .card-actions .btn-main { flex:2;background:var(--accent);color:#fff;border-color:var(--accent); }
+    .card-actions .btn-icon { flex:1; }
+    .verify-banner {
+      margin:0 20px 16px;padding:12px 16px;border-radius:var(--radius-sm);
+      background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.25);
+      display:flex;align-items:center;gap:10px;font-size:13px;
     }
-    .nav-item { position:relative; }
-    .card-actions .btn-main {
-      flex:2; background:var(--accent); color:#fff; border-color:var(--accent);
+    .verify-banner button {
+      margin-left:auto;flex-shrink:0;padding:7px 14px;border-radius:8px;
+      background:var(--success);color:#fff;border:none;font-weight:600;
+      font-size:12px;cursor:pointer;font-family:'Syne',sans-serif;
+    }
+    .v-badge {
+      display:inline-flex;align-items:center;gap:3px;
+      font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;
+    }
+    .v-phone { background:rgba(62,207,142,.12);color:var(--success); }
+    .v-id    { background:rgba(255,107,53,.12);color:var(--accent); }
+    .v-listing { background:rgba(62,207,142,.2);color:var(--success); }
+    .scope-info {
+      padding:0 20px 12px;font-size:13px;color:var(--muted);
     }
   </style>
 </head>
 <body>
+<script type="module" src="theme.js"></script>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-logo">Room<span>ie</span></div>
-  <div style="display:flex;gap:12px;align-items:center">
-    <a href="messages.html" style="font-size:1.2rem;color:var(--muted)">💬</a>
-    <a href="favourites.html" style="font-size:1.2rem;color:var(--muted)">❤️</a>
-    <div id="av" class="avatar" style="width:36px;height:36px;font-size:.9rem;cursor:pointer" onclick="location.href='profile.html'">?</div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="theme-toggle" onclick="import('./theme.js').then(m=>m.toggleTheme())">☀️</button>
+    <a href="messages.html" style="font-size:1.1rem;color:var(--muted);position:relative" id="nav-msg-wrap">
+      <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span id="msg-badge" class="nav-badge" style="display:none">0</span>
+    </a>
+    <a href="favourites.html" style="color:var(--muted)">
+      <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </a>
+    <div id="av" class="avatar" style="width:34px;height:34px;font-size:.85rem;cursor:pointer" onclick="location.href='profile.html'">?</div>
   </div>
 </div>
 
-<!-- HERO -->
+<!-- Phone verify banner (shown if not verified) -->
+<div class="verify-banner" id="verify-banner" style="display:none">
+  <span>📱</span>
+  <span>Verify your phone to get <strong>3× more replies</strong> and unlock Refer &amp; Earn</span>
+  <button onclick="location.href='verify-phone.html'">Verify Now →</button>
+</div>
+
 <div class="hero-section">
   <div class="hero-eyebrow">👋 Welcome back</div>
   <h2 class="hero-title" id="greeting">Find your <span>next room</span></h2>
-  <p style="color:var(--muted);font-size:14px" id="sub">Browse student rooms near you</p>
+  <p style="color:var(--muted);font-size:14px" id="sub">Browse rooms near your campus</p>
 </div>
 
 <!-- SEARCH -->
 <div class="search-wrap">
   <div class="search-bar">
     <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="search" placeholder="Search by title or location…" oninput="doFilter()"/>
+    <input type="text" id="search" placeholder="Search title or location…" oninput="doFilter()"/>
   </div>
 </div>
 
-<!-- SCOPE FILTER -->
+<!-- SCOPE: university-only by default -->
 <div class="filter-row">
-  <button class="filter-chip active" id="sc-all"     onclick="setScope('all',this)">🌐 All Rooms</button>
-  <button class="filter-chip"        id="sc-uni"     onclick="setScope('uni',this)">🎓 My University</button>
+  <button class="filter-chip active" id="sc-uni"     onclick="setScope('uni',this)">🎓 My University</button>
   <button class="filter-chip"        id="sc-country" onclick="setScope('country',this)">🌍 My Country</button>
+  <button class="filter-chip"        id="sc-all"     onclick="setScope('all',this)">🌐 All Rooms</button>
 </div>
+
+<div class="scope-info" id="scope-info">Showing rooms at your university</div>
 
 <!-- PRICE FILTER -->
 <div class="filter-row" style="padding-top:0">
   <button class="filter-chip active" onclick="setPrice(0,this)">Any price</button>
-  <button class="filter-chip" onclick="setPrice(50000,this)">Under ₦50k</button>
-  <button class="filter-chip" onclick="setPrice(100000,this)">Under ₦100k</button>
-  <button class="filter-chip" onclick="setPrice(200000,this)">Under ₦200k</button>
-  <button class="filter-chip" onclick="setPrice(500000,this)">Under ₦500k</button>
+  <button class="filter-chip" id="p1" onclick="setPrice(1,this)"></button>
+  <button class="filter-chip" id="p2" onclick="setPrice(2,this)"></button>
+  <button class="filter-chip" id="p3" onclick="setPrice(3,this)"></button>
 </div>
 
-<!-- HEADER -->
 <div class="section-header">
-  <span class="section-title" id="section-title">All Rooms</span>
+  <span class="section-title" id="sec-title">My University</span>
   <span id="count" style="font-size:13px;color:var(--muted)"></span>
 </div>
 
-<!-- SKELETON -->
-<div id="skeleton" style="padding:0 20px">
-  <div class="skeleton skeleton-card" style="margin-bottom:16px"></div>
-  <div class="skeleton skeleton-card"></div>
+<!-- STATES -->
+<div id="state-loading" style="padding:0 20px">
+  <div class="roomie-loader">
+    <div class="roomie-loader-logo">
+      <svg class="ring-svg" viewBox="0 0 80 80" fill="none">
+        <defs><linearGradient id="hl" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ff6b35"/>
+          <stop offset="70%" stop-color="#ffb347"/>
+          <stop offset="100%" stop-color="#ff4d6d" stop-opacity=".1"/>
+        </linearGradient></defs>
+        <path d="M40 5 A35 35 0 1 1 10 60" stroke="url(#hl)" stroke-width="5" stroke-linecap="round" fill="none"/>
+      </svg>
+      <svg class="r-svg" viewBox="0 0 80 80" fill="none">
+        <defs><linearGradient id="hl2" x1="15" y1="15" x2="65" y2="65" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6b35"/>
+        </linearGradient></defs>
+        <line x1="26" y1="20" x2="26" y2="60" stroke="url(#hl2)" stroke-width="5" stroke-linecap="round"/>
+        <path d="M26 20 Q26 20 42 20 Q54 20 54 30 Q54 40 42 40 L26 40" stroke="url(#hl2)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <line x1="42" y1="40" x2="56" y2="60" stroke="url(#hl2)" stroke-width="5" stroke-linecap="round"/>
+        <polyline points="34,35 38,29 42,35" stroke="url(#hl2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <rect x="34.5" y="35" width="7" height="5" rx="0.5" stroke="url(#hl2)" stroke-width="3" fill="none"/>
+      </svg>
+    </div>
+    <div class="roomie-loader-text">Loading rooms…</div>
+  </div>
 </div>
 
-<!-- ERROR -->
-<div id="box-error" class="empty-state" style="display:none">
-  <div style="font-size:2.5rem">⚠️</div>
+<div id="state-error" class="empty-state" style="display:none">
+  <div class="empty-icon">⚠️</div>
   <div class="empty-title">Couldn't load rooms</div>
   <p class="empty-sub" id="err-msg"></p>
-  <button onclick="loadRooms()" class="btn btn-primary btn-sm mt-16">Retry</button>
+  <button onclick="loadRooms()" class="btn btn-primary btn-sm mt-16">↺ Retry</button>
 </div>
 
-<!-- EMPTY -->
-<div id="box-empty" class="empty-state" style="display:none">
-  <div style="font-size:2.5rem">🏠</div>
-  <div class="empty-title" id="empty-title">No rooms yet</div>
+<div id="state-empty" class="empty-state" style="display:none">
+  <div class="empty-icon">🏠</div>
+  <div class="empty-title" id="empty-title">No rooms at your university yet</div>
   <p class="empty-sub" id="empty-sub">Be the first to post!</p>
-  <a href="list-room.html" class="btn btn-primary btn-sm mt-16">Post a room</a>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;width:100%">
+    <a href="list-room.html" class="btn btn-primary btn-sm">Post a Room</a>
+    <button id="widen-btn" onclick="widenScope()" class="btn btn-secondary btn-sm" style="display:none">
+      See rooms from my country instead
+    </button>
+  </div>
 </div>
 
-<!-- ROOMS -->
-<div id="box-rooms" class="rooms-grid" style="display:none;padding-bottom:120px"></div>
+<div id="state-rooms" class="rooms-grid" style="display:none;padding-bottom:120px"></div>
 
-<!-- FAB -->
 <a href="list-room.html" class="fab">+</a>
 
-<!-- NAVBAR -->
 <nav class="navbar">
-  <a href="home.html" class="nav-item active">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
-  </a>
-  <a href="roommate.html" class="nav-item">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Roommates
-  </a>
-  <a href="list-room.html" class="nav-item">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post
-  </a>
-  <a href="messages.html" class="nav-item" id="nav-messages">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages
-    <span id="msg-badge" class="nav-badge" style="display:none">0</span>
-  </a>
-  <a href="profile.html" class="nav-item">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile
-  </a>
+  <a href="home.html" class="nav-item active"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+  <a href="roommate.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Roommates</a>
+  <a href="list-room.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post</a>
+  <a href="messages.html" class="nav-item" style="position:relative"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages<span id="nb" class="nav-badge" style="display:none">0</span></a>
+  <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
 </nav>
 
 <div id="toast" class="toast"></div>
 
-<!-- ── SCRIPT: raw Firebase CDN, no module wrapper ─────── -->
 <script type="module">
-import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getFirestore, collection, getDocs,
+  doc, getDoc, setDoc,
+  query, where, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* ── Config ── */
-const cfg = {
-  apiKey:            "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
-  authDomain:        "roomie-f3103.firebaseapp.com",
-  projectId:         "roomie-f3103",
-  storageBucket:     "roomie-f3103.firebasestorage.app",
-  messagingSenderId: "896474185176",
-  appId:             "1:896474185176:web:0e4543682f594daf0a86ad"
-};
-const app  = initializeApp(cfg);
+const app  = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+  storageBucket:"roomie-f3103.firebasestorage.app",
+  messagingSenderId:"896474185176",
+  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+});
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-/* ── State ── */
-let rooms   = [];
-let favs    = [];
-let profile = null;
-let myUid   = null;
-let scope   = 'all';
-let maxP    = 0;
+// ── Currency map by country ───────────────────────────────
+const CURRENCY = {
+  nigeria:{'sym':'₦','code':'NGN','tiers':[50000,100000,200000]},
+  ghana:{'sym':'₵','code':'GHS','tiers':[500,1000,2000]},
+  kenya:{'sym':'KSh','code':'KES','tiers':[5000,10000,20000]},
+  'south africa':{'sym':'R','code':'ZAR','tiers':[2000,5000,10000]},
+  'united kingdom':{'sym':'£','code':'GBP','tiers':[300,600,1000]},
+  'united states':{'sym':'$','code':'USD','tiers':[300,600,1200]},
+  canada:{'sym':'C$','code':'CAD','tiers':[400,800,1500]},
+  australia:{'sym':'A$','code':'AUD','tiers':[400,800,1500]},
+  india:{'sym':'₹','code':'INR','tiers':[5000,10000,20000]},
+  germany:{'sym':'€','code':'EUR','tiers':[300,600,1000]},
+  france:{'sym':'€','code':'EUR','tiers':[300,600,1000]},
+  cameroon:{'sym':'CFA','code':'XAF','tiers':[50000,100000,200000]},
+  'default':{'sym':'$','code':'USD','tiers':[200,500,1000]},
+};
 
-/* ── Auth: fires from local cache, nearly instant ── */
+function getCurrency(country) {
+  if (!country) return CURRENCY.default;
+  return CURRENCY[country.toLowerCase()] || CURRENCY.default;
+}
+
+// ── State ─────────────────────────────────────────────────
+let rooms=[], favs=[], profile=null, myUid=null;
+let scope='uni', maxP=0, cur=CURRENCY.default;
+
 onAuthStateChanged(auth, async user => {
-  if (!user) { location.href = 'login.html'; return; }
+  if (!user) { location.href='login.html'; return; }
   myUid = user.uid;
 
-  /* load profile */
+  // Load profile
   try {
-    const s = await getDoc(doc(db, 'users', myUid));
-    if (!s.exists()) { location.href = 'setup.html'; return; }
-    profile = s.data();
-  } catch(e) {
-    showErr('Could not load your profile: ' + e.message); return;
+    const snap = await getDoc(doc(db,'users',myUid));
+    if (!snap.exists()) { location.href='setup.html'; return; }
+    profile = snap.data();
+  } catch(e) { showErr('Could not load profile: '+e.message); return; }
+
+  // Load favs
+  try {
+    const fsnap = await getDoc(doc(db,'favourites',myUid));
+    favs = fsnap.exists() ? (fsnap.data().items||[]) : [];
+  } catch(_) { favs=[]; }
+
+  // Set currency based on user's country
+  cur = getCurrency(profile.country);
+  setupPriceChips(cur);
+
+  // Verify banner
+  if (!profile?.verification?.phoneVerified) {
+    document.getElementById('verify-banner').style.display='flex';
   }
 
-  /* load favs — silently ignore errors */
-  try {
-    const s = await getDoc(doc(db, 'favourites', myUid));
-    favs = s.exists() ? (s.data().items || []) : [];
-  } catch(_) { favs = []; }
-
-  /* update header */
-  const fn = (profile.name || 'there').split(' ')[0];
+  // Update header
+  const fn = (profile.name||'there').split(' ')[0];
   document.getElementById('greeting').innerHTML =
     `Hey <span style="color:var(--accent)">${fn}</span> 👋`;
   document.getElementById('sub').textContent =
     profile.university || 'Browse student rooms';
 
+  // University chip label
+  if (profile.university) {
+    const s = profile.university.split(' ').slice(0,3).join(' ');
+    document.getElementById('sc-uni').textContent = '🎓 '+s;
+  }
+  if (profile.countryDisplay||profile.country) {
+    document.getElementById('sc-country').textContent =
+      '🌍 '+(profile.countryDisplay||cap(profile.country));
+  }
+
+  // Avatar
   const av = document.getElementById('av');
   if (profile.photoURL) {
-    av.innerHTML = '';
-    av.style.cssText = 'width:36px;height:36px;border-radius:50%;overflow:hidden;cursor:pointer;flex-shrink:0;border:2px solid var(--border)';
-    const img = document.createElement('img');
-    img.src = profile.photoURL;
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover';
-    img.onerror = () => { av.textContent = fn[0]; };
+    av.innerHTML='';
+    av.style.cssText='cursor:pointer;width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid var(--border);flex-shrink:0';
+    const img=document.createElement('img');
+    img.src=profile.photoURL; img.style.cssText='width:100%;height:100%;object-fit:cover';
+    img.onerror=()=>{av.textContent=fn[0];};
     av.appendChild(img);
-  } else {
-    av.textContent = fn[0].toUpperCase();
-  }
+  } else { av.textContent=fn[0].toUpperCase(); }
 
-  if (profile.university) {
-    const short = profile.university.split(' ').slice(0,3).join(' ');
-    document.getElementById('sc-uni').textContent = '🎓 ' + short;
-  }
-  if (profile.countryDisplay || profile.country) {
-    document.getElementById('sc-country').textContent =
-      '🌍 ' + (profile.countryDisplay || profile.country);
-  }
-
+  // Unread badge
   listenUnread(myUid);
+
+  // Handle referral link (?ref=CODE)
+  const refCode = new URLSearchParams(location.search).get('ref');
+  if (refCode && !profile.referredBy) {
+    await setDoc(doc(db,'users',myUid),{referredBy:refCode},{merge:true});
+  }
+
   loadRooms();
 });
 
-/* ── Load all rooms ── */
+function setupPriceChips(c) {
+  const tiers = c.tiers;
+  const s     = c.sym;
+  document.getElementById('p1').textContent = `Under ${s}${tiers[0].toLocaleString()}`;
+  document.getElementById('p2').textContent = `Under ${s}${tiers[1].toLocaleString()}`;
+  document.getElementById('p3').textContent = `Under ${s}${tiers[2].toLocaleString()}`;
+  document.getElementById('p1').dataset.val = tiers[0];
+  document.getElementById('p2').dataset.val = tiers[1];
+  document.getElementById('p3').dataset.val = tiers[2];
+}
+
 window.loadRooms = async function() {
-  show('skeleton');
+  show('loading');
   try {
-    const snap = await getDocs(collection(db, 'rooms'));
-    rooms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const snap = await getDocs(collection(db,'rooms'));
+    rooms = snap.docs.map(d=>({id:d.id,...d.data()}));
     doFilter();
   } catch(e) {
-    showErr('Failed to load rooms: ' + e.message);
+    document.getElementById('err-msg').textContent='Error: '+e.message;
+    show('error');
   }
 };
 
-/* ── Filter ── */
 window.doFilter = function() {
-  const q = (document.getElementById('search').value || '').toLowerCase();
+  const q = (document.getElementById('search').value||'').toLowerCase();
   let list = rooms.filter(r => {
     if (q && !(r.title||'').toLowerCase().includes(q) && !(r.location||'').toLowerCase().includes(q)) return false;
     if (maxP && r.price > maxP) return false;
-    if (scope === 'uni' && profile)
+    // ── SCOPE: university-only by default ──
+    if (scope==='uni' && profile) {
       if ((r.ownerUniversity||'').toLowerCase() !== (profile.university||'').toLowerCase()) return false;
-    if (scope === 'country' && profile)
+    }
+    if (scope==='country' && profile) {
       if ((r.ownerCountry||'').toLowerCase() !== (profile.country||'').toLowerCase()) return false;
+    }
     return true;
   });
 
-  document.getElementById('count').textContent = list.length + ' listing' + (list.length !== 1 ? 's' : '');
+  document.getElementById('count').textContent =
+    list.length+' listing'+(list.length!==1?'s':'');
 
   if (!list.length) {
     const msgs = {
-      uni:     ['No rooms at your university yet', 'Switch to All Rooms to see more.'],
-      country: ['No rooms in your country yet',    'Switch to All Rooms to see more.'],
-      all:     ['No rooms posted yet',             'Be the first to post!']
+      uni:     ['No rooms at your university yet','You\'re the first — post a room, or tap "My Country" to see more.'],
+      country: ['No rooms in your country yet','Tap "All Rooms" to browse everything.'],
+      all:     ['No rooms match your filters','Try clearing filters or post the first room.']
     };
-    const [t,s] = msgs[scope] || msgs.all;
-    document.getElementById('empty-title').textContent = t;
-    document.getElementById('empty-sub').textContent   = s;
+    const [t,s] = msgs[scope]||msgs.all;
+    document.getElementById('empty-title').textContent=t;
+    document.getElementById('empty-sub').textContent=s;
+    // Show widen button when in uni scope
+    document.getElementById('widen-btn').style.display = scope==='uni' ? 'flex' : 'none';
     show('empty'); return;
   }
-
   render(list);
 };
 
-/* ── Render cards ── */
-function render(list) {
-  const box = document.getElementById('box-rooms');
-  box.innerHTML = list.map(r => {
-    const isFav = favs.includes(r.id);
-    const isOcc = r.status === 'occupied';
-    const isOwn = r.ownerUid === myUid;
+window.widenScope = function() {
+  setScope('country', document.getElementById('sc-country'));
+};
 
-    const imgHtml = r.imageURLs && r.imageURLs.length
+function render(list) {
+  const box = document.getElementById('state-rooms');
+  box.innerHTML = list.map(r => {
+    const isFav  = favs.includes(r.id);
+    const isOcc  = r.status==='occupied';
+    const isOwn  = r.ownerUid===myUid;
+
+    // Use room's stored currency symbol, or user's currency
+    const sym = r.currencySymbol || cur.sym;
+
+    // Verification badges
+    const v = r.verification||{};
+    let badges='';
+    if (v.ownerPhoneVerified||r.ownerPhoneVerified) badges+=`<span class="v-badge v-phone">✅ Verified</span> `;
+    if (v.ownerIdVerified||r.ownerIdVerified)       badges+=`<span class="v-badge v-id">✅✅ ID</span> `;
+    if (v.listingVerified||r.listingVerified)        badges+=`<span class="v-badge v-listing">🏠 Checked</span>`;
+
+    const imgHtml = r.imageURLs?.length
       ? `<div style="position:relative">
            <img class="card-img" src="${r.imageURLs[0]}" alt=""
              onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>📷</div>'"/>
-           ${isOcc ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center">
-             <span style="background:var(--danger);color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700">🔒 Occupied</span>
-           </div>` : ''}
-           <button class="fav-btn" onclick="event.stopPropagation();fav('${r.id}',this)">${isFav?'❤️':'🤍'}</button>
+           ${isOcc?`<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center"><span style="background:var(--danger);color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;font-family:Syne,sans-serif">🔒 Occupied</span></div>`:''}
+           <button class="fav-btn" onclick="event.stopPropagation();doFav('${r.id}',this)">${isFav?'❤️':'🤍'}</button>
          </div>`
       : `<div class="card-img-placeholder">📷 No image</div>`;
 
-    const uniLine = scope !== 'uni' && r.ownerUniversity
-      ? `<div class="card-meta" style="font-size:12px">🎓 ${e(r.ownerUniversity)}</div>` : '';
+    const uniLine = scope!=='uni' && r.ownerUniversity
+      ? `<div class="card-meta">🎓 ${esc(r.ownerUniversity)}</div>` : '';
 
     return `
       <div class="card" style="${isOcc?'opacity:.75':''}">
         <div onclick="location.href='room.html?id=${r.id}'" style="cursor:pointer">
           ${imgHtml}
           <div class="card-body">
-            <div class="card-title">${e(r.title)}</div>
-            <div class="card-meta">📍 ${e(r.location||'—')}</div>
+            <div class="card-title">${esc(r.title)}</div>
+            <div class="card-meta">📍 ${esc(r.location||'—')}</div>
             ${uniLine}
-            <div style="margin-top:8px">
-              <span class="card-price">${r.currencySymbol||'₦'}${Number(r.price||0).toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--muted)">/mo</span></span>
+            ${badges ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin:6px 0">${badges}</div>` : ''}
+            <div class="flex-between" style="margin-top:6px">
+              <span class="card-price">${sym}${Number(r.price||0).toLocaleString()}<span style="font-size:11px;font-weight:400;color:var(--muted)">/mo</span></span>
+              ${r._dist?`<span class="dist-badge">${r._dist}</span>`:''}
             </div>
           </div>
         </div>
         <div class="card-actions">
           <button class="btn-main" onclick="location.href='room.html?id=${r.id}'">View Room</button>
-          ${!isOwn ? `
-          <button onclick="location.href='chat.html?uid=${r.ownerUid}&name=${encodeURIComponent(r.ownerName||'Owner')}'" title="Message">✉️</button>
-          <button onclick="location.href='user-profile.html?uid=${r.ownerUid}'" title="View profile">👤</button>
-          ` : ''}
+          ${!isOwn?`
+          <button class="btn-icon" title="Message" onclick="location.href='chat.html?uid=${r.ownerUid}&name=${encodeURIComponent(r.ownerName||'Owner')}'">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <button class="btn-icon" title="Profile" onclick="location.href='user-profile.html?uid=${r.ownerUid}'">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </button>`:''}
         </div>
       </div>`;
   }).join('');
   show('rooms');
 }
 
-/* ── Favourites ── */
-window.fav = async function(roomId, btn) {
-  try {
-    const ref  = doc(db, 'favourites', myUid);
-    const snap = await getDoc(ref);
-    const items = snap.exists() ? (snap.data().items || []) : [];
-    const idx = items.indexOf(roomId);
-    if (idx === -1) items.push(roomId); else items.splice(idx,1);
-    await setDoc(ref, { items }, { merge:true });
-    const saved = items.includes(roomId);
-    btn.textContent = saved ? '❤️' : '🤍';
-    saved ? favs.push(roomId) : (favs = favs.filter(i => i !== roomId));
-    toast(saved ? 'Saved ❤️' : 'Removed');
-  } catch(e) { toast('Error: ' + e.message); }
-};
-
-/* ── Scope / price controls ── */
+// Scope / price controls
 window.setScope = function(val, el) {
-  scope = val;
-  ['sc-all','sc-uni','sc-country'].forEach(id =>
-    document.getElementById(id).classList.remove('active')
-  );
+  scope=val;
+  ['sc-uni','sc-country','sc-all'].forEach(id=>document.getElementById(id).classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('section-title').textContent =
-    { all:'All Rooms', uni:'My University', country:'My Country' }[val];
+  const labels={uni:'My University',country:'My Country',all:'All Rooms'};
+  const infos={
+    uni:    'Showing rooms at your university',
+    country:`Showing rooms in ${profile?.countryDisplay||cap(profile?.country||'')}`,
+    all:    'Showing all rooms worldwide'
+  };
+  document.getElementById('sec-title').textContent=labels[val];
+  document.getElementById('scope-info').textContent=infos[val];
   doFilter();
 };
 
 window.setPrice = function(val, el) {
-  maxP = val;
-  document.querySelectorAll('.filter-row').forEach(row =>
-    row.querySelectorAll('.filter-chip').forEach(c => {
-      if (c.textContent.includes('₦') || c.textContent === 'Any price')
-        c.classList.remove('active');
-    })
-  );
-  el.classList.add('active');
-  doFilter();
-};
-
-/* ── UI helpers ── */
-function show(s) {
-  document.getElementById('skeleton').style.display  = s==='skeleton' ? 'block' : 'none';
-  document.getElementById('box-error').style.display = s==='error'    ? 'flex'  : 'none';
-  document.getElementById('box-empty').style.display = s==='empty'    ? 'flex'  : 'none';
-  document.getElementById('box-rooms').style.display = s==='rooms'    ? 'flex'  : 'none';
-}
-
-function showErr(msg) {
-  document.getElementById('err-msg').textContent = msg;
-  show('error');
-}
-
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast show';
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function e(s) {
-  const d = document.createElement('div');
-  d.textContent = s; return d.innerHTML;
-}
-
-// ── Unread message badge ──────────────────────────────────
-import { onSnapshot, query as q2, collection as col2, where as w2 }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-function listenUnread(uid) {
-  // Listen to chats where user is participant
-  const chatsQ = q2(col2(db, 'chats'), w2('participants', 'array-contains', uid));
-  onSnapshot(chatsQ, async snap => {
-    let total = 0;
-    for (const chatDoc of snap.docs) {
-      // Count unread messages (not sent by me, read=false)
-      const msgsQ = q2(
-        col2(db, 'chats', chatDoc.id, 'messages'),
-        w2('senderUid', '!=', uid),
-        w2('read', '==', false)
-      );
-      const msgsSnap = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
-        .then(m => m.getDocs(msgsQ));
-      total += msgsSnap.size;
-    }
-    const badge = document.getElementById('msg-badge');
-    if (total > 0) {
-      badge.textContent = total > 99 ? '99+' : total;
-      badge.style.display = 'flex';
-    } else {
-      badge.style.display = 'none';
-    }
-  });
-}
-
-// Register SW
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(()=>{});
-}
-</script>
-</body>
-  </html>
+  // val can be 0 (any) or a numeric value from dataset
+  maxP = val===0 ? 0 : (Number(el.dataset.val||0));
+  document.querySelectorAll('.filter-row').forEach(row=>
+    row.querySelectorAll('.filter-chip').forEach(c=>{
+     
