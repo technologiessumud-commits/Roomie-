@@ -250,18 +250,6 @@
     }
 
     // Show page
-    // Verification status
-    const verif = p.verification || {};
-    document.getElementById('phone-check').textContent = verif.phoneVerified ? '✅' : '⬜';
-    document.getElementById('id-check').textContent    = verif.idVerified    ? '✅✅' : '⬜';
-    if (!verif.phoneVerified) {
-      document.getElementById('phone-verif-btn').style.display = 'block';
-    }
-    // Referral code
-    if (p.referralCode) {
-      document.getElementById('refer-code-display').textContent = p.referralCode;
-    }
-
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
   }
