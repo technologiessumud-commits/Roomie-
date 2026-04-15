@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Roomie – Refer & Earn</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0d0f14"/>
+  <style>
+    .earn-card {
+      background:linear-gradient(135deg,rgba(255,107,53,.15),rgba(255,179,71,.1));
+      border:1px solid rgba(255,107,53,.3);
+      border-radius:var(--radius);padding:24px 20px;text-align:center;margin-bottom:20px;
+    }
+    .earn-amount {
+      font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;color:var(--accent);
+    }
+    .referral-code-box {
+      background:var(--card);border:2px dashed var(--accent);
+      border-radius:var(--radius-sm);padding:16px;
+      display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;
+    }
+    .code-text {
+      font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;
+      letter-spacing:2px;color:var(--accent);
+    }
+    .copy-btn {
+      background:var(--accent);color:#fff;border:none;
+      padding:8px 16px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;
+      font-family:'Syne',sans-serif;
+    }
+    .stat-row {
+      display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;
+    }
+    .stat-card {
+      background:var(--card);border:1px solid var(--border);
+      border-radius:var(--radius-sm);padding:14px;text-align:center;
+    }
+    .stat-num { font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent); }
+    .stat-label { font-size:11px;color:var(--muted);margin-top:2px; }
+    .step-row {
+      display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;
+    }
+    .step-num {
+      width:28px;height:28px;border-radius:50%;background:var(--accent);
+      color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;
+      justify-content:center;flex-shrink:0;font-family:'Syne',sans-serif;
+    }
+    .locked-overlay {
+      background:rgba(13,15,20,.85);backdrop-filter:blur(4px);
+      border-radius:var(--radius);padding:24px;text-align:center;
+    }
+  </style>
+</head>
+<body>
+<script type="module" src="theme.js"></script>
+
+<div class="topbar">
+  <button class="back-btn" onclick="history.back()">
+    <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div style="font-family:'Syne',sans-serif;font-weight:700">Refer &amp; Earn</div>
+  <div style="width:40px"></div>
+</div>
+
+<div class="container page" id="page-content">
+  <div class="spinner-wrap"><div class="spinner"></div></div>
+</div>
+
+<nav class="navbar">
+  <a href="home.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+  <a href="roommate.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Roommates</a>
+  <a href="list-room.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post</a>
+  <a href="messages.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
+</nav>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, setDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app  = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+  storageBucket:"roomie-f3103.firebasestorage.app",
+  messagingSenderId:"896474185176",
+  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { location.href='login.html'; return; }
+
+  const snap = await getDoc(doc(db,'users',user.uid));
+  const data = snap.exists() ? snap.data() : {};
+
+  const isVerified = data?.verification?.phoneVerified === true;
+  const code       = data?.referralCode || generateCode(data?.name || user.uid);
+  const count      = data?.referralCount    || 0;
+  const earnings   = data?.referralEarnings || 0;
+  const balance    = data?.referralBalance  || 0;
+
+  // Save referral code if not set
+  if (!data?.referralCode) {
+    await updateDoc(doc(db,'users',user.uid), { referralCode: code });
+  }
+
+  const referLink = `${location.origin}/signup.html?ref=${code}`;
+  renderPage(isVerified, code, referLink, count, earnings, balance);
+});
+
+function renderPage(verified, code, link, count, earnings, balance) {
+  const page = document.getElementById('page-content');
+
+  if (!verified) {
+    page.innerHTML = `
+      <div class="earn-card" style="margin-top:20px">
+        <div style="font-size:2.5rem;margin-bottom:12px">💰</div>
+        <h2 style="margin-bottom:8px">Earn ₦100 per referral</h2>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:20px">
+          Verify your phone number first to unlock Refer & Earn
+        </p>
+        <a href="verify-phone.html" class="btn btn-primary">
+          ✅ Verify Phone to Unlock
+        </a>
+      </div>
+      <div style="padding:20px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px">How it works</div>
+        ${howItWorks()}
+      </div>`;
+    return;
+  }
+
+  page.innerHTML = `
+    <!-- Earnings overview -->
+    <div class="earn-card" style="margin-top:8px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Total Earned</div>
+      <div class="earn-amount">₦${earnings.toLocaleString()}</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px">from ${count} verified referral${count!==1?'s':''}</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-num">${count}</div>
+        <div class="stat-label">Referrals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">₦${earnings.toLocaleString()}</div>
+        <div class="stat-label">Earned</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">₦${balance.toLocaleString()}</div>
+        <div class="stat-label">Balance</div>
+      </div>
+    </div>
+
+    <!-- Referral code -->
+    <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:10px">Your referral code</div>
+    <div class="referral-code-box">
+      <div class="code-text">${code}</div>
+      <button class="copy-btn" onclick="copyCode('${code}')">Copy</button>
+    </div>
+
+    <!-- Share link -->
+    <button class="btn btn-primary" onclick="shareLink('${link}')" style="margin-bottom:12px">
+      📤 Share Your Link
+    </button>
+    <button class="btn btn-whatsapp" onclick="shareWhatsApp('${link}')">
+      💬 Share via WhatsApp
+    </button>
+
+    ${balance >= 500 ? `
+    <div style="margin-top:20px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);border-radius:var(--radius-sm);padding:16px">
+      <div style="font-weight:700;color:var(--success);margin-bottom:8px">💸 Ready to withdraw!</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">You have ₦${balance.toLocaleString()} available. Min withdrawal is ₦500.</p>
+      <a href="mailto:support@roomieapp.com?subject=Withdrawal%20Request&body=My%20code:%20${code}%20Balance:%20₦${balance}" 
+        class="btn btn-secondary btn-sm">Request Withdrawal</a>
+    </div>` : `
+    <div style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center">
+      Minimum withdrawal: ₦500 · Balance: ₦${balance.toLocaleString()}
+    </div>`}
+
+    <!-- How it works -->
+    <div class="divider"></div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px">How it works</div>
+    ${howItWorks()}
+
+    <!-- Rules -->
+    <div style="margin-top:16px;font-size:12px;color:var(--muted);line-height:1.7;background:var(--card);padding:14px;border-radius:var(--radius-sm);border:1px solid var(--border)">
+      <strong>Rules:</strong> You only earn when your referral verifies their phone. Max 20 referrals/month. Same number cannot be referred twice. Payouts within 48hrs of request.
+    </div>`;
+}
+
+function howItWorks() {
+  const steps = [
+    ['1','Share your link or code with a friend'],
+    ['2','They sign up on Roomie'],
+    ['3','They verify their phone number'],
+    ['4','You instantly earn ₦100!'],
+  ];
+  return steps.map(([n,t])=>`
+    <div class="step-row">
+      <div class="step-num">${n}</div>
+      <div style="font-size:14px;color:var(--muted);padding-top:4px">${t}</div>
+    </div>`).join('');
+}
+
+function generateCode(seed) {
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';
+  for(let i=0;i<6;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+
+window.copyCode = (code) => {
+  navigator.clipboard.writeText(code).then(()=>toast('Code copied! ✅','success'));
+};
+
+window.shareLink = (link) => {
+  if (navigator.share) {
+    navigator.share({
+      title:'Join Roomie',
+      text:`Find rooms near your campus! Use my code to sign up: ${link}`,
+      url: link
+    });
+  } else {
+    navigator.clipboard.writeText(link).then(()=>toast('Link copied! ✅','success'));
+  }
+};
+
+window.shareWhatsApp = (link) => {
+  const msg = encodeURIComponent(`🏠 Find student rooms near your campus!\n\nJoin Roomie — the student housing app. Use my link:\n${link}`);
+  window.open(`https://wa.me/?text=${msg}`,'_blank');
+};
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
