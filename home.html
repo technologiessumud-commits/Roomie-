@@ -70,6 +70,13 @@
   <button onclick="location.href='verify-phone.html'">Verify Now →</button>
 </div>
 
+<!-- Verification nudge banner (shown if unverified) -->
+<div id="verify-nudge" style="display:none;margin:0 20px 0;padding:12px 16px;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);border-radius:var(--radius-sm);display:none;align-items:center;gap:10px;font-size:13px">
+  <span>📱</span>
+  <span style="flex:1">Verify your phone to get 3x more replies and earn ₦100 per referral</span>
+  <a href="verify-phone.html" style="color:var(--accent);font-weight:700;flex-shrink:0;font-size:13px">Verify →</a>
+</div>
+
 <div class="hero-section">
   <div class="hero-eyebrow">👋 Welcome back</div>
   <h2 class="hero-title" id="greeting">Find your <span>next room</span></h2>
@@ -419,4 +426,82 @@ window.setPrice = function(val, el) {
   maxP = val===0 ? 0 : (Number(el.dataset.val||0));
   document.querySelectorAll('.filter-row').forEach(row=>
     row.querySelectorAll('.filter-chip').forEach(c=>{
-     
+      if(c.textContent.startsWith('Under ')||c.textContent==='Any price') c.classList.remove('active');
+    })
+  );
+  el.classList.add('active');
+  doFilter();
+};
+
+// Favourites
+window.doFav = async (roomId,btn) => {
+  try {
+    const ref=doc(db,'favourites',myUid);
+    const snap=await getDoc(ref);
+    const items=snap.exists()?(snap.data().items||[]):[];
+    const idx=items.indexOf(roomId);
+    if(idx===-1) items.push(roomId); else items.splice(idx,1);
+    await setDoc(ref,{items},{merge:true});
+    const saved=items.includes(roomId);
+    btn.textContent=saved?'❤️':'🤍';
+    saved?favs.push(roomId):(favs=favs.filter(i=>i!==roomId));
+    toast(saved?'Saved ❤️':'Removed');
+  } catch(e){toast('Error: '+e.message);}
+};
+
+// Unread badge
+function listenUnread(uid) {
+  const q2 = query(collection(db,'chats'), where('participants','array-contains',uid));
+  onSnapshot(q2, async snap => {
+    let total=0;
+    for (const cd of snap.docs) {
+      const d=cd.data();
+      // Count unread by checking lastMessage sender isn't me
+      // Simple approach: check unreadCounts field
+      const uc=d.unreadCounts||{};
+      total+=Number(uc[uid]||0);
+    }
+    ['msg-badge','nb'].forEach(id=>{
+      const b=document.getElementById(id);
+      if(!b) return;
+      if(total>0){b.textContent=total>99?'99+':total;b.style.display='flex';}
+      else b.style.display='none';
+    });
+  });
+}
+
+// Distance
+let userLat=null,userLon=null;
+if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    userLat=pos.coords.latitude; userLon=pos.coords.longitude;
+    if(rooms.length) doFilter();
+  },()=>{},{timeout:5000});
+}
+
+function getDistKm(la1,lo1,la2,lo2){
+  const R=6371,dLa=(la2-la1)*Math.PI/180,dLo=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dLa/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function show(s){
+  ['loading','error','empty','rooms'].forEach(id=>{
+    const el=document.getElementById('state-'+id);
+    if(el) el.style.display=s===id?(id==='rooms'?'flex':'flex'):'none';
+  });
+  if(s==='loading') document.getElementById('state-loading').style.display='block';
+}
+
+function cap(s){return s?s[0].toUpperCase()+s.slice(1):'';}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
+</body>
+</html>
