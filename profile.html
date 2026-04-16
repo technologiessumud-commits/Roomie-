@@ -109,6 +109,27 @@
 
   <div style="padding:20px">
 
+    <!-- Verification + Referral action cards -->
+    <div id="verify-card" style="display:none;margin-bottom:16px">
+      <div style="background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.25);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:1.5rem">📱</span>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">Verify your phone</div>
+          <div style="font-size:12px;color:var(--muted)">Get ✅ badge + earn ₦100 per referral</div>
+        </div>
+        <a href="verify-phone.html" style="background:var(--accent);color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap">Verify →</a>
+      </div>
+    </div>
+
+    <div style="background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:20px;cursor:pointer" onclick="location.href='refer.html'">
+      <span style="font-size:1.5rem">💸</span>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px">Refer & Earn ₦100</div>
+        <div style="font-size:12px;color:var(--muted)" id="ref-stats-label">Share your code. Earn per verified signup.</div>
+      </div>
+      <span style="color:var(--accent);font-size:13px;font-weight:700">Share →</span>
+    </div>
+
     <!-- Contact info card -->
     <h3 style="font-family:'Syne',sans-serif;margin-bottom:14px">Contact Info</h3>
     <div class="card" style="margin-bottom:24px">
@@ -250,6 +271,37 @@
     }
 
     // Show page
+    // Verification status
+    const verif = p.verification || {};
+    document.getElementById('phone-check').textContent = verif.phoneVerified ? '✅' : '⬜';
+    document.getElementById('id-check').textContent    = verif.idVerified    ? '✅✅' : '⬜';
+    if (!verif.phoneVerified) {
+      document.getElementById('phone-verif-btn').style.display = 'block';
+    }
+    // Referral code
+    if (p.referralCode) {
+      document.getElementById('refer-code-display').textContent = p.referralCode;
+    }
+
+    // Show verify card if not phone verified
+    // Show referral badge nudge
+    document.getElementById('ref-badge').style.display =
+      (p.referralCount||0) > 0 ? 'flex' : 'none';
+
+    if (!p.verification?.phoneVerified) {
+      document.getElementById('verify-card').style.display='block';
+    } else {
+      // Show verification badge on avatar
+      const chips = document.getElementById('profile-chips');
+      chips.innerHTML = '<span style="background:rgba(62,207,142,.12);color:var(--success);font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px">✅ Phone Verified</span>' + chips.innerHTML;
+    }
+
+    // Show referral stats
+    if (p.referralCount) {
+      document.getElementById('ref-stats-label').textContent =
+        `${p.referralCount} referrals · ₦${p.referralEarnings||0} earned`;
+    }
+
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
   }
@@ -323,4 +375,5 @@
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
 </body>
-</html>
+  </html>
+  
