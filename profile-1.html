@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Roomie – Profile</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0d0f14"/>
+  <style>
+    .profile-photo{width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--border);}
+    .avatar-xl{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#fff;border:3px solid var(--border);}
+    .av-upload{position:relative;display:inline-block;cursor:pointer;}
+    .av-upload:hover .av-edit{opacity:1;}
+    .av-edit{position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;opacity:.85;transition:opacity .2s;}
+    .spinning-ring{position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--accent);animation:spin .8s linear infinite;display:none;}
+    .nav-pill{display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--border);cursor:pointer;font-size:14px;font-weight:500;transition:all .2s;text-decoration:none;color:var(--text);}
+    .nav-pill:hover{border-color:var(--accent);color:var(--accent);}
+    .qr-modal{position:fixed;inset:0;background:rgba(13,15,20,.9);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .qr-sheet{background:var(--surface);border-radius:var(--radius);padding:24px;text-align:center;max-width:320px;width:100%;}
+  </style>
+</head>
+<body>
+<script type="module" src="theme.js"></script>
+
+<!-- Loading -->
+<div id="loading" style="padding:20px">
+  <div class="skeleton" style="height:220px;border-radius:var(--radius);margin-bottom:16px"></div>
+  <div class="skeleton skeleton-text"></div>
+  <div class="skeleton skeleton-text short"></div>
+</div>
+
+<!-- Content -->
+<div id="content" style="display:none;padding-bottom:100px">
+
+  <!-- Top bar with nav icons -->
+  <div class="topbar">
+    <div class="topbar-logo">Room<span>ie</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <!-- Referrals nav -->
+      <a href="referrals.html" title="Referrals" style="width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative">
+        <svg width="17" height="17" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span id="ref-nav-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:var(--accent);color:#fff;font-size:9px;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)">!</span>
+      </a>
+      <!-- QR code -->
+      <button onclick="showQR()" title="My QR Code" style="width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="17" height="17" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="1.8"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3v3h3v-3z"/><path d="M18 19v2"/><path d="M16 21h2"/><path d="M21 13h-5v3"/><path d="M16 13v-3h-3"/><path d="M13 10h-3"/><path d="M10 13v3"/><path d="M10 19h3"/></svg>
+      </button>
+      <button class="theme-toggle" onclick="import('./theme.js').then(m=>m.toggleTheme())">☀️</button>
+    </div>
+  </div>
+
+  <!-- Profile header -->
+  <div class="profile-header">
+    <div class="av-upload" onclick="document.getElementById('photo-input').click()">
+      <div id="avatar-wrap"><div class="avatar-xl" id="profile-avatar">?</div></div>
+      <div class="spinning-ring" id="av-ring"></div>
+      <div class="av-edit">📷</div>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoChange(this)"/>
+    <p id="photo-status" style="font-size:12px;color:var(--muted);margin-top:4px;display:none"></p>
+    <div class="profile-name" id="profile-name">—</div>
+    <div class="profile-university" id="profile-university">—</div>
+    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center" id="profile-chips"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="profile-stats">
+    <div class="profile-stat">
+      <div class="profile-stat-num" id="stat-rooms">0</div>
+      <div class="profile-stat-label">Rooms</div>
+    </div>
+    <div class="profile-stat">
+      <div class="profile-stat-num" id="stat-favs">0</div>
+      <div class="profile-stat-label">Saved</div>
+    </div>
+    <div class="profile-stat">
+      <div class="profile-stat-num" id="stat-refs">0</div>
+      <div class="profile-stat-label">Referrals</div>
+    </div>
+  </div>
+
+  <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+
+    <!-- Quick nav pills -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <a href="referrals.html" class="nav-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Referrals
+      </a>
+      <a href="verify-phone.html" class="nav-pill" id="verify-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.39 19a19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 3 4.18 2 2 0 0 1 5 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 24 16z"/></svg>
+        Verify Phone
+      </a>
+      <a href="favourites.html" class="nav-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Saved Rooms
+      </a>
+      <a href="messages.html" class="nav-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Messages
+      </a>
+    </div>
+
+    <!-- Contact info -->
+    <div class="card">
+      <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+        <div class="flex-gap"><span>📧</span><div><div style="font-size:12px;color:var(--muted)">Email</div><div style="font-size:14px" id="info-email">—</div></div></div>
+        <div class="flex-gap"><span>📞</span><div><div style="font-size:12px;color:var(--muted)">Phone</div><div style="font-size:14px" id="info-phone">—</div></div></div>
+        <div class="flex-gap" id="info-course-row" style="display:none"><span>📚</span><div><div style="font-size:12px;color:var(--muted)">Course</div><div style="font-size:14px" id="info-course">—</div></div></div>
+        <div class="flex-gap" id="info-country-row" style="display:none"><span>🌍</span><div><div style="font-size:12px;color:var(--muted)">Country</div><div style="font-size:14px" id="info-country">—</div></div></div>
+      </div>
+    </div>
+
+    <!-- My listings -->
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:10px">My Listings</div>
+      <div id="my-rooms" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div id="my-rooms-empty" style="display:none;color:var(--muted);font-size:14px;text-align:center;padding:16px 0">
+        No rooms posted yet. <a href="list-room.html" style="color:var(--accent);font-weight:600">Post your first →</a>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <a href="setup.html" class="btn btn-secondary" style="text-align:center">✏️ Edit Profile</a>
+    <button onclick="confirmDelete()" style="background:transparent;border:1.5px solid var(--danger);color:var(--danger);padding:14px;border-radius:var(--radius-sm);font-family:'Syne',sans-serif;font-weight:600;font-size:15px;cursor:pointer;width:100%">🗑️ Delete Account</button>
+    <button onclick="doLogout()" style="background:transparent;border:1.5px solid var(--border);color:var(--muted);padding:14px;border-radius:var(--radius-sm);font-family:'Syne',sans-serif;font-weight:600;font-size:15px;cursor:pointer;width:100%">🚪 Log Out</button>
+
+    <!-- Legal -->
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;padding-top:4px">
+      <a href="privacy-policy.html" style="font-size:12px;color:var(--muted)">Privacy Policy</a>
+      <a href="terms.html" style="font-size:12px;color:var(--muted)">Terms of Service</a>
+      <a href="delete-account.html" style="font-size:12px;color:var(--danger)">Data Deletion</a>
+    </div>
+  </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="qr-modal" id="qr-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="qr-sheet">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:4px">My QR Code</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Share this to let others find your profile and listings</p>
+    <canvas id="qr-canvas" style="border-radius:12px;max-width:200px;margin:0 auto;display:block"></canvas>
+    <div style="margin-top:12px;font-size:13px;color:var(--muted)" id="qr-url-label"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="downloadQR()" class="btn btn-primary btn-sm" style="flex:1">⬇️ Save QR</button>
+      <button onclick="document.getElementById('qr-modal').style.display='none'" class="btn btn-secondary btn-sm" style="flex:1">Close</button>
+    </div>
+  </div>
+</div>
+
+<nav class="navbar">
+  <a href="home.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+  <a href="roommate.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Roommates</a>
+  <a href="list-room.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post</a>
+  <a href="messages.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="profile.html" class="nav-item active"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
+</nav>
+
+<div id="toast" class="toast"></div>
+
+<!-- QR.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script type="module">
+import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, deleteUser }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, getDocs, updateDoc, deleteDoc, setDoc, collection, query, where }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { uploadImage } from './upload.js';
+
+const app  = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+  storageBucket:"roomie-f3103.firebasestorage.app",
+  messagingSenderId:"896474185176",
+  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+let user, profile, rooms;
+
+onAuthStateChanged(auth, async u => {
+  if (!u) { location.href='login.html'; return; }
+  user = u;
+  const [pSnap, rSnap, fSnap] = await Promise.all([
+    getDoc(doc(db,'users',u.uid)),
+    getDocs(query(collection(db,'rooms'),where('ownerUid','==',u.uid))),
+    getDoc(doc(db,'favourites',u.uid))
+  ]);
+  if (!pSnap.exists()) { location.href='setup.html'; return; }
+  profile = pSnap.data();
+  rooms   = rSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const favCount = fSnap.exists() ? (fSnap.data().items||[]).length : 0;
+  renderProfile(profile, rooms, favCount);
+});
+
+function renderProfile(p, rooms, favCount) {
+  // Avatar
+  setAvatar(p.photoURL, p.name);
+
+  document.getElementById('profile-name').textContent       = p.name||'—';
+  document.getElementById('profile-university').textContent = p.university||'';
+  document.getElementById('stat-rooms').textContent = rooms.length;
+  document.getElementById('stat-favs').textContent  = favCount;
+  document.getElementById('stat-refs').textContent  = p.referralCount||0;
+
+  // Chips
+  const chips = document.getElementById('profile-chips');
+  if (p.verification?.phoneVerified)
+    chips.innerHTML += '<span style="background:rgba(62,207,142,.12);color:var(--success);font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px">✅ Verified</span>';
+  if (p.year)   chips.innerHTML += `<span class="badge">🎓 ${p.year}</span>`;
+  if (p.course) chips.innerHTML += `<span class="badge">📚 ${p.course}</span>`;
+
+  // Referral badge nudge
+  if ((p.referralCount||0) > 0) {
+    document.getElementById('ref-nav-badge').style.display='flex';
+  }
+
+  // Hide verify pill if already verified
+  if (p.verification?.phoneVerified) {
+    document.getElementById('verify-pill').style.display='none';
+  }
+
+  // Contact
+  document.getElementById('info-email').textContent = p.email||'—';
+  document.getElementById('info-phone').textContent = p.phoneNumber||p.phone||'—';
+  if (p.course) { document.getElementById('info-course').textContent=p.course; document.getElementById('info-course-row').style.display='flex'; }
+  if (p.countryDisplay||p.country) { document.getElementById('info-country').textContent=p.countryDisplay||p.country; document.getElementById('info-country-row').style.display='flex'; }
+
+  // Joined date
+  document.getElementById('loading').style.display='none';
+  document.getElementById('content').style.display='block';
+
+  // My rooms
+  const cont = document.getElementById('my-rooms');
+  const emp  = document.getElementById('my-rooms-empty');
+  if (!rooms.length) { emp.style.display='block'; return; }
+  const sym = p.currencySymbol||'₦';
+  cont.innerHTML = rooms.map(r=>`
+    <div class="card" onclick="location.href='room.html?id=${r.id}'" style="cursor:pointer">
+      <div class="card-body" style="display:flex;align-items:center;gap:12px">
+        ${r.imageURLs?.length
+          ? `<img src="${r.imageURLs[0]}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0"/>`
+          : `<div style="width:56px;height:56px;border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">🏠</div>`}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.title)}</div>
+          <div style="font-size:12px;color:var(--muted)">📍 ${esc(r.location||'—')}</div>
+          ${r.status==='occupied'?'<span style="font-size:11px;color:var(--danger);font-weight:600">🔒 Occupied</span>':''}
+        </div>
+        <span class="card-price" style="font-size:13px;white-space:nowrap">${sym}${Number(r.price||0).toLocaleString()}</span>
+      </div>
+    </div>`).join('');
+}
+
+function setAvatar(photoURL, name) {
+  const wrap = document.getElementById('avatar-wrap');
+  const init  = (name||'?')[0].toUpperCase();
+  wrap.innerHTML = photoURL
+    ? `<img src="${photoURL}" class="profile-photo" onerror="this.outerHTML='<div class=avatar-xl>${init}</div>'"/>`
+    : `<div class="avatar-xl">${init}</div>`;
+}
+
+window.handlePhotoChange = async (input) => {
+  const file = input.files[0]; if (!file) return;
+  const st   = document.getElementById('photo-status');
+  const ring = document.getElementById('av-ring');
+  // Local preview
+  document.getElementById('avatar-wrap').innerHTML =
+    `<img src="${URL.createObjectURL(file)}" class="profile-photo"/>`;
+  ring.style.display='block'; st.style.display='block'; st.textContent='Uploading…';
+  try {
+    const url = await uploadImage(file);
+    await updateDoc(doc(db,'users',user.uid), {photoURL:url});
+    ring.style.display='none'; st.textContent='✅ Photo updated!';
+    setTimeout(()=>st.style.display='none',3000);
+    toast('Profile photo updated ✅','success');
+  } catch(e) {
+    ring.style.display='none'; st.textContent='⚠️ Upload failed';
+  }
+};
+
+// ── QR Code ───────────────────────────────────────────────
+window.showQR = () => {
+  const url = `${location.origin}/user-profile.html?uid=${user.uid}`;
+  document.getElementById('qr-url-label').textContent = url;
+  const canvas = document.getElementById('qr-canvas');
+  canvas.width=200; canvas.height=200;
+  // Use QRCode.js
+  canvas.getContext('2d').clearRect(0,0,200,200);
+  new QRCode(canvas, {
+    text: url,
+    width: 200, height: 200,
+    colorDark: getComputedStyle(document.documentElement).getPropertyValue('--text').trim()||'#000',
+    colorLight: getComputedStyle(document.documentElement).getPropertyValue('--card').trim()||'#fff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  document.getElementById('qr-modal').style.display='flex';
+};
+
+window.downloadQR = () => {
+  const canvas = document.querySelector('#qr-canvas canvas') || document.getElementById('qr-canvas');
+  const link   = document.createElement('a');
+  link.download = 'roomie-qr.png';
+  link.href     = canvas.toDataURL ? canvas.toDataURL() : (canvas.querySelector('img')?.src||'');
+  link.click();
+  toast('QR code saved!','success');
+};
+
+// ── Delete account ────────────────────────────────────────
+window.confirmDelete = async () => {
+  if (!confirm('⚠️ Are you sure you want to delete your account? This CANNOT be undone. All your listings and data will be permanently removed.')) return;
+  if (!confirm('Last chance — type OK in the next box to confirm permanent deletion.')) return;
+  try {
+    const uid = user.uid;
+    await Promise.allSettled([
+      deleteDoc(doc(db,'users',uid)),
+      deleteDoc(doc(db,'favourites',uid)),
+      getDocs(query(collection(db,'rooms'),where('ownerUid','==',uid))).then(s=>Promise.all(s.docs.map(d=>deleteDoc(d.ref)))),
+      getDocs(query(collection(db,'roommates'),where('uid','==',uid))).then(s=>Promise.all(s.docs.map(d=>deleteDoc(d.ref)))),
+    ]);
+    await deleteUser(user);
+    location.href='index.html';
+  } catch(e) {
+    if (e.code==='auth/requires-recent-login') {
+      toast('Please log out and log back in, then try again','error');
+    } else {
+      toast('Error deleting account: '+e.message,'error');
+    }
+  }
+};
+
+window.doLogout = async () => {
+  if (!confirm('Log out?')) return;
+  await signOut(auth);
+  location.href='login.html';
+};
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
+</body>
+</html>

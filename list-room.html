@@ -1,291 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Roomie – List a Room</title>
-  <link rel="stylesheet" href="style.css"/>
-  <style>
-    .upload-box {
-      border:2px dashed var(--border); border-radius:var(--radius);
-      padding:24px 16px; text-align:center; cursor:pointer;
-      transition:border-color .2s,background .2s; background:var(--card);
-    }
-    .upload-box:hover { border-color:var(--accent); background:rgba(255,107,53,.05); }
-    .preview-grid {
-      display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px;
-    }
-    .preview-item {
-      position:relative; aspect-ratio:1; border-radius:10px;
-      overflow:hidden; background:var(--surface); border:1px solid var(--border);
-    }
-    .preview-item img { width:100%;height:100%;object-fit:cover;display:block; }
-    .preview-remove {
-      position:absolute;top:5px;right:5px;width:24px;height:24px;
-      border-radius:50%;background:rgba(0,0,0,.75);color:#fff;
-      border:none;font-size:13px;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-    }
-    .add-more-tile {
-      aspect-ratio:1;border-radius:10px;border:2px dashed var(--border);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      cursor:pointer;color:var(--muted);font-size:12px;gap:4px;
-      background:var(--card);transition:border-color .2s;
-    }
-    .add-more-tile:hover { border-color:var(--accent);color:var(--accent); }
-    .progress-bar-wrap { height:5px;background:var(--border);border-radius:3px;margin-top:10px;overflow:hidden;display:none; }
-    .progress-bar-fill { height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .3s; }
+<div class="container">
 
-    /* Amenity toggles */
-    .amenity-grid {
-      display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:4px;
-    }
-    .amenity-chip {
-      display:flex; align-items:center; gap:8px;
-      padding:10px 14px; border-radius:10px;
-      border:1.5px solid var(--border); background:var(--card);
-      cursor:pointer; transition:all .2s; font-size:13px; font-weight:500;
-      user-select:none;
-    }
-    .amenity-chip.selected {
-      border-color:var(--accent); background:rgba(255,107,53,.1); color:var(--accent);
-    }
-    .amenity-chip input { display:none; }
+<input id="title">
+<textarea id="desc"></textarea>
+<input id="location">
+<input id="price">
 
-    /* Gender toggle */
-    .gender-row { display:flex; gap:8px; margin-top:4px; }
-    .gender-btn {
-      flex:1; padding:10px; border-radius:10px;
-      border:1.5px solid var(--border); background:var(--card);
-      color:var(--muted); font-size:13px; font-weight:600;
-      cursor:pointer; transition:all .2s; text-align:center;
-    }
-    .gender-btn.selected { border-color:var(--accent); background:rgba(255,107,53,.1); color:var(--accent); }
-  </style>
-</head>
-<body>
+<input id="img1">
+<input id="img2">
+<input id="img3">
 
-<div class="topbar">
-  <button class="back-btn" onclick="history.back()">
-    <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-  </button>
-  <div style="font-family:'Syne',sans-serif;font-weight:700">List a Room</div>
-  <div style="width:40px"></div>
+<button onclick="post()" class="primary">Post</button>
+
 </div>
-
-<div class="container page">
-
-  <div class="form-group">
-    <label>Room title *</label>
-    <input type="text" id="title" placeholder="e.g. Cozy Self-con near UNILAG"/>
-  </div>
-
-  <div class="form-group">
-    <label>Location / Address *</label>
-    <input type="text" id="location" placeholder="e.g. Akoka, Lagos"/>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label>Monthly price (₦) *</label>
-      <input type="number" id="price" placeholder="150000" min="0"/>
-    </div>
-    <div class="form-group">
-      <label>Room type</label>
-      <select id="type">
-        <option value="self-con">Self-contain</option>
-        <option value="single">Single room</option>
-        <option value="shared">Shared room</option>
-        <option value="flat">Flat / Apartment</option>
-        <option value="studio">Studio</option>
-        <option value="bq">BQ</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label>Description *</label>
-    <textarea id="description" placeholder="Describe the room: size, rules, nearby landmarks…"></textarea>
-  </div>
-
-  <!-- AMENITIES -->
-  <div class="form-group">
-    <label>Amenities <span style="color:var(--muted)">(select all that apply)</span></label>
-    <div class="amenity-grid" id="amenity-grid">
-      <div class="amenity-chip" onclick="toggleAmenity(this,'wifi')">         <span>📶</span> WiFi</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'water')">        <span>🚿</span> Running Water</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'electricity')">  <span>⚡</span> 24hr Electricity</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'generator')">    <span>🔌</span> Generator</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'furnished')">    <span>🛋️</span> Furnished</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'bathroom')">     <span>🚽</span> Private Bathroom</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'kitchen')">      <span>🍳</span> Kitchen Access</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'security')">     <span>🔐</span> Security/Gate</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'parking')">      <span>🚗</span> Parking Space</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'ac')">           <span>❄️</span> Air Conditioning</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'laundry')">      <span>👕</span> Laundry Access</div>
-      <div class="amenity-chip" onclick="toggleAmenity(this,'pets')">         <span>🐾</span> Pets Allowed</div>
-    </div>
-  </div>
-
-  <!-- GENDER PREFERENCE -->
-  <div class="form-group">
-    <label>Preferred tenant</label>
-    <div class="gender-row">
-      <div class="gender-btn selected" onclick="selectGender('any',this)" id="g-any">👥 Anyone</div>
-      <div class="gender-btn" onclick="selectGender('female',this)" id="g-female">👩 Female only</div>
-      <div class="gender-btn" onclick="selectGender('male',this)" id="g-male">👨 Male only</div>
-    </div>
-  </div>
-
-  <!-- PHOTOS -->
-  <div class="form-group">
-    <label>Room Photos <span style="color:var(--muted)">(up to 6)</span></label>
-    <input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handleFileSelect(this.files)"/>
-    <div class="upload-box" id="upload-box" onclick="document.getElementById('photo-input').click()">
-      <div style="font-size:2.2rem;margin-bottom:8px">📷</div>
-      <div style="font-weight:600;font-size:15px;margin-bottom:4px">Tap to add photos</div>
-      <div style="color:var(--muted);font-size:13px">JPG, PNG or WEBP · first photo is cover</div>
-    </div>
-    <div class="preview-grid" id="preview-grid" style="display:none"></div>
-    <div class="progress-bar-wrap" id="progress-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
-    <p id="upload-status" style="font-size:13px;color:var(--muted);margin-top:6px"></p>
-  </div>
-
-  <div class="form-group">
-    <label>Your WhatsApp number *</label>
-    <input type="tel" id="whatsapp" placeholder="+234 800 000 0000"/>
-  </div>
-
-  <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px"></p>
-  <button class="btn btn-primary" id="post-btn" onclick="handlePost()">🏠 Post Room</button>
-</div>
-
-<nav class="navbar">
-  <a href="home.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
-  <a href="roommate.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Roommates</a>
-  <a href="list-room.html" class="nav-item active"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post</a>
-  <a href="messages.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
-  <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
-</nav>
-
-<div id="toast" class="toast"></div>
 
 <script type="module">
-  import { requireAuth, postRoom, getProfile } from './firebase.js';
-  import { uploadImages } from './upload.js';
+import { auth, db, collection, addDoc } from "./firebase.js";
 
-  const user = await requireAuth();
-  let selectedFiles = [];
-  let selectedAmenities = new Set();
-  let genderPref = 'any';
+window.post = async () => {
+  await addDoc(collection(db,"rooms"), {
+    title:title.value,
+    description:desc.value,
+    location:location.value,
+    price:Number(price.value),
+    imageURLs:[img1.value,img2.value,img3.value].filter(Boolean),
+    ownerEmail:auth.currentUser.email
+  });
 
-  window.toggleAmenity = function(el, key) {
-    el.classList.toggle('selected');
-    if (selectedAmenities.has(key)) selectedAmenities.delete(key);
-    else selectedAmenities.add(key);
-  };
-
-  window.selectGender = function(val, el) {
-    genderPref = val;
-    ['g-any','g-female','g-male'].forEach(id => document.getElementById(id).classList.remove('selected'));
-    el.classList.add('selected');
-  };
-
-  window.handleFileSelect = function(files) {
-    const toAdd = Array.from(files).filter(f=>f.type.startsWith('image/')).slice(0,6-selectedFiles.length);
-    toAdd.forEach(file => selectedFiles.push({ file, previewURL: URL.createObjectURL(file) }));
-    rebuildGrid();
-  };
-
-  function rebuildGrid() {
-    const grid = document.getElementById('preview-grid');
-    const box  = document.getElementById('upload-box');
-    const st   = document.getElementById('upload-status');
-    if (!selectedFiles.length) { grid.style.display='none'; box.style.display='block'; st.textContent=''; return; }
-    box.style.display  = 'none';
-    grid.style.display = 'grid';
-    grid.innerHTML = selectedFiles.map((item,i) => `
-      <div class="preview-item">
-        <img src="${item.previewURL}" alt="photo ${i+1}"/>
-        <button class="preview-remove" onclick="removePhoto(${i})">✕</button>
-        ${i===0?'<div style="position:absolute;bottom:5px;left:5px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">Cover</div>':''}
-      </div>`).join('') +
-      (selectedFiles.length < 6
-        ? `<div class="add-more-tile" onclick="document.getElementById('photo-input').click()"><span style="font-size:1.4rem">+</span><span>Add more</span></div>`
-        : '');
-    st.textContent = `${selectedFiles.length} photo${selectedFiles.length>1?'s':''} selected`;
-  }
-
-  window.removePhoto = function(i) {
-    URL.revokeObjectURL(selectedFiles[i].previewURL);
-    selectedFiles.splice(i,1); rebuildGrid();
-  };
-
-  window.handlePost = async () => {
-    const title    = document.getElementById('title').value.trim();
-    const location = document.getElementById('location').value.trim();
-    const price    = parseFloat(document.getElementById('price').value);
-    const type     = document.getElementById('type').value;
-    const desc     = document.getElementById('description').value.trim();
-    const whatsapp = document.getElementById('whatsapp').value.trim();
-    const errEl    = document.getElementById('error-msg');
-    const btn      = document.getElementById('post-btn');
-
-    errEl.style.display = 'none';
-    if (!title||!location||!price||!desc||!whatsapp) {
-      errEl.textContent='Please fill in all required fields.'; errEl.style.display='block'; return;
-    }
-
-    btn.disabled = true;
-    let imageURLs = [];
-
-    if (selectedFiles.length) {
-      btn.textContent = 'Uploading photos…';
-      document.getElementById('progress-wrap').style.display = 'block';
-      try {
-        imageURLs = await uploadImages(
-          selectedFiles.map(s=>s.file),
-          (done,total) => {
-            document.getElementById('progress-fill').style.width = Math.round((done/total)*100)+'%';
-            document.getElementById('upload-status').textContent = `Uploading ${done} of ${total}…`;
-          }
-        );
-        document.getElementById('upload-status').textContent = '✅ Photos uploaded!';
-      } catch(e) {
-        errEl.textContent='⚠️ Photo upload failed. Check Cloudinary config.';
-        errEl.style.display='block'; btn.textContent='🏠 Post Room'; btn.disabled=false; return;
-      }
-    }
-
-    btn.textContent = 'Posting…';
-    const profile = await getProfile(user.uid);
-    try {
-      const ref = await postRoom({
-        title, location, price, type, description: desc,
-        imageURLs, whatsapp,
-        amenities:   Array.from(selectedAmenities),
-        genderPref,
-        ownerUid:        user.uid,
-        ownerEmail:      user.email,
-        ownerName:       profile?.name        || 'Anonymous',
-        ownerUniversity: profile?.university  || '',
-        ownerCountry:    profile?.country     || '',
-        ownerCity:       profile?.city        || '',
-        ownerPhotoURL:   profile?.photoURL    || '',
-      });
-      showToast('Room posted! 🎉','success');
-      setTimeout(()=>window.location.href=`room.html?id=${ref.id}`,1200);
-    } catch(e) {
-      errEl.textContent='Failed to post. Try again.';
-      errEl.style.display='block'; btn.textContent='🏠 Post Room'; btn.disabled=false;
-    }
-  };
-
-  function showToast(msg,type='') {
-    const t=document.getElementById('toast');
-    t.textContent=msg; t.className=`toast ${type} show`;
-    setTimeout(()=>t.classList.remove('show'),3000);
-  }
+  location.href="home.html";
+};
 </script>
-</body>
-</html>
