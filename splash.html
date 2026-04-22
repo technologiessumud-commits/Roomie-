@@ -9,94 +9,93 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-title" content="Roomie"/>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
     *{margin:0;padding:0;box-sizing:border-box;}
     body{
-      background:#0d0f14;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;
-      height:100vh;height:100dvh;overflow:hidden;
-      font-family:'DM Sans',sans-serif;
+      background:#0d0f14;min-height:100vh;min-height:100dvh;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      font-family:'DM Sans',sans-serif;overflow:hidden;
     }
-    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@400;500&display=swap');
+    /* ── Ring + R ── */
+    .wrap{position:relative;width:110px;height:110px;margin-bottom:28px;}
 
-    .logo-wrap{position:relative;width:160px;height:160px;margin-bottom:28px;}
-
-    /* Spinning gradient ring */
-    .ring{
-      position:absolute;inset:0;
-      animation:spin 2s linear infinite;
+    /* Outer spinning ring — two-tone like PayPal */
+    .ring-outer{
+      position:absolute;inset:0;border-radius:50%;
+      border:5px solid transparent;
+      border-top-color:#ff6b35;
+      border-right-color:#ffb347;
+      border-bottom-color:rgba(255,107,53,.2);
+      border-left-color:rgba(255,179,71,.15);
+      animation:spin .9s linear infinite;
     }
-    /* Glowing R */
-    .logo-r{
+    /* Inner slower ring — counter-rotate like PayPal */
+    .ring-inner{
+      position:absolute;inset:10px;border-radius:50%;
+      border:3px solid transparent;
+      border-top-color:rgba(255,179,71,.5);
+      border-bottom-color:rgba(255,107,53,.4);
+      animation:spin 1.5s linear infinite reverse;
+    }
+    /* R mark */
+    .r-mark{
       position:absolute;inset:0;
       display:flex;align-items:center;justify-content:center;
-      filter:drop-shadow(0 0 18px rgba(255,107,53,.7));
+      filter:drop-shadow(0 0 14px rgba(255,107,53,.7));
+      animation:pulse 2s ease-in-out infinite;
     }
+    @keyframes spin  {to{transform:rotate(360deg);}}
+    @keyframes pulse {0%,100%{filter:drop-shadow(0 0 10px rgba(255,107,53,.5));}
+                      50%     {filter:drop-shadow(0 0 22px rgba(255,107,53,.9));}}
 
-    @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-    @keyframes pulse{0%,100%{filter:drop-shadow(0 0 12px rgba(255,107,53,.6));}50%{filter:drop-shadow(0 0 28px rgba(255,107,53,.95));}}
-
-    .logo-r{animation:pulse 2s ease-in-out infinite;}
-
+    /* Text */
     .wordmark{
-      font-family:'Syne',sans-serif;font-size:2.6rem;font-weight:800;
-      color:#f0f2f8;letter-spacing:-.5px;margin-bottom:8px;
+      font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;
+      color:#f0f2f8;margin-bottom:6px;
     }
-    .tagline{color:#7b82a0;font-size:14px;font-weight:500;letter-spacing:.3px;}
+    .wordmark span{color:#ff6b35;}
+    .tagline{color:#7b82a0;font-size:14px;font-weight:500;letter-spacing:.2px;margin-bottom:32px;}
 
-    /* Animated dots */
-    .dots{display:flex;gap:6px;margin-top:40px;}
+    /* Bouncing dots */
+    .dots{display:flex;gap:7px;}
     .dot{
       width:8px;height:8px;border-radius:50%;background:#ff6b35;
       animation:bounce .8s ease-in-out infinite;
     }
-    .dot:nth-child(2){animation-delay:.15s;}
-    .dot:nth-child(3){animation-delay:.3s;}
-    @keyframes bounce{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-8px);opacity:1;}}
+    .dot:nth-child(2){animation-delay:.18s;background:#ffb347;}
+    .dot:nth-child(3){animation-delay:.36s;background:#ff6b35;}
+    @keyframes bounce{
+      0%,100%{transform:translateY(0);opacity:.4;}
+      50%     {transform:translateY(-9px);opacity:1;}
+    }
   </style>
 </head>
 <body>
 
-<div class="logo-wrap">
-  <!-- Spinning gradient ring (SVG) -->
-  <svg class="ring" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%"   stop-color="#ff6b35"/>
-        <stop offset="50%"  stop-color="#ffb347"/>
-        <stop offset="100%" stop-color="#ff4d6d" stop-opacity="0.3"/>
-      </linearGradient>
-    </defs>
-    <!-- Partial arc like in the logo -->
-    <path d="M80 14 A66 66 0 1 1 24 114" stroke="url(#ringGrad)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-  </svg>
-
-  <!-- R with house icon (static, glowing) -->
-  <svg class="logo-r" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="rGrad" x1="40" y1="35" x2="120" y2="130" gradientUnits="userSpaceOnUse">
-        <stop offset="0%"   stop-color="#ffb347"/>
-        <stop offset="100%" stop-color="#ff6b35"/>
-      </linearGradient>
-    </defs>
-    <!-- Letter R body -->
-    <!-- Vertical stem -->
-    <line x1="52" y1="38" x2="52" y2="122" stroke="url(#rGrad)" stroke-width="7" stroke-linecap="round"/>
-    <!-- Top horizontal bar -->
-    <path d="M52 38 Q52 38 80 38 Q100 38 100 55 Q100 72 80 72 L52 72" stroke="url(#rGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-    <!-- Diagonal leg -->
-    <line x1="80" y1="72" x2="108" y2="122" stroke="url(#rGrad)" stroke-width="7" stroke-linecap="round"/>
-
-    <!-- House inside the R bow -->
-    <!-- Roof triangle -->
-    <polyline points="68,62 76,52 84,62" stroke="url(#rGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-    <!-- House walls -->
-    <rect x="69.5" y="62" width="13" height="10" rx="1" stroke="url(#rGrad)" stroke-width="4.5" fill="none"/>
-  </svg>
+<div class="wrap">
+  <div class="ring-outer"></div>
+  <div class="ring-inner"></div>
+  <div class="r-mark">
+    <svg viewBox="0 0 80 80" fill="none" width="62" height="62">
+      <defs>
+        <linearGradient id="rg" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffb347"/>
+          <stop offset="100%" stop-color="#ff6b35"/>
+        </linearGradient>
+      </defs>
+      <line x1="26" y1="20" x2="26" y2="60" stroke="url(#rg)" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M26 20 Q44 20 56 30 Q56 42 44 42 L26 42"
+        stroke="url(#rg)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="44" y1="42" x2="58" y2="60" stroke="url(#rg)" stroke-width="6.5" stroke-linecap="round"/>
+      <polyline points="34,37 38,30 42,37"
+        stroke="url(#rg)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <rect x="34.5" y="37" width="7" height="5" rx="0.5" stroke="url(#rg)" stroke-width="4" fill="none"/>
+    </svg>
+  </div>
 </div>
 
-<div class="wordmark">Roomie</div>
+<div class="wordmark">Room<span>ie</span></div>
 <div class="tagline">Finding your perfect room…</div>
-
 <div class="dots">
   <div class="dot"></div>
   <div class="dot"></div>
@@ -104,44 +103,36 @@
 </div>
 
 <script type="module">
-  // Check auth then redirect
-  import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const app  = initializeApp({
-    apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
-    authDomain:"roomie-f3103.firebaseapp.com",
-    projectId:"roomie-f3103",
-    storageBucket:"roomie-f3103.firebasestorage.app",
-    messagingSenderId:"896474185176",
-    appId:"1:896474185176:web:0e4543682f594daf0a86ad"
-  });
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
+const app  = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+  storageBucket:"roomie-f3103.firebasestorage.app",
+  messagingSenderId:"896474185176",
+  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const MIN  = 2000; // minimum show time (ms)
+const t0   = Date.now();
 
-  // Minimum display time for splash (feels intentional)
-  const MIN_SHOW = 2000;
-  const start    = Date.now();
+onAuthStateChanged(auth, async user => {
+  let dest = 'login.html';
+  if (user) {
+    try {
+      const s = await getDoc(doc(db,'users',user.uid));
+      dest = s.exists() ? 'home.html' : 'setup.html';
+    } catch(_) {}
+  }
+  const wait = Math.max(0, MIN - (Date.now() - t0));
+  setTimeout(() => location.replace(dest), wait);
+});
 
-  onAuthStateChanged(auth, async user => {
-    let dest;
-    if (!user) {
-      dest = 'login.html';
-    } else {
-      try {
-        const snap = await getDoc(doc(db,'users',user.uid));
-        dest = snap.exists() ? 'home.html' : 'setup.html';
-      } catch(_) { dest = 'login.html'; }
-    }
-
-    // Wait minimum time then navigate
-    const elapsed = Date.now() - start;
-    const wait    = Math.max(0, MIN_SHOW - elapsed);
-    setTimeout(() => { location.replace(dest); }, wait);
-  });
-
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
 </body>
 </html>
