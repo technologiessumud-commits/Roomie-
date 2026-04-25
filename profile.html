@@ -53,14 +53,12 @@
               <div style="font-size:12px;color:var(--muted)">Email</div>
               <div style="font-size:14px" id="info-email">—</div>
             </div>
-          </div>
           <div class="flex-gap">
             <span style="font-size:1.1rem">📞</span>
             <div>
               <div style="font-size:12px;color:var(--muted)">Phone</div>
               <div style="font-size:14px" id="info-phone">—</div>
             </div>
-          </div>
           <div class="flex-gap" id="info-course-row">
             <span style="font-size:1.1rem">🎓</span>
             <div>
@@ -123,46 +121,32 @@
         return;
       }
 
-      try {
-        console.log('Fetching profile for:', user.uid);
-        
-        const [profile, rooms] = await Promise.all([
-          getProfile(user.uid),
-          getUserRooms(user.uid)
-        ]);
+      const profile = await getProfile(user.uid);
 
-        console.log('Profile:', profile);
-        console.log('Rooms:', rooms);
-
-        if (!profile) {
-          console.log('No profile found, redirecting to setup');
-          window.location.href = 'setup.html';
-          return;
-        }
-        
-        renderProfile(profile, rooms || []);
-        
-      } catch (error) {
-        console.error('Error loading profile page:', error);
-        document.getElementById('loading').innerHTML = `
-          <div style="padding:20px;text-align:center;color:var(--danger)">
-            <div style="font-size:2rem;margin-bottom:8px">⚠️</div>
-            <div>Failed to load profile</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:8px">${error.message}</div>
-            <button class="btn btn-secondary" style="margin-top:16px" onclick="location.reload()">Retry</button>
-          </div>`;
+      if (!profile) {
+        window.location.href = 'setup.html';
+        return;
       }
+
+      let rooms = [];
+      try {
+        rooms = await getUserRooms(user.uid);
+      } catch (err) {
+        console.error('getUserRooms failed:', err);
+      }
+
+      renderProfile(profile, rooms || []);
     });
 
     function renderProfile(p, rooms) {
-      // Avatar & name - added null checks
-      document.getElementById('profile-avatar').textContent = p.name ? p.name[0].toUpperCase() : '?';
-      document.getElementById('profile-name').textContent = p.name || 'No name set';
+      // Avatar & name
+      document.getElementById('profile-avatar').textContent = p.name? p.name[0].toUpperCase() : '?';
+      document.getElementById('profile-name').textContent = p.name || '—';
       document.getElementById('profile-university').textContent = p.university || '—';
 
       // Chips
       const chipsEl = document.getElementById('profile-chips');
-      chipsEl.innerHTML = ''; // Clear first
+      chipsEl.innerHTML = '';
       if (p.year) chipsEl.innerHTML += `<span class="badge">🎓 ${escHtml(p.year)}</span>`;
       if (p.course) chipsEl.innerHTML += `<span class="badge">📚 ${escHtml(p.course)}</span>`;
 
@@ -178,7 +162,7 @@
       // Stats
       document.getElementById('stat-rooms').textContent = rooms.length;
       document.getElementById('stat-joined').textContent = p.createdAt
-     ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('en', { month: 'short', year: 'numeric' })
+    ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('en', { month: 'short', year: 'numeric' })
         : '—';
 
       // My rooms
@@ -220,4 +204,4 @@
     }
   </script>
 </body>
-</html>
+    </html>
