@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ACADESTAY – Profile</title>
+  <title>Roomie – Profile</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -53,6 +53,7 @@
               <div style="font-size:12px;color:var(--muted)">Email</div>
               <div style="font-size:14px" id="info-email">—</div>
             </div>
+          </div>
           <div class="flex-gap">
             <span style="font-size:1.1rem">📞</span>
             <div>
@@ -112,27 +113,20 @@
 
   <div id="toast" class="toast"></div>
 
-<script type="module">
-    import { auth, onAuthStateChanged } from './firebase.js';
-    import { getProfile, getUserRooms, logOut } from './firebase.js';
+  <script type="module">
+    import { requireAuth, getProfile, getUserRooms, logOut } from './firebase.js';
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
+    const user = await requireAuth();
+    const [profile, rooms] = await Promise.all([
+      getProfile(user.uid),
+      getUserRooms(user.uid)
+    ]);
 
-      const [profile, rooms] = await Promise.all([
-        getProfile(user.uid),
-        getUserRooms(user.uid)
-      ]);
-
-      if (!profile) {
-        window.location.href = 'setup.html';
-      } else {
-        renderProfile(profile, rooms);
-      }
-    });
+    if (!profile) {
+      window.location.href = 'setup.html';
+    } else {
+      renderProfile(profile, rooms);
+    }
 
     function renderProfile(p, rooms) {
       // Avatar & name
@@ -157,12 +151,12 @@
       // Stats
       document.getElementById('stat-rooms').textContent = rooms.length;
       document.getElementById('stat-joined').textContent = p.createdAt
-       ? new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })
+        ? new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })
         : '—';
 
       // My rooms
       const container = document.getElementById('my-rooms-container');
-      const emptyEl = document.getElementById('my-rooms-empty');
+      const emptyEl   = document.getElementById('my-rooms-empty');
 
       if (rooms.length === 0) {
         emptyEl.style.display = 'block';
@@ -196,6 +190,6 @@
       d.textContent = str;
       return d.innerHTML;
     }
-</script>
-  </body>
+  </script>
+</body>
 </html>
