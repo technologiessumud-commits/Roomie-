@@ -1,6 +1,6 @@
 // ─── FIREBASE CONFIG ─────────────────────────────────────────
 // 🔧 REPLACE with your own Firebase project config from:
-//    Firebase Console → Project Settings → Your apps → Web app
+// Firebase Console → Project Settings → Your apps → Web app
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -8,17 +8,17 @@ import { getFirestore, doc, setDoc, getDoc, getDocs, addDoc, collection, query, 
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
   messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db   = getFirestore(app);
+export const db = getFirestore(app);
 
 // ─── AUTH HELPERS ─────────────────────────────────────────────
 
@@ -57,15 +57,19 @@ export async function saveProfile(uid, data) {
 /** Get user profile by uid */
 export async function getProfile(uid) {
   const snap = await getDoc(doc(db, "users", uid));
-  return snap.exists() ? snap.data() : null;
+  return snap.exists()? snap.data() : null;
 }
 
 // ─── ROOM HELPERS ─────────────────────────────────────────────
 
 /** Post a new room */
 export async function postRoom(data) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not logged in');
+
   return addDoc(collection(db, "rooms"), {
-    ...data,
+  ...data,
+    ownerUid: user.uid, // FIX: Save ownerUid so getUserRooms works
     createdAt: serverTimestamp()
   });
 }
@@ -73,28 +77,32 @@ export async function postRoom(data) {
 /** Get all rooms */
 export async function getRooms() {
   const snap = await getDocs(collection(db, "rooms"));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map(d => ({ id: d.id,...d.data() }));
 }
 
 /** Get a single room by id */
 export async function getRoom(id) {
   const snap = await getDoc(doc(db, "rooms", id));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  return snap.exists()? { id: snap.id,...snap.data() } : null;
 }
 
 /** Get rooms posted by a specific user */
 export async function getUserRooms(uid) {
   const q = query(collection(db, "rooms"), where("ownerUid", "==", uid));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map(d => ({ id: d.id,...d.data() }));
 }
 
 // ─── ROOMMATE HELPERS ─────────────────────────────────────────
 
 /** Post a roommate listing */
 export async function postRoommate(data) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not logged in');
+
   return addDoc(collection(db, "roommates"), {
-    ...data,
+  ...data,
+    ownerUid: user.uid,
     createdAt: serverTimestamp()
   });
 }
@@ -102,7 +110,7 @@ export async function postRoommate(data) {
 /** Get all roommate listings */
 export async function getRoommates() {
   const snap = await getDocs(collection(db, "roommates"));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map(d => ({ id: d.id,...d.data() }));
 }
 
 // ─── ROUTE GUARD ──────────────────────────────────────────────
@@ -129,9 +137,4 @@ export async function requireAuth(redirectToSetup = true) {
       resolve(user);
     });
   });
-                              }
-
-
-
-
-
+}
