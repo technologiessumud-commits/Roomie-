@@ -33,93 +33,42 @@
       </div>
     </div>
   </div>
-<!-- YOUR ORIGINAL LOGIN HTML (UNCHANGED UI) -->
-<!-- Only JS fixed below -->
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc }
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <script type="module">
+    import { logIn, getProfile } from './firebase.js';
 
-const app = initializeApp({
-  apiKey: "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
-  authDomain: "roomie-f3103.firebaseapp.com",
-  projectId: "roomie-f3103",
-  storageBucket: "roomie-f3103.firebasestorage.app",
-  messagingSenderId: "896474185176",
-  appId: "1:896474185176:web:0e4543682f594daf0a86ad"
-});
+    window.handleLogin = async () => {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errEl    = document.getElementById('error-msg');
+      const btn      = document.getElementById('login-btn');
 
-const auth = getAuth(app);
-const db = getFirestore(app);
+      errEl.style.display = 'none';
 
-function showErr(msg) {
-  const el = document.getElementById('err');
-  el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
-}
+      if (!email || !password) {
+        errEl.textContent = 'Please enter your email and password.';
+        errEl.style.display = 'block'; return;
+      }
 
-async function afterLogin(user) {
-  const snap = await getDoc(doc(db, "users", user.uid));
-  location.href = snap.exists() ? "home.html" : "setup.html";
-}
+      btn.textContent = 'Logging in…';
+      btn.disabled = true;
 
-window.googleSignIn = async () => {
-  const btn = document.getElementById("google-btn");
-  btn.disabled = true;
+      try {
+        const { user } = await logIn(email, password);
+        const profile = await getProfile(user.uid);
+        window.location.href = profile ? 'home.html' : 'setup.html';
+      } catch (err) {
+        errEl.textContent = 'Invalid email or password.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Log In';
+        btn.disabled = false;
+      }
+    };
 
-  try {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-
-    const result = await signInWithPopup(auth, provider);
-
-    const snap = await getDoc(doc(db, "users", result.user.uid));
-    if (!snap.exists()) {
-      await setDoc(doc(db, "users", result.user.uid), {
-        uid: result.user.uid,
-        email: result.user.email || "",
-        name: result.user.displayName || "",
-        photoURL: result.user.photoURL || "",
-        createdAt: new Date().toISOString()
-      });
-      location.href = "setup.html";
-    } else {
-      location.href = "home.html";
-    }
-
-  } catch (e) {
-    if (e.code !== "auth/popup-closed-by-user") {
-      showErr(e.message);
-    }
-  } finally {
-    btn.disabled = false;
-  }
-};
-
-window.emailSignIn = async () => {
-  const email = document.getElementById("email").value;
-  const pass = document.getElementById("password").value;
-
-  try {
-    const { user } = await signInWithEmailAndPassword(auth, email, pass);
-    await afterLogin(user);
-  } catch (e) {
-    showErr("Invalid login details");
-  }
-};
-
-onAuthStateChanged(auth, user => {
-  if (user) afterLogin(user);
-});
-    </script>
-  
+    // Allow Enter key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') window.handleLogin();
+    });
+  </script>
 </body>
 </html>
