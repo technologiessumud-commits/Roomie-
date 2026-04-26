@@ -116,4 +116,3 @@ export function setLoaderMsg(msg) {
 
 // Auto-inject on import so it's always ready
 injectCSS();
-
