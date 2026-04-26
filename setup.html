@@ -1,411 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roomie – Set Up Profile</title>
-  <link rel="stylesheet" href="style.css"/>
-  <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#0d0f14"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <style>
-    .select-wrap{position:relative;}
-    .select-wrap select{appearance:none;-webkit-appearance:none;padding-right:40px;cursor:pointer;}
-    .select-wrap::after{content:'';position:absolute;right:14px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-top-color:var(--muted);margin-top:3px;pointer-events:none;}
-    .photo-circle{width:72px;height:72px;border-radius:50%;background:var(--card);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;flex-shrink:0;cursor:pointer;}
-    .photo-circle img{width:100%;height:100%;object-fit:cover;}
-    .currency-preview{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,.1);color:var(--accent);border:1px solid rgba(255,107,53,.3);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;margin-top:6px;}
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<script type="module" src="theme.js"></script>
+  <div class="page-full">
+    <div style="max-width:480px;margin:0 auto;width:100%">
 
-<div class="page-full">
-<div style="max-width:480px;margin:0 auto;width:100%;padding-bottom:40px">
-
-  <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px">One last step 🎉</div>
-  <p style="color:var(--muted);font-size:14px;margin-bottom:28px">Set up your profile so students near you can find you.</p>
-
-  <!-- Profile photo -->
-  <div class="form-group">
-    <label>Profile photo <span style="color:var(--muted)">(optional)</span></label>
-    <div style="display:flex;align-items:center;gap:14px">
-      <div class="photo-circle" id="photo-circle" onclick="document.getElementById('photo-file').click()">👤</div>
-      <div>
-        <label for="photo-file" style="display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:9px 16px;cursor:pointer;font-size:14px;font-weight:500;margin-bottom:0">
-          📷 Choose photo
-        </label>
-        <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhoto(this)"/>
-        <p class="form-hint" id="photo-status" style="margin-top:6px">Tap to upload</p>
+      <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px">
+        One last step 🎉
       </div>
-    </div>
-    <input type="hidden" id="photoURL"/>
-  </div>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:32px">
+        Set up your profile so others can get to know you.
+      </p>
 
-  <div class="form-group">
-    <label>Full name *</label>
-    <input type="text" id="name" placeholder="e.g. Emeka Johnson" autocomplete="name"/>
-  </div>
+      <div class="form-group">
+        <label>Full name</label>
+        <input type="text" id="name" placeholder="e.g. Alex Johnson" />
+      </div>
+      <div class="form-group">
+        <label>Phone number</label>
+        <input type="tel" id="phone" placeholder="+1 555 000 0000" />
+      </div>
+      <div class="form-group">
+        <label>University / College</label>
+        <input type="text" id="university" placeholder="e.g. University of Lagos" />
+      </div>
+      <div class="form-group">
+        <label>Course / Department <span style="color:var(--muted)">(optional)</span></label>
+        <input type="text" id="course" placeholder="e.g. Computer Science" />
+      </div>
+      <div class="form-group">
+        <label>Year of study <span style="color:var(--muted)">(optional)</span></label>
+        <select id="year">
+          <option value="">Select year</option>
+          <option>1st year</option>
+          <option>2nd year</option>
+          <option>3rd year</option>
+          <option>4th year</option>
+          <option>Postgraduate</option>
+        </select>
+      </div>
 
-  <!-- Country -->
-  <div class="form-group">
-    <label>Country *</label>
-    <div class="select-wrap">
-      <select id="country" onchange="onCountryChange()">
-        <option value="">— Select your country —</option>
-      </select>
-    </div>
-    <!-- Auto currency preview -->
-    <div id="currency-preview" style="display:none" class="currency-preview">
-      <span id="currency-flag">🌍</span>
-      <span>Listings will show in <strong id="currency-name">USD</strong> (<span id="currency-sym">$</span>)</span>
-    </div>
-  </div>
+      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none"></p>
 
-  <!-- University (dynamic) -->
-  <div class="form-group" id="uni-group" style="display:none">
-    <label>University *</label>
-    <div class="select-wrap" id="uni-select-wrap">
-      <select id="uni-select" onchange="onUniChange()">
-        <option value="">— Select your university —</option>
-      </select>
-    </div>
-    <input type="text" id="uni-other" placeholder="Type your university…" style="display:none;margin-top:8px"/>
-  </div>
-
-  <div class="form-group">
-    <label>City / State *</label>
-    <input type="text" id="city" placeholder="e.g. Lagos"/>
-  </div>
-
-  <div class="form-group">
-    <label>Phone number <span style="color:var(--muted)">(optional — verify later for ✅ badge)</span></label>
-    <input type="tel" id="phone" placeholder="+234 800 000 0000" autocomplete="tel"/>
-  </div>
-
-  <div class="form-group">
-    <label>Course / Department <span style="color:var(--muted)">(optional)</span></label>
-    <input type="text" id="course" placeholder="e.g. Computer Science"/>
-  </div>
-
-  <div class="form-group">
-    <label>Year of study <span style="color:var(--muted)">(optional)</span></label>
-    <div class="select-wrap">
-      <select id="year">
-        <option value="">Select year</option>
-        <option>1st year</option><option>2nd year</option>
-        <option>3rd year</option><option>4th year</option><option>Postgraduate</option>
-      </select>
+      <button class="btn btn-primary" id="save-btn" onclick="handleSave()">
+        Save &amp; Continue
+      </button>
     </div>
   </div>
 
-  <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px"></p>
-  <button class="btn btn-primary" id="save-btn" onclick="handleSave()">Save &amp; Continue →</button>
+  <script type="module">
+    import { auth, saveProfile, onAuth } from './firebase.js';
 
-</div>
-</div>
+    // Ensure user is logged in
+    onAuth((user) => {
+      if (!user) window.location.href = 'login.html';
+    });
 
-<script type="module">
-import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { uploadImage } from './upload.js';
+    window.handleSave = async () => {
+      const name       = document.getElementById('name').value.trim();
+      const phone      = document.getElementById('phone').value.trim();
+      const university = document.getElementById('university').value.trim();
+      const course     = document.getElementById('course').value.trim();
+      const year       = document.getElementById('year').value;
+      const errEl      = document.getElementById('error-msg');
+      const btn        = document.getElementById('save-btn');
 
-const app  = initializeApp({
-  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
-  authDomain:"roomie-f3103.firebaseapp.com",
-  projectId:"roomie-f3103",
-  storageBucket:"roomie-f3103.firebasestorage.app",
-  messagingSenderId:"896474185176",
-  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
-});
-const auth = getAuth(app);
-const db   = getFirestore(app);
+      errEl.style.display = 'none';
 
-onAuthStateChanged(auth, u => { if (!u) location.href='login.html'; });
+      if (!name || !phone || !university) {
+        errEl.textContent = 'Please fill in name, phone, and university.';
+        errEl.style.display = 'block'; return;
+      }
 
-// ── Country → currency map ────────────────────────────────
-const CURRENCIES = {
-  'nigeria':              {code:'NGN',symbol:'₦', name:'Nigerian Naira',    flag:'🇳🇬'},
-  'ghana':                {code:'GHS',symbol:'₵', name:'Ghanaian Cedi',     flag:'🇬🇭'},
-  'kenya':                {code:'KES',symbol:'KSh',name:'Kenyan Shilling',  flag:'🇰🇪'},
-  'south africa':         {code:'ZAR',symbol:'R', name:'South African Rand',flag:'🇿🇦'},
-  'united states':        {code:'USD',symbol:'$', name:'US Dollar',         flag:'🇺🇸'},
-  'united kingdom':       {code:'GBP',symbol:'£', name:'British Pound',     flag:'🇬🇧'},
-  'canada':               {code:'CAD',symbol:'C$',name:'Canadian Dollar',   flag:'🇨🇦'},
-  'australia':            {code:'AUD',symbol:'A$',name:'Australian Dollar', flag:'🇦🇺'},
-  'india':                {code:'INR',symbol:'₹', name:'Indian Rupee',      flag:'🇮🇳'},
-  'germany':              {code:'EUR',symbol:'€', name:'Euro',              flag:'🇩🇪'},
-  'france':               {code:'EUR',symbol:'€', name:'Euro',              flag:'🇫🇷'},
-  'cameroon':             {code:'XAF',symbol:'CFA',name:'CFA Franc',        flag:'🇨🇲'},
-  'tanzania':             {code:'TZS',symbol:'TSh',name:'Tanzanian Shilling',flag:'🇹🇿'},
-  'uganda':               {code:'UGX',symbol:'USh',name:'Ugandan Shilling', flag:'🇺🇬'},
-  'zambia':               {code:'ZMW',symbol:'ZK',name:'Zambian Kwacha',    flag:'🇿🇲'},
-  'zimbabwe':             {code:'USD',symbol:'$', name:'US Dollar',         flag:'🇿🇼'},
-  'egypt':                {code:'EGP',symbol:'E£',name:'Egyptian Pound',    flag:'🇪🇬'},
-  'ethiopia':             {code:'ETB',symbol:'Br',name:'Ethiopian Birr',    flag:'🇪🇹'},
-  'rwanda':               {code:'RWF',symbol:'RF',name:'Rwandan Franc',     flag:'🇷🇼'},
-  'senegal':              {code:'XOF',symbol:'CFA',name:'West African CFA', flag:'🇸🇳'},
-  'malaysia':             {code:'MYR',symbol:'RM',name:'Malaysian Ringgit', flag:'🇲🇾'},
-  'brazil':               {code:'BRL',symbol:'R$',name:'Brazilian Real',    flag:'🇧🇷'},
-  'united arab emirates': {code:'AED',symbol:'AED',name:'UAE Dirham',      flag:'🇦🇪'},
-  'japan':                {code:'JPY',symbol:'¥', name:'Japanese Yen',      flag:'🇯🇵'},
-  'china':                {code:'CNY',symbol:'¥', name:'Chinese Yuan',      flag:'🇨🇳'},
-  'singapore':            {code:'SGD',symbol:'S$',name:'Singapore Dollar',  flag:'🇸🇬'},
-};
+      const user = auth.currentUser;
+      if (!user) { window.location.href = 'login.html'; return; }
 
-// ── Country list ──────────────────────────────────────────
-const COUNTRIES = [
-  "Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia","Austria",
-  "Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Benin","Bolivia","Botswana",
-  "Brazil","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Chad",
-  "Chile","China","Colombia","Congo","Croatia","Cuba","Cyprus","Czech Republic","Denmark",
-  "DR Congo","Ecuador","Egypt","Eritrea","Estonia","Ethiopia","Finland","France",
-  "Gabon","Gambia","Georgia","Germany","Ghana","Greece","Guatemala","Guinea","Haiti",
-  "Hungary","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica",
-  "Japan","Jordan","Kazakhstan","Kenya","Kuwait","Laos","Latvia","Lebanon","Lesotho",
-  "Liberia","Libya","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Mali",
-  "Malta","Mauritania","Mauritius","Mexico","Moldova","Mongolia","Morocco","Mozambique",
-  "Myanmar","Namibia","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria",
-  "Norway","Oman","Pakistan","Palestine","Panama","Paraguay","Peru","Philippines",
-  "Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saudi Arabia","Senegal",
-  "Sierra Leone","Singapore","Slovakia","Somalia","South Africa","South Korea",
-  "South Sudan","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan",
-  "Tanzania","Thailand","Togo","Tunisia","Turkey","Uganda","Ukraine",
-  "United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan",
-  "Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
-];
+      btn.textContent = 'Saving…';
+      btn.disabled = true;
 
-// ── Universities by country ───────────────────────────────
-const UNIVERSITIES = {
-  "Nigeria": [
-    "University of Lagos (UNILAG)","University of Ibadan (UI)","Obafemi Awolowo University (OAU)",
-    "University of Nigeria Nsukka (UNN)","Ahmadu Bello University (ABU)","University of Benin (UNIBEN)",
-    "Lagos State University (LASU)","University of Ilorin (UNILORIN)","University of Port Harcourt (UNIPORT)",
-    "University of Abuja","University of Jos (UNIJOS)","University of Calabar (UNICAL)",
-    "University of Maiduguri (UNIMAID)","University of Uyo (UNIUYO)","Nnamdi Azikiwe University (NAU)",
-    "Rivers State University","Ebonyi State University","Ekiti State University (EKSU)",
-    "Covenant University","Babcock University","Landmark University","Pan-Atlantic University",
-    "Redeemer's University","Baze University","Nile University","Lead City University",
-    "Federal University of Technology Akure (FUTA)","Federal University of Technology Minna (FUTMINNA)",
-    "Federal University of Technology Owerri (FUTO)","Federal University of Agriculture Abeokuta (FUNAAB)",
-    "Kwara State University (KWASU)","Kaduna State University (KASU)","Kogi State University",
-    "Ambrose Alli University","Delta State University (DELSU)","Niger Delta University",
-    "Imo State University (IMSU)","Abia State University (ABSU)","Nassarawa State University",
-    "Plateau State University","Gombe State University","Taraba State University",
-    "Yobe State University","Zamfara State University","Kebbi State University",
-    "Sokoto State University","Usmanu Danfodiyo University","Bayero University Kano (BUK)",
-    "Other (type below)"
-  ],
-  "Ghana": [
-    "University of Ghana","Kwame Nkrumah University of Science and Technology (KNUST)",
-    "University of Cape Coast","University for Development Studies","Ashesi University",
-    "Ghana Institute of Management and Public Administration (GIMPA)",
-    "University of Professional Studies","Central University","Valley View University",
-    "Pentecost University","Other (type below)"
-  ],
-  "Kenya": [
-    "University of Nairobi","Kenyatta University","Strathmore University","Moi University",
-    "Jomo Kenyatta University (JKUAT)","Egerton University","Maseno University",
-    "United States International University Africa","Catholic University of Eastern Africa",
-    "Mount Kenya University","Other (type below)"
-  ],
-  "South Africa": [
-    "University of Cape Town (UCT)","University of the Witwatersrand (Wits)","Stellenbosch University",
-    "University of Pretoria","University of KwaZulu-Natal","Rhodes University",
-    "University of Johannesburg","University of the Western Cape","Nelson Mandela University",
-    "University of South Africa (UNISA)","Other (type below)"
-  ],
-  "United Kingdom": [
-    "University of Oxford","University of Cambridge","Imperial College London",
-    "London School of Economics (LSE)","University College London (UCL)",
-    "University of Edinburgh","King's College London","University of Manchester",
-    "University of Birmingham","University of Bristol","University of Warwick",
-    "University of Sheffield","University of Nottingham","University of Leeds",
-    "Durham University","Newcastle University","University of Glasgow",
-    "Cardiff University","University of Bath","University of Exeter","Other (type below)"
-  ],
-  "United States": [
-    "Harvard University","MIT","Stanford University","Yale University","Princeton University",
-    "Columbia University","University of Chicago","University of Pennsylvania",
-    "Cornell University","Dartmouth College","Brown University","Duke University",
-    "Johns Hopkins University","Northwestern University","Vanderbilt University",
-    "Rice University","University of Notre Dame","Georgetown University",
-    "University of Michigan","UC Berkeley","UCLA","University of Virginia",
-    "University of Texas at Austin","Georgia Tech","Carnegie Mellon University",
-    "New York University (NYU)","Boston University","University of Southern California",
-    "University of Florida","University of Wisconsin-Madison","Other (type below)"
-  ],
-  "Canada": [
-    "University of Toronto","McGill University","University of British Columbia (UBC)",
-    "University of Alberta","University of Waterloo","Queen's University",
-    "Western University","McMaster University","University of Ottawa",
-    "Dalhousie University","Other (type below)"
-  ],
-  "Australia": [
-    "University of Melbourne","Australian National University (ANU)","University of Sydney",
-    "University of Queensland","UNSW Sydney","Monash University",
-    "University of Western Australia","University of Adelaide","Other (type below)"
-  ],
-  "India": [
-    "Indian Institute of Technology Bombay (IITB)","Indian Institute of Technology Delhi (IITD)",
-    "Indian Institute of Technology Madras (IITM)","Indian Institute of Science (IISc)",
-    "University of Delhi","Jawaharlal Nehru University (JNU)","University of Mumbai",
-    "Calcutta University","Banaras Hindu University","Other (type below)"
-  ],
-  "Germany": [
-    "Technical University of Munich (TUM)","Ludwig Maximilian University Munich",
-    "Heidelberg University","Humboldt University Berlin","RWTH Aachen University",
-    "University of Hamburg","Goethe University Frankfurt","Other (type below)"
-  ],
-  "France": [
-    "Sorbonne University","École Polytechnique","Sciences Po Paris","HEC Paris",
-    "University of Paris-Saclay","University of Bordeaux","Other (type below)"
-  ],
-  "Cameroon": [
-    "University of Yaoundé I","University of Yaoundé II","University of Douala",
-    "University of Buea","University of Dschang","University of Ngaoundéré","Other (type below)"
-  ],
-};
-
-// Populate country dropdown
-const countryEl = document.getElementById('country');
-COUNTRIES.forEach(c => {
-  const o = document.createElement('option');
-  o.value = c.toLowerCase(); o.textContent = c;
-  countryEl.appendChild(o);
-});
-
-window.onCountryChange = function() {
-  const countryVal = countryEl.value;
-  const countryText = countryEl.options[countryEl.selectedIndex].text;
-  const uniGroup = document.getElementById('uni-group');
-  const uniSelect = document.getElementById('uni-select');
-  const uniOther  = document.getElementById('uni-other');
-  const uniWrap   = document.getElementById('uni-select-wrap');
-
-  // Update university list
-  uniSelect.innerHTML = '<option value="">— Select your university —</option>';
-  uniOther.style.display='none'; uniOther.value='';
-
-  if (!countryVal) { uniGroup.style.display='none'; }
-  else {
-    uniGroup.style.display='block';
-    const unis = UNIVERSITIES[countryText];
-    if (unis?.length) {
-      unis.forEach(u => { const o=document.createElement('option'); o.value=u; o.textContent=u; uniSelect.appendChild(o); });
-      uniWrap.style.display='block'; uniSelect.style.display='block';
-    } else {
-      uniWrap.style.display='none'; uniOther.style.display='block';
-      uniOther.placeholder=`Type your university in ${countryText}…`;
-    }
-  }
-
-  // Show currency preview
-  const curr = CURRENCIES[countryVal] || {code:'USD',symbol:'$',name:'US Dollar',flag:'🌍'};
-  const preview = document.getElementById('currency-preview');
-  document.getElementById('currency-flag').textContent = curr.flag;
-  document.getElementById('currency-name').textContent = curr.name;
-  document.getElementById('currency-sym').textContent  = curr.symbol;
-  preview.style.display = countryVal ? 'inline-flex' : 'none';
-};
-
-window.onUniChange = function() {
-  const uniOther = document.getElementById('uni-other');
-  uniOther.style.display =
-    document.getElementById('uni-select').value==='Other (type below)' ? 'block' : 'none';
-};
-
-// Photo upload
-window.handlePhoto = async (input) => {
-  const file = input.files[0]; if (!file) return;
-  const st = document.getElementById('photo-status');
-  const circle = document.getElementById('photo-circle');
-  const url = URL.createObjectURL(file);
-  circle.innerHTML = `<img src="${url}"/>`;
-  st.textContent = 'Uploading…';
-  try {
-    const finalUrl = await uploadImage(file);
-    document.getElementById('photoURL').value = finalUrl;
-    st.textContent = '✅ Photo uploaded!';
-  } catch(_) {
-    st.textContent = '⚠️ Upload failed';
-    document.getElementById('photoURL').value = '';
-  }
-};
-
-window.handleSave = async () => {
-  const name       = document.getElementById('name').value.trim();
-  const countryOpt = countryEl.options[countryEl.selectedIndex];
-  const country    = countryOpt?.text || '';
-  const countryVal = countryOpt?.value || '';
-  const uniWrap    = document.getElementById('uni-select-wrap');
-  const uniSelect  = document.getElementById('uni-select');
-  const uniOther   = document.getElementById('uni-other');
-  let   university = uniWrap.style.display!=='none' && uniSelect.value && uniSelect.value!=='Other (type below)'
-    ? uniSelect.value : uniOther.value.trim();
-  const city     = document.getElementById('city').value.trim();
-  const phone    = document.getElementById('phone').value.trim();
-  const course   = document.getElementById('course').value.trim();
-  const year     = document.getElementById('year').value;
-  const photoURL = document.getElementById('photoURL').value.trim();
-  const errEl    = document.getElementById('error-msg');
-  const btn      = document.getElementById('save-btn');
-
-  errEl.style.display='none';
-  if (!name||!country||country.startsWith('—')||!university||!city) {
-    errEl.textContent='Please fill in name, country, university and city.';
-    errEl.style.display='block'; return;
-  }
-
-  const u = auth.currentUser;
-  if (!u) { location.href='login.html'; return; }
-
-  btn.textContent='Saving…'; btn.disabled=true;
-
-  // Get currency for country
-  const curr = CURRENCIES[countryVal] || {code:'USD',symbol:'$',name:'US Dollar'};
-
-  // Get existing profile to preserve verification/referral data
-  const existing = await getDoc(doc(db,'users',u.uid));
-  const existingData = existing.exists() ? existing.data() : {};
-
-  // Generate referral code if not already set
-  const referralCode = existingData.referralCode ||
-    (name.replace(/\s+/g,'').toUpperCase().slice(0,6) + Math.random().toString(36).slice(2,5).toUpperCase());
-
-  try {
-    await setDoc(doc(db,'users',u.uid), {
-      ...existingData,
-      uid: u.uid, email: u.email||'',
-      name, phone, university,
-      country: countryVal,
-      countryDisplay: country,
-      city: city.toLowerCase().trim(),
-      currency: curr.code,
-      currencySymbol: curr.symbol,
-      currencyName: curr.name,
-      photoURL, course, year,
-      referralCode,
-      verification: existingData.verification || {
-        phoneVerified:false, emailVerified:false,
-        idVerified:false, idStatus:'unverified', listingVerified:false
-      },
-      referralCount:    existingData.referralCount    || 0,
-      referralEarnings: existingData.referralEarnings || 0,
-      referralBalance:  existingData.referralBalance  || 0,
-      profileCompletion: photoURL ? 70 : 50,
-      createdAt: existingData.createdAt || new Date().toISOString()
-    }, {merge:false}); // full set, not merge, so we don't leave stale fields
-    location.href='home.html';
-  } catch(e) {
-    errEl.textContent='Error saving profile: '+e.message;
-    errEl.style.display='block';
-    btn.textContent='Save & Continue →'; btn.disabled=false;
-  }
-};
-
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
-</script>
+      try {
+        await saveProfile(user.uid, {
+          uid: user.uid,
+          email: user.email,
+          name, phone, university, course, year,
+          createdAt: new Date().toISOString()
+        });
+        window.location.href = 'home.html';
+      } catch (err) {
+        errEl.textContent = 'Error saving profile. Try again.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Save & Continue';
+        btn.disabled = false;
+      }
+    };
+  </script>
 </body>
 </html>
