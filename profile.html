@@ -47,7 +47,6 @@
       <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px">Contact Info</h3>
       <div class="card">
         <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
-
           <div class="flex-gap">
             <span style="font-size:1.1rem">📧</span>
             <div>
@@ -55,7 +54,6 @@
               <div style="font-size:14px" id="info-email">—</div>
             </div>
           </div>
-
           <div class="flex-gap">
             <span style="font-size:1.1rem">📞</span>
             <div>
@@ -63,7 +61,6 @@
               <div style="font-size:14px" id="info-phone">—</div>
             </div>
           </div>
-
           <div class="flex-gap" id="info-course-row">
             <span style="font-size:1.1rem">🎓</span>
             <div>
@@ -71,7 +68,6 @@
               <div style="font-size:14px" id="info-course">—</div>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -117,147 +113,83 @@
 
   <div id="toast" class="toast"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <script type="module">
+    import { requireAuth, getProfile, getUserRooms, logOut } from './firebase.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
-  authDomain: "roomie-f3103.firebaseapp.com",
-  projectId: "roomie-f3103",
-  storageBucket: "roomie-f3103.firebasestorage.app",
-  messagingSenderId: "896474185176",
-  appId: "1:896474185176:web:0e4543682f594daf0a86ad"
-};
+    const user = await requireAuth();
+    const [profile, rooms] = await Promise.all([
+      getProfile(user.uid),
+      getUserRooms(user.uid)
+    ]);
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Toast helper
-function showToast(msg, type = 'success') {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.className = `toast show ${type}`;
-  setTimeout(() => toast.className = 'toast', 3000);
-}
-
-// Logout function - was missing
-window.handleLogout = async function() {
-  try {
-    await signOut(auth);
-    showToast('Logged out');
-    setTimeout(() => location.href = 'login.html', 1000);
-  } catch (err) {
-    showToast('Logout failed', 'error');
-  }
-}
-
-function waitForAuth() {
-  return new Promise(resolve => {
-    const unsub = onAuthStateChanged(auth, user => {
-      unsub();
-      resolve(user);
-    });
-  });
-}
-
-async function loadProfile() {
-  const user = await waitForAuth();
-
-  if (!user) {
-    location.href = "login.html";
-    return;
-  }
-
-  try {
-    const ref = doc(db, "users", user.uid);
-    const snap = await getDoc(ref);
-
-    if (!snap.exists()) {
-      location.href = "setup.html";
-      return;
+    if (!profile) {
+      window.location.href = 'setup.html';
+    } else {
+      renderProfile(profile, rooms);
     }
 
-    const data = snap.data();
+    function renderProfile(p, rooms) {
+      // Avatar & name
+      document.getElementById('profile-avatar').textContent = p.name[0].toUpperCase();
+      document.getElementById('profile-name').textContent = p.name;
+      document.getElementById('profile-university').textContent = p.university;
 
-    // FIX 1: Update correct IDs from your HTML
-    document.getElementById("profile-name").textContent = data.name || "User";
-    document.getElementById("profile-university").textContent = data.university || "";
-    document.getElementById("info-email").textContent = data.email || user.email || "";
-    document.getElementById("info-phone").textContent = data.phone || "Not set";
-    document.getElementById("info-course").textContent = data.course || "Not set";
+      // Chips
+      const chipsEl = document.getElementById('profile-chips');
+      if (p.year) chipsEl.innerHTML += `<span class="badge">🎓 ${p.year}</span>`;
+      if (p.course) chipsEl.innerHTML += `<span class="badge">📚 ${p.course}</span>`;
 
-    // Avatar - show first letter if no photo
-    const avatar = document.getElementById("profile-avatar");
-    if (data.photoURL) {
-      avatar.innerHTML = `<img src="${data.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-    } else {
-      avatar.textContent = (data.name || "U").charAt(0).toUpperCase();
-    }
+      // Contact info
+      document.getElementById('info-email').textContent = p.email || '—';
+      document.getElementById('info-phone').textContent = p.phone || '—';
+      if (p.course) {
+        document.getElementById('info-course').textContent = p.course;
+      } else {
+        document.getElementById('info-course-row').style.display = 'none';
+      }
 
-    // Chips - budget, gender, etc
-    const chips = document.getElementById("profile-chips");
-    chips.innerHTML = '';
-    if (data.budget) chips.innerHTML += `<span class="chip">₦${data.budget}/mo</span>`;
-    if (data.gender) chips.innerHTML += `<span class="chip">${data.gender}</span>`;
-    if (data.lifestyle) chips.innerHTML += `<span class="chip">${data.lifestyle}</span>`;
+      // Stats
+      document.getElementById('stat-rooms').textContent = rooms.length;
+      document.getElementById('stat-joined').textContent = p.createdAt
+        ? new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })
+        : '—';
 
-    // Member since
-    const createdAt = data.createdAt?.toDate() || user.metadata.creationTime;
-    document.getElementById("stat-joined").textContent = new Date(createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      // My rooms
+      const container = document.getElementById('my-rooms-container');
+      const emptyEl   = document.getElementById('my-rooms-empty');
 
-    // Load user's rooms count
-    const roomsQuery = query(collection(db, "rooms"), where("userId", "==", user.uid));
-    const roomsSnap = await getDocs(roomsQuery);
-    document.getElementById("stat-rooms").textContent = roomsSnap.size;
-    document.getElementById("stat-listings").textContent = roomsSnap.size;
-
-    // Show user's rooms
-    const container = document.getElementById("my-rooms-container");
-    const empty = document.getElementById("my-rooms-empty");
-    
-    if (roomsSnap.empty) {
-      empty.style.display = 'block';
-    } else {
-      roomsSnap.forEach(doc => {
-        const room = doc.data();
-        container.innerHTML += `
-          <div class="card" onclick="location.href='room-details.html?id=${doc.id}'">
-            <div class="card-body">
-              <div style="font-weight:600">${room.title || 'Untitled Room'}</div>
-              <div style="font-size:12px;color:var(--muted)">₦${room.price || 0}/month</div>
+      if (rooms.length === 0) {
+        emptyEl.style.display = 'block';
+      } else {
+        container.innerHTML = rooms.map(r => `
+          <div class="card" onclick="window.location.href='room.html?id=${r.id}'" style="cursor:pointer">
+            <div class="card-body" style="display:flex;align-items:center;gap:12px">
+              <div style="font-size:1.5rem">🏠</div>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:14px">${escHtml(r.title)}</div>
+                <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location || '—')}</div>
+              </div>
+              <span class="card-price">$${r.price}</span>
             </div>
-          </div>
-        `;
-      });
+          </div>`).join('');
+      }
+
+      // Show content
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
     }
 
-    // FIX 2: Hide loading, show content - this was missing
-    document.getElementById("loading").style.display = 'none';
-    document.getElementById("content").style.display = 'block';
+    window.handleLogout = async () => {
+      if (!confirm('Are you sure you want to log out?')) return;
+      await logOut();
+      window.location.href = 'index.html';
+    };
 
-  } catch (err) {
-    console.error("Profile load error:", err);
-    showToast('Failed to load profile', 'error');
-    setTimeout(() => location.href = "login.html", 2000);
-  }
-}
-
-loadProfile();
-      </script>
+    function escHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+  </script>
 </body>
 </html>
