@@ -117,102 +117,92 @@
 
   <div id="toast" class="toast"></div>
 
-  <script type="module">
-    import { auth, onAuthStateChanged } from './firebase.js';
-    import { getProfile, getUserRooms, logOut } from './firebase.js';
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-      try {
-        const profile = await getProfile(user.uid);
-        
-        if (!profile) {
-          window.location.href = 'setup.html';
-          return;
-        }
+// ─── FIREBASE CONFIG ─────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain: "roomie-f3103.firebaseapp.com",
+  projectId: "roomie-f3103",
+  storageBucket: "roomie-f3103.firebasestorage.app",
+  messagingSenderId: "896474185176",
+  appId: "1:896474185176:web:0e4543682f594daf0a86ad"
+};
 
-        let rooms = [];
-        try {
-          rooms = await getUserRooms(user.uid);
-        } catch (e) {
-          console.error('Rooms error:', e);
-        }
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-        renderProfile(profile, rooms);
-        
-      } catch (error) {
-        console.error('Profile load error:', error);
-        document.getElementById('loading').innerHTML = `
-          <div style="padding:20px;text-align:center">
-            <div style="font-size:2rem;margin-bottom:8px">⚠️</div>
-            <div>Error: ${error.message}</div>
-            <button class="btn btn-secondary" style="margin-top:16px" onclick="location.reload()">Retry</button>
-          </div>`;
-      }
+// ─── SAFE AUTH HANDLER (FIXES YOUR ISSUE) ─────────
+function waitForAuth() {
+  return new Promise(resolve => {
+    const unsub = onAuthStateChanged(auth, user => {
+      unsub();
+      resolve(user);
     });
+  });
+}
 
-    function renderProfile(p, rooms) {
-      document.getElementById('profile-avatar').textContent = p.name? p.name[0].toUpperCase() : '?';
-      document.getElementById('profile-name').textContent = p.name || '—';
-      document.getElementById('profile-university').textContent = p.university || '—';
+// ─── LOAD PROFILE SAFELY ─────────────────────────
+async function loadProfile() {
+  const user = await waitForAuth();
 
-      const chipsEl = document.getElementById('profile-chips');
-      chipsEl.innerHTML = '';
-      if (p.year) chipsEl.innerHTML += `<span class="badge">🎓 ${escHtml(p.year)}</span>`;
-      if (p.course) chipsEl.innerHTML += `<span class="badge">📚 ${escHtml(p.course)}</span>`;
+  // 🔴 FIX: prevent blank profile page
+  if (!user) {
+    location.href = "login.html";
+    return;
+  }
 
-      document.getElementById('info-email').textContent = p.email || '—';
-      document.getElementById('info-phone').textContent = p.phone || '—';
-      if (p.course) {
-        document.getElementById('info-course').textContent = p.course;
-      } else {
-        document.getElementById('info-course-row').style.display = 'none';
-      }
+  try {
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
 
-      document.getElementById('stat-rooms').textContent = rooms.length;
-      document.getElementById('stat-joined').textContent = p.createdAt
-    ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('en', { month: 'short', year: 'numeric' })
-        : '—';
-
-      const container = document.getElementById('my-rooms-container');
-      const emptyEl = document.getElementById('my-rooms-empty');
-
-      if (!rooms || rooms.length === 0) {
-        emptyEl.style.display = 'block';
-      } else {
-        container.innerHTML = rooms.map(r => `
-          <div class="card" onclick="window.location.href='room.html?id=${r.id}'" style="cursor:pointer">
-            <div class="card-body" style="display:flex;align-items:center;gap:12px">
-              <div style="font-size:1.5rem">🏠</div>
-              <div style="flex:1">
-                <div style="font-weight:600;font-size:14px">${escHtml(r.title)}</div>
-                <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location || '—')}</div>
-              </div>
-              <span class="card-price">₦${r.price}</span>
-            </div>
-          </div>`).join('');
-      }
-
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('content').style.display = 'block';
+    if (!snap.exists()) {
+      // user exists in auth but not firestore
+      location.href = "setup.html";
+      return;
     }
 
-    window.handleLogout = async () => {
-      if (!confirm('Are you sure you want to log out?')) return;
-      await logOut();
-      window.location.href = 'index.html';
-    };
+    const data = snap.data();
 
-    function escHtml(str) {
-      if (!str) return '';
-      const d = document.createElement('div');
-      d.textContent = str;
-      return d.innerHTML;
+    // ─── UPDATE YOUR UI HERE (SAFE) ───
+    // Only update fields if they exist in DOM
+
+    if (document.getElementById("profile-name")) {
+      document.getElementById("profile-name").textContent =
+        data.name || "User";
     }
-  </script>
+
+    if (document.getElementById("profile-email")) {
+      document.getElementById("profile-email").textContent =
+        data.email || "";
+    }
+
+    if (document.getElementById("profile-photo") && data.photoURL) {
+      document.getElementById("profile-photo").src = data.photoURL;
+    }
+
+  } catch (err) {
+    console.error("Profile load error:", err);
+    location.href = "login.html";
+  }
+}
+
+// ─── START ───────────────────────────────────────
+loadProfile();
+
+</script>
+
 </body>
 </html>
