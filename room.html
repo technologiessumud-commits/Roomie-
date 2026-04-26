@@ -1,314 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roomie – Room Details</title>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="style.css" />
   <style>
-    .carousel-wrap { position:relative; }
-    .carousel { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; height:280px; }
-    .carousel::-webkit-scrollbar { display:none; }
-    .carousel img { flex-shrink:0; width:100%; height:280px; object-fit:cover; scroll-snap-align:start; }
+    .carousel-wrap { position: relative; }
+    .carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; height: 280px; }
+    .carousel::-webkit-scrollbar { display: none; }
+    .carousel img { flex-shrink: 0; width: 100%; height: 280px; object-fit: cover; scroll-snap-align: start; }
+    .carousel-placeholder { width: 100%; height: 280px; background: var(--card); display: flex; align-items: center; justify-content: center; color: var(--muted); flex-direction: column; gap: 8px; font-size: 14px; }
     .back-overlay {
-      position:absolute; top:16px; left:16px;
-      width:38px; height:38px; border-radius:50%;
-      background:rgba(13,15,20,.7); backdrop-filter:blur(8px);
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer; border:1px solid rgba(255,255,255,.1); z-index:5;
+      position: absolute; top: 16px; left: 16px;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(13,15,20,.7); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; border: 1px solid rgba(255,255,255,.1);
     }
-    .fav-overlay {
-      position:absolute; top:16px; right:16px;
-      width:38px; height:38px; border-radius:50%;
-      background:rgba(13,15,20,.7); backdrop-filter:blur(8px);
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer; border:1px solid rgba(255,255,255,.1); font-size:1.1rem; z-index:5;
-      border:none;
+    .dots-overlay { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.4); transition: all .2s; }
+    .dot.active { background: #fff; width: 18px; border-radius: 3px; }
+    .info-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 14px; font-size: 13px;
     }
-    .dots-overlay { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); display:flex; gap:6px; }
-    .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.4); transition:all .2s; }
-    .dot.active { background:#fff; width:18px; border-radius:3px; }
-    .status-banner {
-      display:flex; align-items:center; gap:10px; padding:14px 20px;
-      margin:0; font-size:14px; font-weight:600;
-    }
-    .status-banner.occupied { background:rgba(255,77,109,.12); color:var(--danger); }
-    .status-banner.found    { background:rgba(62,207,142,.12);  color:var(--success); }
+    .chips-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
   </style>
 </head>
 <body>
 
-<div id="loading">
-  <div style="height:280px" class="skeleton"></div>
-  <div class="skeleton skeleton-text" style="margin:20px 20px 8px;height:28px"></div>
-  <div class="skeleton skeleton-text short"></div>
-</div>
-
-<div id="content" style="display:none;padding-bottom:120px">
-
-  <!-- Status banner (shown if occupied) -->
-  <div id="status-banner" style="display:none" class="status-banner occupied">
-    <span id="status-icon">🔒</span>
-    <span id="status-text">This room is occupied</span>
+  <!-- Loading -->
+  <div id="loading">
+    <div style="height:280px" class="skeleton"></div>
+    <div class="skeleton skeleton-text" style="margin:20px 20px 8px;height:28px"></div>
+    <div class="skeleton skeleton-text short"></div>
   </div>
 
-  <div class="carousel-wrap" id="carousel-section">
-    <button class="back-overlay" onclick="history.back()">
-      <svg width="18" height="18" viewBox="0 0 24 24" stroke="white" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <button class="fav-overlay" id="fav-btn" onclick="handleFav()">🤍</button>
-  </div>
+  <!-- Content -->
+  <div id="content" style="display:none;padding-bottom:100px">
 
-  <div class="room-info">
-    <div id="room-type-badge" class="card-tag" style="margin-bottom:10px"></div>
-    <h1 class="room-title" id="room-title">—</h1>
-    <div class="room-price-row">
-      <span class="room-price-big" id="room-price">—</span>
-      <span class="room-price-per">/month</span>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 20px" id="chips-row"></div>
-    <!-- Amenities section -->
-    <div id="amenities-section" style="display:none;margin-bottom:4px">
-      <div class="divider"></div>
-      <h3 style="margin-bottom:12px;font-family:'Syne',sans-serif">Amenities</h3>
-      <div id="amenities-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:4px"></div>
+    <!-- Image carousel -->
+    <div class="carousel-wrap" id="carousel-section">
+      <button class="back-overlay" onclick="history.back()">
+        <svg width="18" height="18" viewBox="0 0 24 24" stroke="white" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
     </div>
 
-    <div class="divider"></div>
-    <h3 style="margin-bottom:10px;font-family:'Syne',sans-serif">About this room</h3>
-    <p class="room-desc" id="room-desc">—</p>
-    <div class="divider"></div>
-    <h3 style="margin-bottom:12px;font-family:'Syne',sans-serif">Listed by</h3>
-    <div class="flex-gap" id="owner-row" style="cursor:pointer" onclick="viewOwnerProfile()">
-      <div class="avatar" id="owner-avatar">?</div>
-      <div style="flex:1">
-        <div style="font-weight:600" id="owner-name">—</div>
-        <div style="font-size:13px;color:var(--muted)" id="owner-uni">—</div>
+    <!-- Info -->
+    <div class="room-info">
+      <div id="room-type-badge" class="card-tag" style="margin-bottom:10px"></div>
+      <h1 class="room-title" id="room-title">—</h1>
+
+      <div class="room-price-row">
+        <span class="room-price-big" id="room-price">—</span>
+        <span class="room-price-per">/month</span>
       </div>
-      <span style="font-size:12px;color:var(--accent);font-weight:600">View profile →</span>
-    </div>
 
-    <!-- OWNER CONTROLS -->
-    <div id="owner-controls" style="display:none;margin-top:24px;display:none;flex-direction:column;gap:10px">
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:4px">Manage Listing</div>
-      <button class="btn btn-secondary" id="status-toggle-btn" onclick="toggleStatus()">🔒 Mark as Occupied</button>
-      <button class="btn btn-danger" id="delete-btn" onclick="handleDelete()" style="background:transparent;color:var(--danger);border:1.5px solid var(--danger)">🗑️ Delete Listing</button>
+      <div class="chips-row" id="chips-row"></div>
+
+      <div class="divider"></div>
+
+      <h3 style="margin-bottom:10px;font-family:'Syne',sans-serif">About this room</h3>
+      <p class="room-desc" id="room-desc">—</p>
+
+      <div class="divider"></div>
+
+      <h3 style="margin-bottom:12px;font-family:'Syne',sans-serif">Listed by</h3>
+      <div class="flex-gap" id="owner-row">
+        <div class="avatar" id="owner-avatar">?</div>
+        <div>
+          <div style="font-weight:600" id="owner-name">—</div>
+          <div style="font-size:13px;color:var(--muted)" id="owner-email">—</div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- BOTTOM ACTION BAR -->
-<div id="action-bar" style="position:fixed;bottom:0;left:0;right:0;padding:16px 20px;background:var(--bg);border-top:1px solid var(--border);display:none">
-  <div style="display:flex;gap:10px">
-    <button class="btn btn-whatsapp" id="wa-btn" style="flex:1">💬 WhatsApp</button>
-    <button class="btn btn-secondary" id="msg-btn" style="flex:1" onclick="openChat()">✉️ Message</button>
+  <!-- ACTIONS -->
+  <div id="action-bar" style="position:fixed;bottom:0;left:0;right:0;padding:16px 20px;background:var(--bg);border-top:1px solid var(--border);display:none;gap:12px;flex-direction:column">
+    <button class="btn btn-whatsapp" id="wa-btn">
+      💬 Contact on WhatsApp
+    </button>
+    <button class="btn btn-secondary btn-sm" id="owner-actions" style="display:none" onclick="window.location.href='list-room.html'">
+      ✏️ Edit this listing
+    </button>
   </div>
-</div>
 
-<div id="toast" class="toast"></div>
+  <div id="toast" class="toast"></div>
 
-<script type="module">
-  import { requireAuth, getRoom, getProfile, getFavourites, toggleFavourite, updateRoom, deleteRoom } from './firebase.js';
+  <script type="module">
+    import { requireAuth, getRoom, getProfile } from './firebase.js';
 
-  const user   = await requireAuth();
-  const params = new URLSearchParams(location.search);
-  const roomId = params.get('id');
-  if (!roomId) { window.location.href = 'home.html'; }
+    const user = await requireAuth();
+    const params = new URLSearchParams(location.search);
+    const roomId = params.get('id');
 
-  let room, favs;
-  [room, favs] = await Promise.all([getRoom(roomId), getFavourites(user.uid)]);
-
-  if (!room) {
-    showToast('Room not found','error');
-    setTimeout(()=>window.location.href='home.html',1500);
-  } else {
-    renderRoom(room, favs);
-  }
-
-  function renderRoom(room, favs) {
-    // Status banner
-    if (room.status === 'occupied') {
-      document.getElementById('status-banner').style.display = 'flex';
-      document.getElementById('status-banner').className = 'status-banner occupied';
-      document.getElementById('status-icon').textContent = '🔒';
-      document.getElementById('status-text').textContent = 'This room is currently occupied';
-    } else if (room.status === 'found') {
-      document.getElementById('status-banner').style.display = 'flex';
-      document.getElementById('status-banner').className = 'status-banner found';
-      document.getElementById('status-icon').textContent = '✅';
-      document.getElementById('status-text').textContent = 'Roommate has been found';
+    if (!roomId) {
+      window.location.href = 'home.html';
     }
 
-    // Carousel
-    const cs = document.getElementById('carousel-section');
-    if (room.imageURLs?.length) {
-      const carousel = document.createElement('div');
-      carousel.className = 'carousel'; carousel.id = 'carousel';
-      room.imageURLs.forEach(url => {
-        const img = document.createElement('img');
-        img.src = url; img.alt = room.title;
-        img.onerror = () => img.style.display='none';
-        carousel.appendChild(img);
-      });
-      cs.appendChild(carousel);
-      if (room.imageURLs.length > 1) {
-        const dotsEl = document.createElement('div');
-        dotsEl.className = 'dots-overlay';
-        room.imageURLs.forEach((_,i) => {
-          const d = document.createElement('div');
-          d.className = `dot${i===0?' active':''}`;
-          dotsEl.appendChild(d);
-        });
-        cs.appendChild(dotsEl);
-        carousel.addEventListener('scroll', () => {
-          const idx = Math.round(carousel.scrollLeft/carousel.offsetWidth);
-          document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
-        });
-      }
+    const room = await getRoom(roomId);
+    if (!room) {
+      showToast('Room not found', 'error');
+      setTimeout(() => window.location.href = 'home.html', 1500);
     } else {
-      const ph = document.createElement('div');
-      ph.className = 'carousel-placeholder';
-      ph.style.cssText = 'width:100%;height:280px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:3rem';
-      ph.textContent = '📷';
-      cs.appendChild(ph);
+      renderRoom(room);
     }
 
-    // Fav button
-    const favBtn = document.getElementById('fav-btn');
-    favBtn.textContent = favs.includes(room.id) ? '❤️' : '🤍';
+    function renderRoom(room) {
+      // Carousel
+      const cs = document.getElementById('carousel-section');
+      if (room.imageURLs && room.imageURLs.length > 0) {
+        const carousel = document.createElement('div');
+        carousel.className = 'carousel';
+        carousel.id = 'carousel';
+        room.imageURLs.forEach(url => {
+          const img = document.createElement('img');
+          img.src = url;
+          img.alt = room.title;
+          img.onerror = function() {
+            this.style.display = 'none';
+          };
+          carousel.appendChild(img);
+        });
+        cs.appendChild(carousel);
 
-    // Info
-    document.getElementById('room-title').textContent   = room.title;
-    document.getElementById('room-price').textContent   = `₦${Number(room.price).toLocaleString()}`;
-    document.getElementById('room-desc').textContent    = room.description || 'No description.';
+        // Dots
+        if (room.imageURLs.length > 1) {
+          const dotsEl = document.createElement('div');
+          dotsEl.className = 'dots-overlay';
+          room.imageURLs.forEach((_, i) => {
+            const d = document.createElement('div');
+            d.className = `dot${i === 0 ? ' active' : ''}`;
+            dotsEl.appendChild(d);
+          });
+          cs.appendChild(dotsEl);
 
-    // Amenities
-    const AMENITY_LABELS = {
-      wifi:'📶 WiFi',water:'🚿 Running Water',electricity:'⚡ 24hr Electricity',
-      generator:'🔌 Generator',furnished:'🛋️ Furnished',bathroom:'🚽 Private Bathroom',
-      kitchen:'🍳 Kitchen Access',security:'🔐 Security/Gate',parking:'🚗 Parking',
-      ac:'❄️ Air Conditioning',laundry:'👕 Laundry',pets:'🐾 Pets Allowed'
-    };
-    if (room.amenities?.length) {
-      document.getElementById('amenities-section').style.display = 'block';
-      document.getElementById('amenities-grid').innerHTML = room.amenities.map(a=>
-        `<div style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px">${AMENITY_LABELS[a]||a}</div>`
+          carousel.addEventListener('scroll', () => {
+            const idx = Math.round(carousel.scrollLeft / carousel.offsetWidth);
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+          });
+        }
+      } else {
+        const ph = document.createElement('div');
+        ph.className = 'carousel-placeholder';
+        ph.innerHTML = '<span style="font-size:3rem">📷</span><span>No photos available</span>';
+        cs.appendChild(ph);
+
+        // Still show back button without overlay
+        const backBtn = cs.querySelector('.back-overlay');
+        if (backBtn) backBtn.style.position = 'absolute';
+      }
+
+      // Text info
+      document.getElementById('room-title').textContent = room.title;
+      document.getElementById('room-price').textContent = `$${room.price}`;
+      document.getElementById('room-desc').textContent = room.description || 'No description provided.';
+
+      const badge = document.getElementById('room-type-badge');
+      badge.textContent = room.type ? room.type.charAt(0).toUpperCase() + room.type.slice(1) : 'Room';
+
+      // Chips
+      const chips = document.getElementById('chips-row');
+      const chipsData = [
+        { icon: '📍', label: room.location || 'Unknown location' },
+        { icon: '🏠', label: room.type || 'Room' },
+      ];
+      chips.innerHTML = chipsData.map(c =>
+        `<div class="info-chip">${c.icon} ${escHtml(c.label)}</div>`
       ).join('');
-    }
-    // Gender pref
-    if (room.genderPref && room.genderPref !== 'any') {
-      const gpLabel = room.genderPref === 'female' ? '👩 Female tenants only' : '👨 Male tenants only';
-      const gpDiv = document.createElement('div');
-      gpDiv.style.cssText = 'background:rgba(62,207,142,.1);color:var(--success);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-top:8px';
-      gpDiv.textContent = gpLabel;
-      document.getElementById('chips-row').after(gpDiv);
-    }
-    document.getElementById('room-type-badge').textContent = room.type ? room.type.charAt(0).toUpperCase()+room.type.slice(1) : 'Room';
 
-    // Chips
-    document.getElementById('chips-row').innerHTML = [
-      room.location ? `<div class="info-chip" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;display:inline-flex;gap:6px">📍 ${escHtml(room.location)}</div>` : '',
-      room.type     ? `<div class="info-chip" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;display:inline-flex;gap:6px">🏠 ${escHtml(room.type)}</div>` : '',
-    ].join('');
+      // Owner
+      document.getElementById('owner-name').textContent = room.ownerName || 'Anonymous';
+      document.getElementById('owner-email').textContent = room.ownerEmail || '';
+      document.getElementById('owner-avatar').textContent = (room.ownerName || 'A')[0].toUpperCase();
 
-    // Owner
-    document.getElementById('owner-name').textContent = room.ownerName || 'Anonymous';
-    document.getElementById('owner-uni').textContent  = room.ownerUniversity || room.ownerEmail || '';
-    const av = document.getElementById('owner-avatar');
-    if (room.ownerPhotoURL) {
-      av.outerHTML = `<img src="${room.ownerPhotoURL}" style="width:48px;height:48px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div class=avatar>?</div>'"/>`;
-    } else {
-      av.textContent = (room.ownerName||'A')[0].toUpperCase();
-    }
-
-    // Owner controls
-    // Hide message btn for own listing
-    if (user.uid === room.ownerUid) {
-      document.getElementById('msg-btn').style.display = 'none';
-    }
-
-    if (user.uid === room.ownerUid) {
-      const controls = document.getElementById('owner-controls');
-      controls.style.display = 'flex';
-      const btn = document.getElementById('status-toggle-btn');
-      if (room.status === 'occupied') {
-        btn.textContent = '✅ Mark as Available';
+      // WhatsApp button
+      const waBtn = document.getElementById('wa-btn');
+      if (room.whatsapp) {
+        const clean = room.whatsapp.replace(/\D/g, '');
+        const msg = encodeURIComponent(`Hi! I'm interested in your room listing: "${room.title}" on Roomie.`);
+        waBtn.onclick = () => window.open(`https://wa.me/${clean}?text=${msg}`, '_blank');
       } else {
-        btn.textContent = '🔒 Mark as Occupied';
+        waBtn.textContent = '📧 ' + (room.ownerEmail || 'Contact not available');
+        waBtn.onclick = () => window.open(`mailto:${room.ownerEmail}`, '_blank');
       }
-    }
 
-    // WhatsApp
-    const waBtn = document.getElementById('wa-btn');
-    if (room.whatsapp) {
-      const clean = room.whatsapp.replace(/\D/g,'');
-      const msg   = encodeURIComponent(`Hi! I'm interested in your room "${room.title}" on Roomie.`);
-      waBtn.onclick = () => window.open(`https://wa.me/${clean}?text=${msg}`,'_blank');
-    } else {
-      waBtn.textContent = '📧 Email Owner';
-      waBtn.onclick = () => window.open(`mailto:${room.ownerEmail}`,'_blank');
-    }
-
-    document.getElementById('loading').style.display  = 'none';
-    document.getElementById('content').style.display  = 'block';
-    document.getElementById('action-bar').style.display = 'block';
-  }
-
-  window.handleFav = async () => {
-    const btn   = document.getElementById('fav-btn');
-    const saved = await toggleFavourite(user.uid, roomId);
-    btn.textContent = saved ? '❤️' : '🤍';
-    showToast(saved ? 'Saved to favourites ❤️' : 'Removed from favourites', saved?'success':'');
-  };
-
-  window.toggleStatus = async () => {
-    const newStatus = room.status === 'occupied' ? 'available' : 'occupied';
-    try {
-      await updateRoom(roomId, { status: newStatus });
-      room.status = newStatus;
-      const btn = document.getElementById('status-toggle-btn');
-      const banner = document.getElementById('status-banner');
-      if (newStatus === 'occupied') {
-        btn.textContent = '✅ Mark as Available';
-        banner.style.display = 'flex';
-        banner.className = 'status-banner occupied';
-        document.getElementById('status-text').textContent = 'This room is currently occupied';
-      } else {
-        btn.textContent = '🔒 Mark as Occupied';
-        banner.style.display = 'none';
+      // Show owner edit option
+      if (user.uid === room.ownerUid) {
+        document.getElementById('owner-actions').style.display = 'flex';
       }
-      showToast(newStatus==='occupied' ? '🔒 Marked as occupied' : '✅ Marked as available','success');
-    } catch(e) { showToast('Failed to update status','error'); }
-  };
 
-  window.handleDelete = async () => {
-    if (!confirm('Delete this listing? This cannot be undone.')) return;
-    try {
-      await deleteRoom(roomId);
-      showToast('Listing deleted','success');
-      setTimeout(()=>window.location.href='home.html',1200);
-    } catch(e) { showToast('Failed to delete','error'); }
-  };
-
-  window.viewOwnerProfile = function() {
-    if (room.ownerUid && room.ownerUid !== user.uid) {
-      window.location.href = `user-profile.html?uid=${room.ownerUid}`;
+      // Show content
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+      document.getElementById('action-bar').style.display = 'flex';
     }
-  };
 
-  window.openChat = function() {
-    if (!room.ownerUid || room.ownerUid === user.uid) {
-      showToast("You can't message yourself", 'error'); return;
+    function escHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
     }
-    window.location.href = `chat.html?uid=${room.ownerUid}&name=${encodeURIComponent(room.ownerName||'Owner')}`;
-  };
 
-  function escHtml(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
-  function showToast(msg,type=''){
-    const t=document.getElementById('toast');
-    t.textContent=msg; t.className=`toast ${type} show`;
-    setTimeout(()=>t.classList.remove('show'),3000);
-  }
-</script>
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type} show`;
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+  </script>
 </body>
 </html>
