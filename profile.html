@@ -53,14 +53,12 @@
               <div style="font-size:12px;color:var(--muted)">Email</div>
               <div style="font-size:14px" id="info-email">—</div>
             </div>
-          </div>
           <div class="flex-gap">
             <span style="font-size:1.1rem">📞</span>
             <div>
               <div style="font-size:12px;color:var(--muted)">Phone</div>
               <div style="font-size:14px" id="info-phone">—</div>
             </div>
-          </div>
           <div class="flex-gap" id="info-course-row">
             <span style="font-size:1.1rem">🎓</span>
             <div>
@@ -114,32 +112,53 @@
   <div id="toast" class="toast"></div>
 
   <script type="module">
-    import { requireAuth, getProfile, getUserRooms, logOut } from './firebase.js';
+    import { auth, onAuthStateChanged } from './firebase.js';
+    import { getProfile, getUserRooms, logOut } from './firebase.js';
 
-    const user = await requireAuth();
-    const [profile, rooms] = await Promise.all([
-      getProfile(user.uid),
-      getUserRooms(user.uid)
-    ]);
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
 
-    if (!profile) {
-      window.location.href = 'setup.html';
-    } else {
-      renderProfile(profile, rooms);
-    }
+      try {
+        const profile = await getProfile(user.uid);
+        
+        if (!profile) {
+          window.location.href = 'setup.html';
+          return;
+        }
+
+        let rooms = [];
+        try {
+          rooms = await getUserRooms(user.uid);
+        } catch (e) {
+          console.error('Rooms error:', e);
+        }
+
+        renderProfile(profile, rooms);
+        
+      } catch (error) {
+        console.error('Profile load error:', error);
+        document.getElementById('loading').innerHTML = `
+          <div style="padding:20px;text-align:center">
+            <div style="font-size:2rem;margin-bottom:8px">⚠️</div>
+            <div>Error: ${error.message}</div>
+            <button class="btn btn-secondary" style="margin-top:16px" onclick="location.reload()">Retry</button>
+          </div>`;
+      }
+    });
 
     function renderProfile(p, rooms) {
-      // Avatar & name
-      document.getElementById('profile-avatar').textContent = p.name[0].toUpperCase();
-      document.getElementById('profile-name').textContent = p.name;
-      document.getElementById('profile-university').textContent = p.university;
+      document.getElementById('profile-avatar').textContent = p.name? p.name[0].toUpperCase() : '?';
+      document.getElementById('profile-name').textContent = p.name || '—';
+      document.getElementById('profile-university').textContent = p.university || '—';
 
-      // Chips
       const chipsEl = document.getElementById('profile-chips');
-      if (p.year) chipsEl.innerHTML += `<span class="badge">🎓 ${p.year}</span>`;
-      if (p.course) chipsEl.innerHTML += `<span class="badge">📚 ${p.course}</span>`;
+      chipsEl.innerHTML = '';
+      if (p.year) chipsEl.innerHTML += `<span class="badge">🎓 ${escHtml(p.year)}</span>`;
+      if (p.course) chipsEl.innerHTML += `<span class="badge">📚 ${escHtml(p.course)}</span>`;
 
-      // Contact info
       document.getElementById('info-email').textContent = p.email || '—';
       document.getElementById('info-phone').textContent = p.phone || '—';
       if (p.course) {
@@ -148,17 +167,15 @@
         document.getElementById('info-course-row').style.display = 'none';
       }
 
-      // Stats
       document.getElementById('stat-rooms').textContent = rooms.length;
       document.getElementById('stat-joined').textContent = p.createdAt
-        ? new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })
+    ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('en', { month: 'short', year: 'numeric' })
         : '—';
 
-      // My rooms
       const container = document.getElementById('my-rooms-container');
-      const emptyEl   = document.getElementById('my-rooms-empty');
+      const emptyEl = document.getElementById('my-rooms-empty');
 
-      if (rooms.length === 0) {
+      if (!rooms || rooms.length === 0) {
         emptyEl.style.display = 'block';
       } else {
         container.innerHTML = rooms.map(r => `
@@ -169,12 +186,11 @@
                 <div style="font-weight:600;font-size:14px">${escHtml(r.title)}</div>
                 <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location || '—')}</div>
               </div>
-              <span class="card-price">$${r.price}</span>
+              <span class="card-price">₦${r.price}</span>
             </div>
           </div>`).join('');
       }
 
-      // Show content
       document.getElementById('loading').style.display = 'none';
       document.getElementById('content').style.display = 'block';
     }
@@ -186,10 +202,11 @@
     };
 
     function escHtml(str) {
+      if (!str) return '';
       const d = document.createElement('div');
       d.textContent = str;
       return d.innerHTML;
     }
   </script>
 </body>
-</html>
+    </html>
