@@ -1,162 +1,522 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
   <title>Roomie – List a Room</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0d0f14"/>
+  <style>
+    .plan-card{border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s;background:var(--card);position:relative;}
+    .plan-card.selected{border-color:var(--accent);background:rgba(255,107,53,.06);}
+    .plan-card.popular::before{content:'POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;font-family:'Syne',sans-serif;letter-spacing:.5px;}
+    .plan-name{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:4px;}
+    .plan-price{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:var(--accent);}
+    .plan-price.free{color:var(--success);}
+    .plan-feat{font-size:12px;color:var(--muted);line-height:1.7;margin-top:6px;}
+    .media-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+    .media-item{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--surface);border:1px solid var(--border);}
+    .media-item img,.media-item video{width:100%;height:100%;object-fit:cover;display:block;}
+    .media-remove{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.75);color:#fff;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .media-type-badge{position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;}
+    .add-more-tile{aspect-ratio:1;border-radius:10px;border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:11px;gap:3px;background:var(--card);}
+    .add-more-tile:hover{border-color:var(--accent);color:var(--accent);}
+    .upload-box{border:2px dashed var(--border);border-radius:var(--radius);padding:20px 16px;text-align:center;cursor:pointer;background:var(--card);}
+    .upload-box:hover{border-color:var(--accent);background:rgba(255,107,53,.05);}
+    .prog-wrap{height:5px;background:var(--border);border-radius:3px;margin-top:10px;overflow:hidden;display:none;}
+    .prog-fill{height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .3s;}
+    .location-row{display:flex;gap:8px;align-items:flex-end;}
+    .location-row input{flex:1;}
+    .detect-btn{flex-shrink:0;padding:14px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:13px;white-space:nowrap;}
+    .detect-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .coords-badge{font-size:12px;color:var(--success);margin-top:4px;display:none;}
+    .paywall-overlay{position:fixed;inset:0;background:rgba(13,15,20,.92);z-index:200;display:flex;align-items:flex-end;}
+    .paywall-sheet{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:24px 20px 40px;width:100%;max-width:480px;margin:0 auto;}
+  </style>
+<!-- CSS_ADSBLOCK_START -->
+<link rel="stylesheet" href="https://adblockers.opera-mini.net/css_block/domainless-unknown.css" type="text/css" />
+<link rel="stylesheet" href="https://adblockers.opera-mini.net/css_block/page_0_65wek2hfw2jyl42fgoguoiqzo1ira3vpul5oc44mg7yp4zw4v3.css" type="text/css" />
+<link rel="stylesheet" href="https://adblockers.opera-mini.net/css_block/domainless.css" type="text/css" />
+<!-- CSS_ADSBLOCK_END -->
 </head>
 <body>
+<script type="module" src="theme.js"></script>
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <button class="back-btn" onclick="history.back()">
-      <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <div style="font-family:'Syne',sans-serif;font-weight:700">List a Room</div>
-    <div style="width:40px"></div>
+<div class="topbar">
+  <button class="back-btn" onclick="history.back()">
+    <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div style="font-family:'Syne',sans-serif;font-weight:700">List a Room</div>
+  <button class="theme-toggle" onclick="import('./theme.js').then(m=>m.toggleTheme())">☀️</button>
+</div>
+
+<div class="container page">
+
+  <!-- Plan selector -->
+  <div style="margin-bottom:24px">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:4px">Choose your plan</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Your first 5 listings are free</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <!-- Free -->
+      <div class="plan-card selected" id="plan-free" onclick="selectPlan('free')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="plan-name">🆓 Free</div>
+          <div class="plan-price free">₦0</div>
+        </div>
+        <div class="plan-feat">✅ Up to 5 listings total · Photos only · Standard visibility</div>
+      </div>
+      <!-- Standard -->
+      <div class="plan-card popular" id="plan-standard" onclick="selectPlan('standard')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="plan-name">⭐ Standard</div>
+          <div class="plan-price" id="plan-standard-price">₦999</div>
+        </div>
+        <div class="plan-feat">✅ Up to 20 listings · Photos + Video · Higher ranking · Verified badge on card</div>
+      </div>
+      <!-- Premium -->
+      <div class="plan-card" id="plan-premium" onclick="selectPlan('premium')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="plan-name">👑 Premium</div>
+          <div class="plan-price" id="plan-premium-price">₦2,999</div>
+        </div>
+        <div class="plan-feat">✅ Unlimited listings · Photos + Video · Top ranking · Featured badge · WhatsApp priority</div>
+      </div>
+    </div>
+    <div id="plan-limit-msg" style="font-size:13px;color:var(--muted);margin-top:8px;display:none"></div>
   </div>
 
-  <div class="container page">
+  <div class="divider"></div>
 
-    <p style="color:var(--muted);font-size:14px;margin-bottom:24px">
-      Fill in the details below. Use image URLs (paste from Google Drive, Imgur, etc).
-    </p>
-
-    <div class="form-group">
-      <label>Room title *</label>
-      <input type="text" id="title" placeholder="e.g. Cozy Studio near Campus" />
-    </div>
-
-    <div class="form-group">
-      <label>Location / Address *</label>
-      <input type="text" id="location" placeholder="e.g. 12 Campus Road, Lagos" />
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>Monthly price ($) *</label>
-        <input type="number" id="price" placeholder="150" min="0" />
-      </div>
-      <div class="form-group">
-        <label>Room type</label>
-        <select id="type">
-          <option value="single">Single</option>
-          <option value="shared">Shared</option>
-          <option value="studio">Studio</option>
-          <option value="apartment">Apartment</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Description *</label>
-      <textarea id="description" placeholder="Describe the room: size, amenities, rules, nearby landmarks…"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label>Image URLs (one per line)</label>
-      <textarea id="imageURLs" rows="4" placeholder="https://i.imgur.com/your-photo.jpg&#10;https://example.com/room2.jpg"></textarea>
-      <p class="form-hint">Paste direct image links. You can add up to 6 photos.</p>
-    </div>
-
-    <div class="form-group">
-      <label>Your WhatsApp number *</label>
-      <input type="tel" id="whatsapp" placeholder="+1 555 000 0000" />
-      <p class="form-hint">Interested students will contact you via WhatsApp.</p>
-    </div>
-
-    <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none"></p>
-
-    <button class="btn btn-primary" id="post-btn" onclick="handlePost()">
-      🏠 Post Room
-    </button>
+  <div class="form-group">
+    <label>Room title *</label>
+    <input type="text" id="title" placeholder="e.g. Cozy Self-con near UNILAG"/>
   </div>
 
-  <!-- BOTTOM NAVBAR -->
+  <!-- Location with GPS detect -->
+  <div class="form-group">
+    <label>Location / Address *</label>
+    <div class="location-row">
+      <input type="text" id="location" placeholder="e.g. Akoka, Lagos"/>
+      <button class="detect-btn" onclick="detectLocation()" title="Use my location">📍 Detect</button>
+    </div>
+    <div class="coords-badge" id="coords-badge"></div>
+    <input type="hidden" id="lat"/>
+    <input type="hidden" id="lon"/>
+    <p class="form-hint">Or tap Detect to use your GPS location for accurate distance display</p>
+  </div>
+
+  <div class="form-group">
+    <label>Room type</label>
+    <select id="type">
+      <option value="self-con">Self-contain</option>
+      <option value="single">Single room</option>
+      <option value="shared">Shared room</option>
+      <option value="flat">Flat / Apartment</option>
+      <option value="studio">Studio</option>
+      <option value="bq">BQ</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Monthly rent *</label>
+    <div style="display:flex;gap:8px">
+      <select id="currency" style="width:auto;flex-shrink:0;min-width:110px;appearance:none;-webkit-appearance:none;padding-right:32px;background-image:none">
+        <option value="NGN" data-symbol="₦">₦ NGN</option>
+        <option value="USD" data-symbol="$">$ USD</option>
+        <option value="GBP" data-symbol="£">£ GBP</option>
+        <option value="EUR" data-symbol="€">€ EUR</option>
+        <option value="GHS" data-symbol="₵">₵ GHS</option>
+        <option value="KES" data-symbol="KSh">KSh KES</option>
+        <option value="ZAR" data-symbol="R">R ZAR</option>
+        <option value="CAD" data-symbol="C$">C$ CAD</option>
+        <option value="AUD" data-symbol="A$">A$ AUD</option>
+        <option value="INR" data-symbol="₹">₹ INR</option>
+        <option value="XAF" data-symbol="CFA">CFA XAF</option>
+        <option value="EGP" data-symbol="E£">E£ EGP</option>
+        <option value="TZS" data-symbol="TSh">TSh TZS</option>
+        <option value="UGX" data-symbol="USh">USh UGX</option>
+        <option value="ETB" data-symbol="Br">Br ETB</option>
+        <option value="AED" data-symbol="AED">AED</option>
+        <option value="MYR" data-symbol="RM">RM MYR</option>
+        <option value="BRL" data-symbol="R$">R$ BRL</option>
+        <option value="JPY" data-symbol="¥">¥ JPY</option>
+        <option value="CNY" data-symbol="¥">¥ CNY</option>
+        <option value="SGD" data-symbol="S$">S$ SGD</option>
+      </select>
+      <input type="number" id="price" placeholder="e.g. 150000" min="0" style="flex:1"/>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Description *</label>
+    <textarea id="description" placeholder="Describe the room: size, amenities, rules, nearby landmarks…"></textarea>
+  </div>
+
+  <!-- Amenities -->
+  <div class="form-group">
+    <label>Amenities</label>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px" id="amenity-grid">
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="wifi">📶 WiFi</div>
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="water">🚿 Running Water</div>
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="electricity">⚡ 24hr Power</div>
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="generator">🔌 Generator</div>
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="furnished">🛋️ Furnished</div>
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="bathroom">🚽 Private WC</div>
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="kitchen">🍳 Kitchen</div>
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="security">🔐 Security</div>
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="parking">🚗 Parking</div>
+      <div class="af-chip" onclick="this.classList.toggle('on')" data-k="ac">❄️ AC</div>
+    </div>
+  </div>
+
+  <!-- Gender preference -->
+  <div class="form-group">
+    <label>Preferred tenant</label>
+    <div style="display:flex;gap:8px">
+      <div class="gf-btn on" id="gp-any"    onclick="setGP('any',this)">👥 Anyone</div>
+      <div class="gf-btn"    id="gp-female" onclick="setGP('female',this)">👩 Female</div>
+      <div class="gf-btn"    id="gp-male"   onclick="setGP('male',this)">👨 Male</div>
+    </div>
+  </div>
+
+  <!-- Media upload -->
+  <div class="form-group">
+    <label>Photos & Videos <span style="color:var(--muted)" id="media-limit-label">(up to 6 photos · Free plan)</span></label>
+    <input type="file" id="media-input" accept="image/*,video/*" multiple style="display:none" onchange="handleMedia(this.files)"/>
+    <div class="upload-box" id="upload-box" onclick="document.getElementById('media-input').click()">
+      <div style="font-size:2rem;margin-bottom:6px">📷🎥</div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:3px">Tap to add photos or video</div>
+      <div style="color:var(--muted);font-size:12px">JPG, PNG, MP4 · First photo = cover</div>
+    </div>
+    <div class="media-grid" id="media-grid" style="display:none"></div>
+    <div class="prog-wrap" id="prog-wrap"><div class="prog-fill" id="prog-fill"></div></div>
+    <p id="upload-status" style="font-size:13px;color:var(--muted);margin-top:6px"></p>
+  </div>
+
+  <div class="form-group">
+    <label>Your WhatsApp number *</label>
+    <input type="tel" id="whatsapp" placeholder="+234 800 000 0000"/>
+  </div>
+
+  <p id="err" style="color:var(--danger);font-size:13px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;margin-bottom:12px;line-height:1.5"></p>
+
+  <button class="btn btn-primary" id="post-btn" onclick="handlePost()">🏠 Post Room</button>
+</div>
+
+<!-- Paywall sheet -->
+<div class="paywall-overlay" id="paywall" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="paywall-sheet">
+    <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:6px">Upgrade to post more</div>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:20px" id="paywall-msg"></p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-primary" onclick="initPayment('standard')">⭐ Standard — <span id="pw-std-price">₦999</span>/mo</button>
+      <button class="btn" onclick="initPayment('premium')" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:var(--radius-sm);font-family:'Syne',sans-serif;font-weight:600;font-size:15px">👑 Premium — <span id="pw-prem-price">₦2,999</span>/mo</button>
+      <button onclick="document.getElementById('paywall').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:8px">Maybe later</button>
+    </div>
+  </div>
+      </div>
   <nav class="navbar">
-    <a href="home.html" class="nav-item">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Home
-    </a>
-    <a href="roommate.html" class="nav-item">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Roommates
-    </a>
-    <a href="list-room.html" class="nav-item active">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      Post
-    </a>
-    <a href="profile.html" class="nav-item">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Profile
-    </a>
-  </nav>
+  <a href="home.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+  <a href="roommate.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Roommates</a>
+  <a href="list-room.html" class="nav-item active"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post</a>
+  <a href="messages.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
+</nav>
 
-  <div id="toast" class="toast"></div>
+<div id="toast" class="toast"></div>
 
-  <script type="module">
-    import { requireAuth, postRoom, getProfile } from './firebase.js';
+<script type="module">
+import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, addDoc, getDocs, collection, query, where, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { uploadImage, uploadVideo } from './upload.js';
 
-    const user = await requireAuth();
+const app  = initializeApp({
+  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:"roomie-f3103.firebaseapp.com",
+  projectId:"roomie-f3103",
+  storageBucket:"roomie-f3103.firebasestorage.app",
+  messagingSenderId:"896474185176",
+  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-    window.handlePost = async () => {
-      const title     = document.getElementById('title').value.trim();
-      const location  = document.getElementById('location').value.trim();
-      const price     = parseFloat(document.getElementById('price').value);
-      const type      = document.getElementById('type').value;
-      const desc      = document.getElementById('description').value.trim();
-      const urlsRaw   = document.getElementById('imageURLs').value.trim();
-      const whatsapp  = document.getElementById('whatsapp').value.trim();
-      const errEl     = document.getElementById('error-msg');
-      const btn       = document.getElementById('post-btn');
+// Plan config
+const PLANS = {
+  free:     { maxListings:5,  maxMedia:6,  video:false, label:'Free',     price:0 },
+  standard: { maxListings:20, maxMedia:10, video:true,  label:'Standard', price:999 },
+  premium:  { maxListings:999,maxMedia:20, video:true,  label:'Premium',  price:2999 },
+};
 
-      errEl.style.display = 'none';
+let selectedPlan = 'free';
+let genderPref   = 'any';
+let mediaFiles   = []; // {file, previewURL, type:'image'|'video'}
+let userProfile  = null;
+let userListingCount = 0;
+let myUid;
 
-      if (!title || !location || !price || !desc || !whatsapp) {
-        errEl.textContent = 'Please fill in all required fields.';
-        errEl.style.display = 'block'; return;
-      }
-      if (isNaN(price) || price <= 0) {
-        errEl.textContent = 'Please enter a valid price.';
-        errEl.style.display = 'block'; return;
-      }
+// Currency symbol map
+const CURR_SYMBOLS = {
+  NGN:'₦',USD:'$',GBP:'£',EUR:'€',GHS:'₵',KES:'KSh',ZAR:'R',CAD:'C$',
+  AUD:'A$',INR:'₹',XAF:'CFA',EGP:'E£',TZS:'TSh',UGX:'USh',ETB:'Br',
+  AED:'AED',MYR:'RM',BRL:'R$',JPY:'¥',CNY:'¥',SGD:'S$'
+};
 
-      const imageURLs = urlsRaw
-        ? urlsRaw.split('\n').map(u => u.trim()).filter(u => u.length > 0).slice(0, 6)
-        : [];
+onAuthStateChanged(auth, async user => {
+  if (!user) { location.href='login.html'; return; }
+  myUid = user.uid;
 
-      const profile = await getProfile(user.uid);
+  // Load profile + count existing listings
+  const [profSnap, roomsSnap] = await Promise.all([
+    getDoc(doc(db,'users',myUid)),
+    getDocs(query(collection(db,'rooms'), where('ownerUid','==',myUid)))
+  ]);
+  userProfile = profSnap.exists() ? profSnap.data() : null;
+  userListingCount = roomsSnap.size;
 
-      btn.textContent = 'Posting…';
-      btn.disabled = true;
-
-      try {
-        const ref = await postRoom({
-          title, location, price, type, description: desc,
-          imageURLs, whatsapp,
-          ownerUid:   user.uid,
-          ownerEmail: user.email,
-          ownerName:  profile ? profile.name : 'Anonymous',
-        });
-
-        showToast('Room posted successfully! 🎉', 'success');
-        setTimeout(() => window.location.href = `room.html?id=${ref.id}`, 1200);
-      } catch (err) {
-        console.error(err);
-        errEl.textContent = 'Failed to post room. Try again.';
-        errEl.style.display = 'block';
-        btn.textContent = '🏠 Post Room';
-        btn.disabled = false;
-      }
-    };
-
-    function showToast(msg, type = '') {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = `toast ${type} show`;
-      setTimeout(() => t.classList.remove('show'), 3000);
+  // Auto-select currency from profile
+  if (userProfile?.currency) {
+    const sel = document.getElementById('currency');
+    for (let i=0; i<sel.options.length; i++) {
+      if (sel.options[i].value === userProfile.currency) { sel.selectedIndex=i; break; }
     }
-  </script>
+  }
+
+  // Check plan
+  const plan = userProfile?.plan || 'free';
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(`plan-${plan}`)?.classList.add('selected');
+
+  // Update plan prices in user's currency
+  updatePlanPrices();
+
+  // Show listing count message
+  const maxL = PLANS[plan].maxListings;
+  if (userListingCount >= maxL) {
+    document.getElementById('plan-limit-msg').textContent =
+      `You've used ${userListingCount}/${maxL} listings on your ${plan} plan.`;
+    document.getElementById('plan-limit-msg').style.display='block';
+  }
+});
+
+function updatePlanPrices() {
+  // For MVP prices are in NGN; in production you'd convert via exchange rate API
+  const sym = userProfile?.currencySymbol || '₦';
+  const isForeign = sym !== '₦';
+  // Rough conversion: 1 NGN ≈ 0.00065 USD, 0.00052 GBP etc — for MVP just show NGN
+  document.getElementById('plan-standard-price').textContent = isForeign ? `${sym}${(999/1700).toFixed(2)} ≈ ₦999` : '₦999';
+  document.getElementById('plan-premium-price').textContent  = isForeign ? `${sym}${(2999/1700).toFixed(2)} ≈ ₦2,999` : '₦2,999';
+  document.getElementById('pw-std-price').textContent  = '₦999';
+  document.getElementById('pw-prem-price').textContent = '₦2,999';
+}
+
+window.selectPlan = (plan) => {
+  // Check if user is trying to upgrade — for MVP just show paywall
+  if ((plan==='standard'||plan==='premium') && (userProfile?.plan||'free')==='free') {
+    showPaywall(plan); return;
+  }
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById(`plan-${plan}`).classList.add('selected');
+  updateMediaLimit();
+};
+
+function showPaywall(plan) {
+  document.getElementById('paywall-msg').textContent =
+    plan==='standard'
+      ? 'Upgrade to Standard for up to 20 listings, video uploads and higher ranking.'
+      : 'Go Premium for unlimited listings, video, top ranking and featured badge.';
+  document.getElementById('paywall').style.display='flex';
+}
+
+window.initPayment = (plan) => {
+  // Paystack integration (MVP: show instructions)
+  toast('Payment integration via Paystack coming soon! Contact support@roomieapp.com to upgrade manually.','success');
+  document.getElementById('paywall').style.display='none';
+};
+
+function updateMediaLimit() {
+  const lim = PLANS[selectedPlan].maxMedia;
+  const vid = PLANS[selectedPlan].video;
+  document.getElementById('media-limit-label').textContent =
+    `(up to ${lim} files · ${vid?'Photos + Video':'Photos only'} · ${PLANS[selectedPlan].label} plan)`;
+}
+
+// ── GPS detection ─────────────────────────────────────────
+window.detectLocation = () => {
+  const badge = document.getElementById('coords-badge');
+  badge.textContent = '📍 Detecting…'; badge.style.display='block';
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('lat').value = pos.coords.latitude;
+    document.getElementById('lon').value = pos.coords.longitude;
+    badge.textContent = `✅ Location captured (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
+    badge.style.color = 'var(--success)';
+    // Reverse geocode for address
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`)
+      .then(r=>r.json()).then(d=>{
+        if (d.display_name) {
+          const short = d.display_name.split(',').slice(0,3).join(',');
+          document.getElementById('location').value = short;
+        }
+      }).catch(()=>{});
+  }, () => {
+    badge.textContent = '⚠️ Could not detect location. Enter manually.';
+    badge.style.color = 'var(--danger)';
+  });
+};
+
+// ── Media upload ──────────────────────────────────────────
+window.handleMedia = (files) => {
+  const plan    = PLANS[selectedPlan];
+  const canVideo = plan.video;
+  const maxFiles = plan.maxMedia;
+  const remaining = maxFiles - mediaFiles.length;
+
+  Array.from(files).slice(0, remaining).forEach(file => {
+    const isVideo = file.type.startsWith('video/');
+    if (isVideo && !canVideo) {
+      toast('Video upload requires Standard or Premium plan','error'); return;
+    }
+    mediaFiles.push({ file, previewURL: URL.createObjectURL(file), type: isVideo?'video':'image' });
+  });
+  rebuildMediaGrid();
+};
+
+function rebuildMediaGrid() {
+  const grid = document.getElementById('media-grid');
+  const box  = document.getElementById('upload-box');
+  const st   = document.getElementById('upload-status');
+  const plan = PLANS[selectedPlan];
+
+  if (!mediaFiles.length) {
+    grid.style.display='none'; box.style.display='block'; st.textContent=''; return;
+  }
+  box.style.display='none'; grid.style.display='grid';
+
+  grid.innerHTML = mediaFiles.map((m,i) => `
+    <div class="media-item">
+      ${m.type==='video'
+        ? `<video src="${m.previewURL}" muted playsinline style="width:100%;height:100%;object-fit:cover"></video>`
+        : `<img src="${m.previewURL}" alt="photo ${i+1}"/>`}
+      <button class="media-remove" onclick="removeMedia(${i})">✕</button>
+      <div class="media-type-badge">${m.type==='video'?'🎥 VIDEO':'📷'}</div>
+      ${i===0?'<div style="position:absolute;bottom:4px;right:24px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px">COVER</div>':''}
+    </div>`).join('') +
+    (mediaFiles.length < plan.maxMedia
+      ? `<div class="add-more-tile" onclick="document.getElementById('media-input').click()">
+           <span style="font-size:1.3rem">+</span><span>Add more</span>
+         </div>` : '');
+
+  st.textContent = `${mediaFiles.length} file${mediaFiles.length>1?'s':''} selected`;
+}
+
+window.removeMedia = (i) => {
+  URL.revokeObjectURL(mediaFiles[i].previewURL);
+  mediaFiles.splice(i,1); rebuildMediaGrid();
+};
+
+window.setGP = (v,el) => {
+  genderPref=v;
+  ['gp-any','gp-female','gp-male'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  el.classList.add('on');
+};
+
+// ── Post room ─────────────────────────────────────────────
+window.handlePost = async () => {
+  const title    = document.getElementById('title').value.trim();
+  const location = document.getElementById('location').value.trim();
+  const price    = parseFloat(document.getElementById('price').value);
+  const type     = document.getElementById('type').value;
+  const desc     = document.getElementById('description').value.trim();
+  const whatsapp = document.getElementById('whatsapp').value.trim();
+  const lat      = parseFloat(document.getElementById('lat').value) || null;
+  const lon      = parseFloat(document.getElementById('lon').value) || null;
+  const currEl   = document.getElementById('currency');
+  const currency = currEl.value;
+  const currSym  = currEl.options[currEl.selectedIndex].dataset.symbol;
+  const errEl    = document.getElementById('err');
+  const btn      = document.getElementById('post-btn');
+  errEl.style.display='none';
+
+  if (!title||!location||!price||!desc||!whatsapp) {
+    errEl.textContent='Please fill in all required fields.'; errEl.style.display='block'; return;
+  }
+
+  // Check plan limits
+  const plan = PLANS[userProfile?.plan||'free'];
+  if (userListingCount >= plan.maxListings) {
+    showPaywall(userProfile?.plan==='standard'?'premium':'standard');
+    return;
+  }
+
+  const amenities = Array.from(document.querySelectorAll('#amenity-grid .af-chip.on')).map(c=>c.dataset.k);
+
+  btn.disabled=true;
+  let imageURLs=[], videoURL='';
+
+  if (mediaFiles.length) {
+    btn.textContent='Uploading media…';
+    document.getElementById('prog-wrap').style.display='block';
+    const progFill = document.getElementById('prog-fill');
+    const status   = document.getElementById('upload-status');
+    let done=0;
+    try {
+      for (const m of mediaFiles) {
+        if (m.type==='video') {
+          status.textContent='Uploading video (may take a moment)…';
+          videoURL = await uploadVideo(m.file, pct => { progFill.style.width=pct+'%'; });
+        } else {
+          imageURLs.push(await uploadImage(m.file));
+        }
+        done++;
+        progFill.style.width=Math.round((done/mediaFiles.length)*100)+'%';
+        status.textContent=`Uploaded ${done} of ${mediaFiles.length}…`;
+      }
+      status.textContent='✅ All media uploaded!';
+    } catch(e) {
+      errEl.textContent='⚠️ Upload failed: '+e.message; errEl.style.display='block';
+      btn.textContent='🏠 Post Room'; btn.disabled=false; return;
+    }
+  }
+
+  btn.textContent='Posting…';
+  try {
+    const ref = await addDoc(collection(db,'rooms'), {
+      title, location, price, type, description:desc,
+      imageURLs, videoURL, whatsapp, amenities, genderPref,
+      currency, currencySymbol: currSym,
+      lat, lon,
+      plan:          userProfile?.plan || 'free',
+      ownerUid:      myUid,
+      ownerEmail:    auth.currentUser.email,
+      ownerName:     userProfile?.name        || 'Anonymous',
+      ownerUniversity: userProfile?.university || '',
+      ownerCountry:  userProfile?.country      || '',
+      ownerCity:     userProfile?.city         || '',
+      ownerPhotoURL: userProfile?.photoURL     || '',
+      ownerVerification: userProfile?.verification || {},
+      createdAt: serverTimestamp()
+    });
+    toast('Room posted! 🎉','success');
+    setTimeout(()=>location.href=`room.html?id=${ref.id}`,1200);
+  } catch(e) {
+    errEl.textContent='Failed to post: '+e.message; errEl.style.display='block';
+    btn.textContent='🏠 Post Room'; btn.disabled=false;
+  }
+};
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
 </body>
 </html>
