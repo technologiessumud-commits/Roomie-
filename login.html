@@ -1,74 +1,263 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta charset="UTF-8"/>
+
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+
   <title>Roomie – Log In</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <link rel="stylesheet" href="style.css"/>
+
+  <link rel="manifest" href="manifest.json"/>
+
+  <meta name="theme-color" content="#0d0f14"/>
+
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+
+  <meta name="apple-mobile-web-app-title" content="Roomie"/>
+
 </head>
+
 <body>
-  <div class="page-full" style="background:radial-gradient(ellipse at 20% 90%,rgba(255,179,71,.1) 0%,transparent 55%)">
-    <div class="auth-wrap">
 
-      <div class="auth-logo">Room<span>ie</span></div>
-      <p class="auth-subtitle">Welcome back 👋</p>
+<script type="module" src="theme.js"></script>
 
-      <div class="form-group">
-        <label>Email address</label>
-        <input type="email" id="email" placeholder="you@university.edu" />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="password" placeholder="Your password" />
-      </div>
 
-      <p id="error-msg" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none"></p>
 
-      <button class="btn btn-primary" id="login-btn" onclick="handleLogin()">
-        Log In
-      </button>
+<div class="page-full">
 
-      <div class="auth-footer" style="margin-top:16px">
-        Don't have an account? <a href="signup.html">Sign up</a>
-      </div>
-    </div>
+<div class="auth-wrap">
+
+
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:24px">
+
+    <button class="theme-toggle" onclick="import('./theme.js').then(m=>m.toggleTheme())">☀️</button>
+
   </div>
 
-  <script type="module">
-    import { logIn, getProfile } from './firebase.js';
 
-    window.handleLogin = async () => {
-      const email    = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const errEl    = document.getElementById('error-msg');
-      const btn      = document.getElementById('login-btn');
 
-      errEl.style.display = 'none';
+  <p class="auth-subtitle">Welcome back 👋</p>
 
-      if (!email || !password) {
-        errEl.textContent = 'Please enter your email and password.';
-        errEl.style.display = 'block'; return;
-      }
 
-      btn.textContent = 'Logging in…';
-      btn.disabled = true;
 
-      try {
-        const { user } = await logIn(email, password);
-        const profile = await getProfile(user.uid);
-        window.location.href = profile ? 'home.html' : 'setup.html';
-      } catch (err) {
-        errEl.textContent = 'Invalid email or password.';
-        errEl.style.display = 'block';
-        btn.textContent = 'Log In';
-        btn.disabled = false;
-      }
-    };
+  <!-- Loading -->
 
-    // Allow Enter key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') window.handleLogin();
-    });
-  </script>
+  <div id="state-loading" style="display:none">
+
+    <div id="loading-text">Signing you in…</div>
+
+  </div>
+
+
+
+  <!-- Form -->
+
+  <div id="state-form">
+
+
+
+    <button class="social-btn" id="google-btn" onclick="googleSignIn()">
+
+      Continue with Google
+
+    </button>
+
+
+
+    <div class="divider-text">or continue with email</div>
+
+
+
+    <input type="email" id="email" placeholder="Email"/>
+
+    <input type="password" id="password" placeholder="Password"/>
+
+
+
+    <p id="err" style="color:red;display:none"></p>
+
+
+
+    <button id="login-btn" onclick="emailSignIn()">Log In</button>
+
+
+
+    <div>
+
+      Don't have an account? <a href="signup.html">Sign up</a>
+
+    </div>
+
+  </div>
+
+
+
+</div>
+
+</div>
+
+
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+
+  getAuth, onAuthStateChanged,
+
+  signInWithEmailAndPassword,
+
+  GoogleAuthProvider,
+
+  signInWithPopup
+
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import { getFirestore, doc, getDoc }
+
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+
+const app = initializeApp({
+
+  apiKey: "YOUR_KEY",
+
+  authDomain: "YOUR_DOMAIN",
+
+  projectId: "YOUR_ID"
+
+});
+
+
+
+const auth = getAuth(app);
+
+const db = getFirestore(app);
+
+
+
+function showLoading(msg='Loading...'){
+
+  document.getElementById('state-form').style.display='none';
+
+  document.getElementById('state-loading').style.display='block';
+
+  document.getElementById('loading-text').textContent=msg;
+
+}
+
+function showErr(msg){
+
+  const el=document.getElementById('err');
+
+  el.textContent=msg;
+
+  el.style.display=msg?'block':'none';
+
+}
+
+
+
+async function afterLogin(user){
+
+  showLoading('Loading profile...');
+
+  const snap = await getDoc(doc(db,'users',user.uid));
+
+  location.href = snap.exists() ? 'home.html' : 'setup.html';
+
+}
+
+
+
+onAuthStateChanged(auth,user=>{
+
+  if(user) afterLogin(user);
+
+});
+
+
+
+window.googleSignIn = async ()=>{
+
+  try{
+
+    const provider=new GoogleAuthProvider();
+
+    const res=await signInWithPopup(auth,provider);
+
+    await afterLogin(res.user);
+
+  }catch(e){
+
+    showErr(e.message);
+
+  }
+
+};
+
+
+
+window.emailSignIn = async ()=>{
+
+  const email=document.getElementById('email').value.trim();
+
+  const pass=document.getElementById('password').value;
+
+
+
+  if(!email||!pass){
+
+    showErr('Enter email and password');
+
+    return;
+
+  }
+
+
+
+  try{
+
+    const {user}=await signInWithEmailAndPassword(auth,email,pass);
+
+
+
+    // ✅ CHECK EMAIL VERIFIED (NEW FIX)
+
+    if(!user.emailVerified){
+
+      showErr('Please verify your email before logging in.');
+
+      return;
+
+    }
+
+
+
+    await afterLogin(user);
+
+
+
+  }catch(e){
+
+    showErr(e.message);
+
+  }
+
+};
+
+</script>
+
+
+
 </body>
+
 </html>
