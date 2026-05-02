@@ -5,39 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Roomie – Messages</title>
   <link rel="stylesheet" href="style.css"/>
-  <style>
-    .chat-item {
-      display:flex; align-items:center; gap:14px;
-      padding:14px 20px; cursor:pointer;
-      border-bottom:1px solid var(--border);
-      transition:background .15s;
-    }
-    .chat-item:hover { background:var(--card); }
-    .chat-item:active { background:var(--border); }
-    .chat-avatar {
-      width:50px; height:50px; border-radius:50%;
-      object-fit:cover; flex-shrink:0;
-    }
-    .chat-avatar-init {
-      width:50px; height:50px; border-radius:50%;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));
-      display:flex; align-items:center; justify-content:center;
-      font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem;
-      color:#fff; flex-shrink:0;
-    }
-    .chat-unread {
-      min-width:20px; height:20px; border-radius:10px;
-      background:var(--accent); color:#fff;
-      font-size:11px; font-weight:700;
-      display:flex; align-items:center; justify-content:center;
-      padding:0 6px; flex-shrink:0;
-    }
-    .online-dot {
-      width:10px; height:10px; border-radius:50%;
-      background:var(--success); border:2px solid var(--bg);
-      position:absolute; bottom:1px; right:1px;
-    }
-  </style>
 </head>
 <body>
 
@@ -46,15 +13,22 @@
   <div style="font-family:'Syne',sans-serif;font-size:13px;color:var(--muted)" id="msg-count"></div>
 </div>
 
+<!-- ✅ FIXED STATIC SKELETON -->
 <div id="skeleton" style="display:flex;flex-direction:column">
-  ${[1,2,3].map(()=>`
-  <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border)">
-    <div class="skeleton" style="width:50px;height:50px;border-radius:50%;flex-shrink:0"></div>
+  <div class="chat-item">
+    <div class="skeleton" style="width:50px;height:50px;border-radius:50%"></div>
     <div style="flex:1">
       <div class="skeleton" style="height:14px;width:60%;margin-bottom:8px"></div>
       <div class="skeleton" style="height:12px;width:80%"></div>
     </div>
-  </div>`).join('')}
+  </div>
+  <div class="chat-item">
+    <div class="skeleton" style="width:50px;height:50px;border-radius:50%"></div>
+    <div style="flex:1">
+      <div class="skeleton" style="height:14px;width:60%;margin-bottom:8px"></div>
+      <div class="skeleton" style="height:12px;width:80%"></div>
+    </div>
+  </div>
 </div>
 
 <div id="chats-list" style="display:none;padding-bottom:120px"></div>
@@ -67,80 +41,95 @@
 </div>
 
 <nav class="navbar">
-  <a href="home.html" class="nav-item">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
-  </a>
-  <a href="roommate.html" class="nav-item">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Roommates
-  </a>
-  <a href="list-room.html" class="nav-item">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post
-  </a>
-  <a href="messages.html" class="nav-item active">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages
-  </a>
-  <a href="profile.html" class="nav-item">
-    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile
-  </a>
+  <a href="home.html" class="nav-item">Home</a>
+  <a href="roommate.html" class="nav-item">Roommates</a>
+  <a href="list-room.html" class="nav-item">Post</a>
+  <a href="messages.html" class="nav-item active">Messages</a>
+  <a href="profile.html" class="nav-item">Profile</a>
 </nav>
 
 <script type="module">
-  import { requireAuth, listenUserChats } from './firebase.js';
+import { onAuth, listenUserChats } from './firebase.js';
 
-  const user = await requireAuth();
+// ✅ non-blocking auth (important)
+onAuth((user) => {
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
+  }
 
-  listenUserChats(user.uid, chats => {
-    document.getElementById('skeleton').style.display    = 'none';
+  loadChats(user);
+});
 
-    if (!chats.length) {
+function loadChats(user) {
+  listenUserChats(user.uid, (chats) => {
+
+    document.getElementById('skeleton').style.display = 'none';
+
+    if (!chats || chats.length === 0) {
       document.getElementById('empty-state').style.display = 'flex';
       return;
     }
 
     document.getElementById('chats-list').style.display = 'block';
-    document.getElementById('empty-state').style.display = 'none';
-    document.getElementById('msg-count').textContent = `${chats.length} conversation${chats.length>1?'s':''}`;
+    document.getElementById('msg-count').textContent =
+      `${chats.length} conversation${chats.length > 1 ? 's' : ''}`;
 
     document.getElementById('chats-list').innerHTML = chats.map(chat => {
       const theirUid  = chat.participants.find(p => p !== user.uid);
       const theirName = chat.participantNames?.[theirUid] || 'Unknown';
       const theirPhoto= chat.participantPhotos?.[theirUid] || '';
-      const theirUni  = chat.participantUnis?.[theirUid]   || '';
-      const initial   = theirName[0].toUpperCase();
+      const theirUni  = chat.participantUnis?.[theirUid] || '';
+      const initial   = theirName[0]?.toUpperCase() || '?';
       const lastMsg   = chat.lastMessage || 'No messages yet';
-      const time      = chat.lastMessageTime?.seconds
+
+      const time = chat.lastMessageTime?.seconds
         ? formatTime(new Date(chat.lastMessageTime.seconds * 1000))
         : '';
 
-      const avatarHtml = theirPhoto
-        ? `<img src="${theirPhoto}" class="chat-avatar" onerror="this.outerHTML='<div class=chat-avatar-init>${initial}</div>'"/>`
+      const avatar = theirPhoto
+        ? `<img src="${theirPhoto}" class="chat-avatar"
+            onerror="this.outerHTML='<div class=chat-avatar-init>${initial}</div>'"/>`
         : `<div class="chat-avatar-init">${initial}</div>`;
 
       return `
-        <div class="chat-item" onclick="window.location.href='chat.html?uid=${theirUid}&name=${encodeURIComponent(theirName)}'">
-          <div style="position:relative;flex-shrink:0">${avatarHtml}</div>
+        <div class="chat-item" onclick="location.href='chat.html?uid=${theirUid}&name=${encodeURIComponent(theirName)}'">
+          <div style="position:relative">${avatar}</div>
           <div style="flex:1;min-width:0">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-              <span style="font-weight:700;font-size:15px;font-family:'Syne',sans-serif">${escHtml(theirName)}</span>
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-weight:700;font-size:15px">${escHtml(theirName)}</span>
               <span style="font-size:11px;color:var(--muted)">${time}</span>
             </div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:2px">${escHtml(theirUni)}</div>
-            <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(lastMsg)}</div>
+            <div style="font-size:12px;color:var(--muted)">${escHtml(theirUni)}</div>
+            <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              ${escHtml(lastMsg)}
+            </div>
           </div>
-        </div>`;
+        </div>
+      `;
     }).join('');
   });
+}
 
-  function formatTime(date) {
-    const now   = new Date();
-    const diffH = (now - date) / 36e5;
-    if (diffH < 24) return date.toLocaleTimeString('en', { hour:'2-digit', minute:'2-digit' });
-    if (diffH < 168) return date.toLocaleDateString('en', { weekday:'short' });
-    return date.toLocaleDateString('en', { day:'numeric', month:'short' });
-  }
+function formatTime(date) {
+  const now = new Date();
+  const diffH = (now - date) / 36e5;
 
-  function escHtml(s) { const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+  if (diffH < 24)
+    return date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+
+  if (diffH < 168)
+    return date.toLocaleDateString([], { weekday:'short' });
+
+  return date.toLocaleDateString([], { day:'numeric', month:'short' });
+}
+
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
 </script>
+
 </body>
 </html>
-
