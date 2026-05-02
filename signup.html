@@ -1,353 +1,254 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8"/>
-
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-
   <title>Roomie – Sign Up</title>
-
   <link rel="stylesheet" href="style.css"/>
-
   <link rel="manifest" href="manifest.json"/>
-
   <meta name="theme-color" content="#0d0f14"/>
-
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-
+  <style>
+    .social-btn{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      width:100%;padding:14px 20px;border-radius:var(--radius-sm);
+      font-size:15px;font-weight:600;font-family:'Syne',sans-serif;
+      cursor:pointer;transition:all .2s;border:1.5px solid var(--border);
+      background:var(--card);color:var(--text);margin-bottom:12px;
+    }
+    .social-btn:hover{border-color:var(--accent);}
+    .social-btn:disabled{opacity:.6;cursor:not-allowed;}
+    .divider-text{
+      display:flex;align-items:center;gap:12px;
+      color:var(--muted);font-size:13px;margin:20px 0;
+    }
+    .divider-text::before,.divider-text::after{content:'';flex:1;height:1px;background:var(--border);}
+    .page-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+    .r-mark{width:48px;height:48px;filter:drop-shadow(0 0 10px rgba(255,107,53,.6));}
+    .wordmark{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;}
+    .wordmark span{color:var(--accent);}
+  </style>
+<!-- CSS_ADSBLOCK_START -->
+<link rel="stylesheet" href="https://adblockers.opera-mini.net/css_block/domainless-unknown.css" type="text/css" />
+<link rel="stylesheet" href="https://adblockers.opera-mini.net/css_block/page_5_24si7gapkdivdsvkvkkttfbqkyra9o6hi85cjjc75y83gdha8v.css" type="text/css" />
+<link rel="stylesheet" href="https://adblockers.opera-mini.net/css_block/domainless.css" type="text/css" />
+<!-- CSS_ADSBLOCK_END -->
 </head>
-
 <body>
-
-
-
 <script type="module" src="theme.js"></script>
 
-
-
-<div class="page-full">
-
+<div class="page-full" style="background:radial-gradient(ellipse at 80% 10%,rgba(255,107,53,.12) 0%,transparent 55%)">
 <div class="auth-wrap">
 
+  <div style="display:flex;justify-content:flex-end;margin-bottom:24px">
+    <button class="theme-toggle" onclick="import('./theme.js').then(m=>m.toggleTheme())">☀️</button>
+  </div>
 
+  <div class="page-logo">
+    <svg class="r-mark" viewBox="0 0 80 80" fill="none">
+      <defs>
+        <linearGradient id="sg1" x1="10" y1="10" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6b35"/>
+        </linearGradient>
+        <linearGradient id="sg2" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ff6b35"/><stop offset="60%" stop-color="#ffb347"/>
+          <stop offset="100%" stop-color="#ff4d6d" stop-opacity=".3"/>
+        </linearGradient>
+      </defs>
+      <path d="M40 7 A33 33 0 1 1 12 57" stroke="url(#sg2)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+      <line x1="26" y1="20" x2="26" y2="60" stroke="url(#sg1)" stroke-width="5.5" stroke-linecap="round"/>
+      <path d="M26 20 Q26 20 42 20 Q54 20 54 30 Q54 40 42 40 L26 40" stroke="url(#sg1)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="42" y1="40" x2="56" y2="60" stroke="url(#sg1)" stroke-width="5.5" stroke-linecap="round"/>
+      <polyline points="34,35 38,29 42,35" stroke="url(#sg1)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <rect x="34.5" y="35" width="7" height="5" rx="0.5" stroke="url(#sg1)" stroke-width="3.5" fill="none"/>
+    </svg>
+    <div class="wordmark">Room<span>ie</span></div>
+  </div>
+  <p class="auth-subtitle">Create your free account 🎉</p>
 
+  <!-- Loading state -->
   <div id="state-loading" style="display:none">
-
-    <div id="loading-text">Creating your account…</div>
-
+    <div class="roomie-loader">
+      <div class="roomie-loader-logo">
+        <svg class="ring-svg" viewBox="0 0 80 80" fill="none">
+          <defs><linearGradient id="sl1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ff6b35"/>
+            <stop offset="70%" stop-color="#ffb347"/>
+            <stop offset="100%" stop-color="#ff4d6d" stop-opacity=".1"/>
+          </linearGradient></defs>
+          <path d="M40 5 A35 35 0 1 1 10 60" stroke="url(#sl1)" stroke-width="5" stroke-linecap="round" fill="none"/>
+        </svg>
+        <svg class="r-svg" viewBox="0 0 80 80" fill="none">
+          <defs><linearGradient id="sl2" x1="15" y1="15" x2="65" y2="65" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6b35"/>
+          </linearGradient></defs>
+          <line x1="26" y1="20" x2="26" y2="60" stroke="url(#sl2)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M26 20 Q26 20 42 20 Q54 20 54 30 Q54 40 42 40 L26 40" stroke="url(#sl2)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <line x1="42" y1="40" x2="56" y2="60" stroke="url(#sl2)" stroke-width="5" stroke-linecap="round"/>
+          <polyline points="34,35 38,29 42,35" stroke="url(#sl2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="34.5" y="35" width="7" height="5" rx="0.5" stroke="url(#sl2)" stroke-width="3" fill="none"/>
+        </svg>
+      </div>
+      <div class="roomie-loader-text" id="loading-text">Creating your account…</div>
+    </div>
   </div>
 
-
-
+  <!-- Form -->
   <div id="state-form">
+    <button class="social-btn" id="google-btn" onclick="googleSignIn()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+        style="width:20px;height:20px" alt="G"/>
+      Continue with Google
+    </button>
 
+    <div class="divider-text">or sign up with email</div>
 
-
-    <button id="google-btn" onclick="googleSignIn()">Continue with Google</button>
-
-
-
-    <div class="method-tabs">
-
-      <button id="tab-phone" class="method-tab active" onclick="switchTab('phone')">📱 Phone</button>
-
-      <button id="tab-email" class="method-tab" onclick="switchTab('email')">✉️ Email</button>
-
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="email" id="email" placeholder="you@university.edu" autocomplete="email"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Min. 6 characters" autocomplete="new-password"/>
+    </div>
+    <div class="form-group">
+      <label>Confirm password</label>
+      <input type="password" id="confirm" placeholder="Repeat password" autocomplete="new-password"/>
     </div>
 
+    <p id="err" style="color:var(--danger);font-size:13px;margin-bottom:14px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px;line-height:1.6"></p>
 
+    <button class="btn btn-primary" id="signup-btn" onclick="emailSignUp()">Create Account</button>
 
-    <!-- PHONE -->
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.6">
+      By creating an account you agree to our
+      <a href="privacy-policy.html" style="color:var(--accent)">Privacy Policy</a> and
+      <a href="terms.html" style="color:var(--accent)">Terms of Service</a>
+    </p>
 
-    <div id="panel-phone">
-
-      <div id="phone-step-a">
-
-        <input id="signup-phone" placeholder="+2348012345678"/>
-
-        <div id="recaptcha-container-signup"></div>
-
-        <p id="phone-err-a"></p>
-
-        <button id="send-phone-btn" onclick="sendPhoneOTP()">Send Code</button>
-
-      </div>
-
-
-
-      <div id="phone-step-b" style="display:none">
-
-        <div class="otp-row">
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'phone')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'phone')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'phone')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'phone')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'phone')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'phone')" />
-
-        </div>
-
-        <p id="phone-err-b"></p>
-
-        <button id="verify-phone-btn" disabled onclick="verifyPhoneOTP()">Verify</button>
-
-      </div>
-
+    <div class="auth-footer" style="margin-top:16px">
+      Already have an account? <a href="login.html">Log in</a>
     </div>
-
-
-
-    <!-- EMAIL -->
-
-    <div id="panel-email" style="display:none">
-
-      <div id="email-step-a">
-
-        <input id="signup-email" placeholder="you@email.com"/>
-
-        <input id="signup-pass" type="password" placeholder="Password"/>
-
-        <input id="signup-confirm" type="password" placeholder="Confirm"/>
-
-        <p id="email-err-a"></p>
-
-        <button id="send-email-btn" onclick="sendEmailCode()">Send Code</button>
-
-      </div>
-
-
-
-      <div id="email-step-b" style="display:none">
-
-        <p id="email-sent-label"></p>
-
-        <div class="otp-row">
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'email')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'email')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'email')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'email')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'email')" />
-
-          <input class="otp-box" maxlength="1" oninput="otpIn(this,'email')" />
-
-        </div>
-
-        <p id="email-err-b"></p>
-
-        <button id="verify-email-btn" disabled onclick="verifyEmailCode()">Verify</button>
-
-      </div>
-
-    </div>
-
-
-
   </div>
 
 </div>
-
 </div>
-
-
-
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-
 import {
-
   getAuth, onAuthStateChanged,
-
   createUserWithEmailAndPassword, sendEmailVerification,
-
-  GoogleAuthProvider, signInWithPopup,
-
-  RecaptchaVerifier, signInWithPhoneNumber
-
+  GoogleAuthProvider, signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-
-
-const app = initializeApp({
-
-  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
-
-  authDomain:"roomie-f3103.firebaseapp.com",
-
-  projectId:"roomie-f3103",
-
-  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
-
+const app  = initializeApp({
+  apiKey:            "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:        "roomie-f3103.firebaseapp.com",
+  projectId:         "roomie-f3103",
+  storageBucket:     "roomie-f3103.firebasestorage.app",
+  messagingSenderId: "896474185176",
+  appId:             "1:896474185176:web:0e4543682f594daf0a86ad"
 });
-
-
-
 const auth = getAuth(app);
-
-const db = getFirestore(app);
-
-
-
-onAuthStateChanged(auth, u => { if (u) location.href='home.html'; });
-
-
-
-window.switchTab = t => {
-
-  ['phone','email'].forEach(x=>{
-
-    document.getElementById(`panel-${x}`).style.display = x===t?'block':'none';
-
-    document.getElementById(`tab-${x}`).classList.toggle('active',x===t);
-
-  });
-
-};
-
-
-
-window.recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container-signup',{size:'invisible'});
-
-
-
-let phoneConfirmation;
-
-window.sendPhoneOTP = async ()=>{
-
-  phoneConfirmation = await signInWithPhoneNumber(
-
-    auth,
-
-    signup-phone.value,
-
-    window.recaptchaVerifier
-
-  );
-
-  phone-step-a.style.display='none';
-
-  phone-step-b.style.display='block';
-
-};
-
-
-
-window.verifyPhoneOTP = async ()=>{
-
-  const otp = getOTP('panel-phone');
-
-  const {user} = await phoneConfirmation.confirm(otp);
-
-  await afterSignup(user,{phoneVerified:true});
-
-};
-
-
-
-let emailOTP, pendingEmailUser;
-
-window.sendEmailCode = async ()=>{
-
-  const {user} = await createUserWithEmailAndPassword(
-
-    auth,
-
-    signup-email.value,
-
-    signup-pass.value
-
-  );
-
-  pendingEmailUser = user;
-
-  emailOTP = Math.floor(100000+Math.random()*900000).toString();
-
-  await sendEmailVerification(user);
-
-  email-step-a.style.display='none';
-
-  email-step-b.style.display='block';
-
-  email-sent-label.textContent = signup-email.value;
-
-};
-
-
-
-window.verifyEmailCode = async ()=>{
-
-  if(getOTP('panel-email')!==emailOTP){
-
-    email-err-b.textContent='Wrong code';
-
-    return;
-
-  }
-
-  await afterSignup(pendingEmailUser,{emailVerified:true});
-
-};
-
-
-
-window.otpIn = (el,type)=>{
-
-  el.value=el.value.replace(/\D/g,'');
-
-  const boxes=[...el.parentNode.children];
-
-  if(el.value && boxes[boxes.indexOf(el)+1]) boxes[boxes.indexOf(el)+1].focus();
-
-  const filled = boxes.every(b=>b.value);
-
-  document.getElementById(type==='phone'?'verify-phone-btn':'verify-email-btn').disabled=!filled;
-
-};
-
-
-
-window.getOTP = panel =>
-
-  [...document.querySelectorAll(`#${panel} .otp-box`)].map(b=>b.value).join('');
-
-
-
-async function afterSignup(user,extra){
-
-  await setDoc(doc(db,'users',user.uid),{
-
-    uid:user.uid,
-
-    email:user.email||'',
-
-    createdAt:new Date().toISOString(),
-
-    ...extra
-
-  },{merge:true});
-
-  location.href='setup.html';
-
+const db   = getFirestore(app);
+
+function showLoading(msg='Creating your account…'){
+  document.getElementById('state-form').style.display='none';
+  document.getElementById('state-loading').style.display='block';
+  document.getElementById('loading-text').textContent=msg;
+}
+function showForm(){
+  document.getElementById('state-form').style.display='block';
+  document.getElementById('state-loading').style.display='none';
+}
+function showErr(msg){
+  const el=document.getElementById('err');
+  el.textContent=msg; el.style.display=msg?'block':'none';
 }
 
+// Already logged in?
+onAuthStateChanged(auth, user => {
+  if (user) {
+    showLoading('Loading…');
+    location.href='home.html';
+  }
+});
+
+// Google — POPUP
+window.googleSignIn = async () => {
+  const btn = document.getElementById('google-btn');
+  showErr('');
+  btn.disabled=true;
+  btn.innerHTML=`<svg width="20" height="20" viewBox="0 0 80 80" fill="none"
+    style="animation:spin .8s linear infinite;flex-shrink:0">
+    <path d="M40 5 A35 35 0 1 1 10 60" stroke="#ff6b35" stroke-width="6"
+      stroke-linecap="round" fill="none"/>
+    </svg> Opening Google…`;
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt:'select_account' });
+    const result = await signInWithPopup(auth, provider);
+    showLoading('Setting up your account…');
+    const snap = await getDoc(doc(db,'users',result.user.uid));
+    if (!snap.exists()) {
+      await setDoc(doc(db,'users',result.user.uid),{
+        uid:result.user.uid, email:result.user.email||'',
+        name:result.user.displayName||'', photoURL:result.user.photoURL||'',
+        createdAt:new Date().toISOString()
+      },{merge:true});
+      location.href='setup.html';
+    } else { location.href='home.html'; }
+  } catch(e) {
+    if (e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request') {
+      showErr(friendly(e));
+    }
+    btn.disabled=false;
+    btn.innerHTML=`<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+      style="width:20px;height:20px"/> Continue with Google`;
+  }
+};
+
+// Email signup
+window.emailSignUp = async () => {
+  const email   = document.getElementById('email').value.trim();
+  const pass    = document.getElementById('password').value;
+  const confirm = document.getElementById('confirm').value;
+  const btn     = document.getElementById('signup-btn');
+  showErr('');
+  if (!email||!pass)  { showErr('Please fill in all fields.'); return; }
+  if (pass!==confirm) { showErr('Passwords do not match.'); return; }
+  if (pass.length<6)  { showErr('Password must be at least 6 characters.'); return; }
+  btn.disabled=true;
+  btn.innerHTML=`<svg width="18" height="18" viewBox="0 0 80 80" fill="none"
+    style="animation:spin .8s linear infinite;margin-right:8px">
+    <path d="M40 5 A35 35 0 1 1 10 60" stroke="white" stroke-width="7"
+      stroke-linecap="round" fill="none"/>
+    </svg> Creating account…`;
+  try {
+    const {user} = await createUserWithEmailAndPassword(auth,email,pass);
+    try{ await sendEmailVerification(user,{url:location.origin+'/home.html'}); }catch(_){}
+    location.href='setup.html';
+  } catch(e) {
+    showErr(friendly(e));
+    btn.textContent='Create Account'; btn.disabled=false;
+  }
+};
+
+function friendly(e){
+  const m={
+    'auth/email-already-in-use':  'This email is already registered. Try logging in.',
+    'auth/invalid-email':         'Please enter a valid email address.',
+    'auth/weak-password':         'Password too weak. Use at least 6 characters.',
+    'auth/network-request-failed':'No internet connection.',
+    'auth/unauthorized-domain':   '⚠️ Add '+location.hostname+' to Firebase → Auth → Authorized Domains.',
+    'auth/popup-blocked':         '⚠️ Popup blocked. Please allow popups for this site.',
+  };
+  return m[e.code]||e.message||'Something went wrong.';
+}
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
-
 </body>
-
 </html>
