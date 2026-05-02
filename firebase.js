@@ -151,3 +151,27 @@ export async function requireAuth(redirectToSetup = true) {
     });
   });
 }
+// ─── CHAT LISTENER ─────────────────────────────────────────
+
+import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/** Listen to user's chats in realtime */
+export function listenUserChats(uid, callback) {
+  const q = query(
+    collection(db, "chats"),
+    where("participants", "array-contains", uid)
+  );
+
+  return onSnapshot(q, (snap) => {
+    const chats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Sort by latest message
+    chats.sort((a, b) => {
+      const aTime = a.lastMessageTime?.seconds || 0;
+      const bTime = b.lastMessageTime?.seconds || 0;
+      return bTime - aTime;
+    });
+
+    callback(chats);
+  });
+}
