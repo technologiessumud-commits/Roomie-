@@ -45,20 +45,26 @@
     <!-- Info section -->
     <div style="padding:20px">
       <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px">Contact Info</h3>
+
       <div class="card">
         <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+
           <div class="flex-gap">
             <span style="font-size:1.1rem">📧</span>
             <div>
               <div style="font-size:12px;color:var(--muted)">Email</div>
               <div style="font-size:14px" id="info-email">—</div>
             </div>
+          </div>
+
           <div class="flex-gap">
             <span style="font-size:1.1rem">📞</span>
             <div>
               <div style="font-size:12px;color:var(--muted)">Phone</div>
               <div style="font-size:14px" id="info-phone">—</div>
             </div>
+          </div>
+
           <div class="flex-gap" id="info-course-row">
             <span style="font-size:1.1rem">🎓</span>
             <div>
@@ -66,18 +72,20 @@
               <div style="font-size:14px" id="info-course">—</div>
             </div>
           </div>
+
         </div>
       </div>
 
       <!-- My rooms -->
       <h3 style="font-family:'Syne',sans-serif;margin:24px 0 12px">My Listings</h3>
       <div id="my-rooms-container" style="display:flex;flex-direction:column;gap:12px"></div>
+
       <div id="my-rooms-empty" style="display:none;color:var(--muted);font-size:14px;text-align:center;padding:20px 0">
         You haven't posted any rooms yet.<br>
         <a href="list-room.html" style="color:var(--accent);font-weight:600">Post your first room →</a>
       </div>
 
-      <!-- Edit profile button -->
+      <!-- Edit profile -->
       <div style="margin-top:24px">
         <button class="btn btn-secondary" onclick="window.location.href='setup.html'">✏️ Edit Profile</button>
       </div>
@@ -89,24 +97,12 @@
     </div>
   </div>
 
-  <!-- BOTTOM NAVBAR -->
+  <!-- Navbar -->
   <nav class="navbar">
-    <a href="home.html" class="nav-item">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Home
-    </a>
-    <a href="roommate.html" class="nav-item">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Roommates
-    </a>
-    <a href="list-room.html" class="nav-item">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      Post
-    </a>
-    <a href="profile.html" class="nav-item active">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Profile
-    </a>
+    <a href="home.html" class="nav-item">Home</a>
+    <a href="roommate.html" class="nav-item">Roommates</a>
+    <a href="list-room.html" class="nav-item">Post</a>
+    <a href="profile.html" class="nav-item active">Profile</a>
   </nav>
 
   <div id="toast" class="toast"></div>
@@ -123,7 +119,7 @@
 
       try {
         const profile = await getProfile(user.uid);
-        
+
         if (!profile) {
           window.location.href = 'setup.html';
           return;
@@ -137,30 +133,34 @@
         }
 
         renderProfile(profile, rooms);
-        
+
       } catch (error) {
         console.error('Profile load error:', error);
         document.getElementById('loading').innerHTML = `
           <div style="padding:20px;text-align:center">
             <div style="font-size:2rem;margin-bottom:8px">⚠️</div>
             <div>Error: ${error.message}</div>
-            <button class="btn btn-secondary" style="margin-top:16px" onclick="location.reload()">Retry</button>
+            <button onclick="location.reload()">Retry</button>
           </div>`;
       }
     });
 
     function renderProfile(p, rooms) {
-      document.getElementById('profile-avatar').textContent = p.name? p.name[0].toUpperCase() : '?';
+      document.getElementById('profile-avatar').textContent =
+        p.name ? p.name[0].toUpperCase() : '?';
+
       document.getElementById('profile-name').textContent = p.name || '—';
       document.getElementById('profile-university').textContent = p.university || '—';
 
       const chipsEl = document.getElementById('profile-chips');
       chipsEl.innerHTML = '';
+
       if (p.year) chipsEl.innerHTML += `<span class="badge">🎓 ${escHtml(p.year)}</span>`;
       if (p.course) chipsEl.innerHTML += `<span class="badge">📚 ${escHtml(p.course)}</span>`;
 
       document.getElementById('info-email').textContent = p.email || '—';
       document.getElementById('info-phone').textContent = p.phone || '—';
+
       if (p.course) {
         document.getElementById('info-course').textContent = p.course;
       } else {
@@ -168,8 +168,12 @@
       }
 
       document.getElementById('stat-rooms').textContent = rooms.length;
+
       document.getElementById('stat-joined').textContent = p.createdAt
-    ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('en', { month: 'short', year: 'numeric' })
+        ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('en', {
+            month: 'short',
+            year: 'numeric'
+          })
         : '—';
 
       const container = document.getElementById('my-rooms-container');
@@ -179,16 +183,19 @@
         emptyEl.style.display = 'block';
       } else {
         container.innerHTML = rooms.map(r => `
-          <div class="card" onclick="window.location.href='room.html?id=${r.id}'" style="cursor:pointer">
+          <div class="card" onclick="window.location.href='room.html?id=${r.id}'">
             <div class="card-body" style="display:flex;align-items:center;gap:12px">
-              <div style="font-size:1.5rem">🏠</div>
+              <div>🏠</div>
               <div style="flex:1">
-                <div style="font-weight:600;font-size:14px">${escHtml(r.title)}</div>
-                <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location || '—')}</div>
+                <div>${escHtml(r.title)}</div>
+                <div style="font-size:12px;color:var(--muted)">
+                  📍 ${escHtml(r.location || '—')}
+                </div>
               </div>
-              <span class="card-price">₦${r.price}</span>
+              <span>₦${r.price}</span>
             </div>
-          </div>`).join('');
+          </div>
+        `).join('');
       }
 
       document.getElementById('loading').style.display = 'none';
@@ -208,5 +215,6 @@
       return d.innerHTML;
     }
   </script>
+
 </body>
-    </html>
+</html>
