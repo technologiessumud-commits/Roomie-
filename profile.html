@@ -1,220 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#ff6b35"/>
   <title>Roomie – Profile</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
+
+  <style>
+    .avatar-upload-wrap { position: relative; display: inline-block; cursor: pointer; }
+    .avatar-edit-badge {
+      position: absolute; bottom: 2px; right: 2px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); display:flex; align-items:center; justify-content:center;
+      font-size: 13px;
+    }
+    .profile-photo {
+      width: 88px; height: 88px; border-radius: 50%;
+      object-fit: cover;
+    }
+    .avatar-xl {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display:flex; align-items:center; justify-content:center;
+      font-size: 2rem; font-weight: 800; color:#fff;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Loading -->
-  <div id="loading" style="padding:20px">
-    <div class="skeleton" style="height:180px;border-radius:var(--radius);margin-bottom:16px"></div>
-    <div class="skeleton skeleton-text"></div>
-    <div class="skeleton skeleton-text short"></div>
+<div id="loading" style="padding:20px">Loading profile...</div>
+
+<div id="content" style="display:none">
+
+  <div class="profile-header">
+    <div class="avatar-upload-wrap">
+      <div id="avatar-container">
+        <div class="avatar-xl">?</div>
+      </div>
+    </div>
+
+    <div id="profile-name">—</div>
+    <div id="profile-university">—</div>
+    <div id="profile-chips"></div>
   </div>
 
-  <!-- Content -->
-  <div id="content" style="display:none;padding-bottom:100px">
-
-    <!-- Profile header -->
-    <div class="profile-header">
-      <div class="avatar avatar-lg" id="profile-avatar">?</div>
-      <div class="profile-name" id="profile-name">—</div>
-      <div class="profile-university" id="profile-university">—</div>
-      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center" id="profile-chips"></div>
-    </div>
-
-    <!-- Stats -->
-    <div class="profile-stats" id="profile-stats">
-      <div class="profile-stat">
-        <div class="profile-stat-num" id="stat-rooms">0</div>
-        <div class="profile-stat-label">Rooms Posted</div>
-      </div>
-      <div class="profile-stat">
-        <div class="profile-stat-num" id="stat-listings">0</div>
-        <div class="profile-stat-label">RM Listings</div>
-      </div>
-      <div class="profile-stat">
-        <div class="profile-stat-num" id="stat-joined">—</div>
-        <div class="profile-stat-label">Member Since</div>
-      </div>
-    </div>
-
-    <!-- Info section -->
-    <div style="padding:20px">
-      <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px">Contact Info</h3>
-
-      <div class="card">
-        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
-
-          <div class="flex-gap">
-            <span style="font-size:1.1rem">📧</span>
-            <div>
-              <div style="font-size:12px;color:var(--muted)">Email</div>
-              <div style="font-size:14px" id="info-email">—</div>
-            </div>
-          </div>
-
-          <div class="flex-gap">
-            <span style="font-size:1.1rem">📞</span>
-            <div>
-              <div style="font-size:12px;color:var(--muted)">Phone</div>
-              <div style="font-size:14px" id="info-phone">—</div>
-            </div>
-          </div>
-
-          <div class="flex-gap" id="info-course-row">
-            <span style="font-size:1.1rem">🎓</span>
-            <div>
-              <div style="font-size:12px;color:var(--muted)">Course</div>
-              <div style="font-size:14px" id="info-course">—</div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- My rooms -->
-      <h3 style="font-family:'Syne',sans-serif;margin:24px 0 12px">My Listings</h3>
-      <div id="my-rooms-container" style="display:flex;flex-direction:column;gap:12px"></div>
-
-      <div id="my-rooms-empty" style="display:none;color:var(--muted);font-size:14px;text-align:center;padding:20px 0">
-        You haven't posted any rooms yet.<br>
-        <a href="list-room.html" style="color:var(--accent);font-weight:600">Post your first room →</a>
-      </div>
-
-      <!-- Edit profile -->
-      <div style="margin-top:24px">
-        <button class="btn btn-secondary" onclick="window.location.href='setup.html'">✏️ Edit Profile</button>
-      </div>
-
-      <!-- Logout -->
-      <div style="margin-top:12px">
-        <button class="btn btn-danger" onclick="handleLogout()">🚪 Log Out</button>
-      </div>
-    </div>
+  <div>
+    <div>Rooms: <span id="stat-rooms">0</span></div>
+    <div>Saved: <span id="stat-favs">0</span></div>
+    <div>Joined: <span id="stat-joined">—</span></div>
   </div>
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <a href="home.html" class="nav-item">Home</a>
-    <a href="roommate.html" class="nav-item">Roommates</a>
-    <a href="list-room.html" class="nav-item">Post</a>
-    <a href="profile.html" class="nav-item active">Profile</a>
-  </nav>
+  <div>
+    <h3>Contact</h3>
+    <div>Email: <span id="info-email">—</span></div>
+    <div>Phone: <span id="info-phone">—</span></div>
+    <div id="info-course-row" style="display:none">Course: <span id="info-course"></span></div>
+  </div>
 
-  <div id="toast" class="toast"></div>
+  <div>
+    <h3>My Rooms</h3>
+    <div id="my-rooms-container"></div>
+    <div id="my-rooms-empty" style="display:none">No rooms yet</div>
+  </div>
 
-  <script type="module">
-    import { auth, onAuthStateChanged } from './firebase.js';
-    import { getProfile, getUserRooms, logOut } from './firebase.js';
+  <button onclick="handleLogout()">Logout</button>
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
+</div>
 
-      try {
-        const profile = await getProfile(user.uid);
+<script type="module">
+  import { requireAuth, getProfile, getUserRooms, getFavourites, logOut } from './firebase.js';
 
-        if (!profile) {
-          window.location.href = 'setup.html';
-          return;
-        }
+  let user;
 
-        let rooms = [];
-        try {
-          rooms = await getUserRooms(user.uid);
-        } catch (e) {
-          console.error('Rooms error:', e);
-        }
+  try {
+    user = await requireAuth();
 
-        renderProfile(profile, rooms);
+    const [profile, roomsData, favsData] = await Promise.all([
+      getProfile(user.uid),
+      getUserRooms(user.uid),
+      getFavourites(user.uid)
+    ]);
 
-      } catch (error) {
-        console.error('Profile load error:', error);
-        document.getElementById('loading').innerHTML = `
-          <div style="padding:20px;text-align:center">
-            <div style="font-size:2rem;margin-bottom:8px">⚠️</div>
-            <div>Error: ${error.message}</div>
-            <button onclick="location.reload()">Retry</button>
-          </div>`;
-      }
-    });
+    const rooms = roomsData || [];
+    const favs = favsData || [];
 
-    function renderProfile(p, rooms) {
-      document.getElementById('profile-avatar').textContent =
-        p.name ? p.name[0].toUpperCase() : '?';
-
-      document.getElementById('profile-name').textContent = p.name || '—';
-      document.getElementById('profile-university').textContent = p.university || '—';
-
-      const chipsEl = document.getElementById('profile-chips');
-      chipsEl.innerHTML = '';
-
-      if (p.year) chipsEl.innerHTML += `<span class="badge">🎓 ${escHtml(p.year)}</span>`;
-      if (p.course) chipsEl.innerHTML += `<span class="badge">📚 ${escHtml(p.course)}</span>`;
-
-      document.getElementById('info-email').textContent = p.email || '—';
-      document.getElementById('info-phone').textContent = p.phone || '—';
-
-      if (p.course) {
-        document.getElementById('info-course').textContent = p.course;
-      } else {
-        document.getElementById('info-course-row').style.display = 'none';
-      }
-
-      document.getElementById('stat-rooms').textContent = rooms.length;
-
-      document.getElementById('stat-joined').textContent = p.createdAt
-        ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('en', {
-            month: 'short',
-            year: 'numeric'
-          })
-        : '—';
-
-      const container = document.getElementById('my-rooms-container');
-      const emptyEl = document.getElementById('my-rooms-empty');
-
-      if (!rooms || rooms.length === 0) {
-        emptyEl.style.display = 'block';
-      } else {
-        container.innerHTML = rooms.map(r => `
-          <div class="card" onclick="window.location.href='room.html?id=${r.id}'">
-            <div class="card-body" style="display:flex;align-items:center;gap:12px">
-              <div>🏠</div>
-              <div style="flex:1">
-                <div>${escHtml(r.title)}</div>
-                <div style="font-size:12px;color:var(--muted)">
-                  📍 ${escHtml(r.location || '—')}
-                </div>
-              </div>
-              <span>₦${r.price}</span>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('content').style.display = 'block';
+    if (!profile) {
+      window.location.href = 'setup.html';
+    } else {
+      renderProfile(profile, rooms, favs);
     }
 
-    window.handleLogout = async () => {
-      if (!confirm('Are you sure you want to log out?')) return;
-      await logOut();
-      window.location.href = 'index.html';
-    };
+  } catch (err) {
+    console.error(err);
+    document.getElementById('loading').innerHTML =
+      "Error loading profile. <button onclick='location.reload()'>Retry</button>";
+  }
 
-    function escHtml(str) {
-      if (!str) return '';
-      const d = document.createElement('div');
-      d.textContent = str;
-      return d.innerHTML;
+  function renderProfile(p, rooms, favs) {
+
+    setAvatar(p.photoURL, p.name);
+
+    setText('profile-name', p.name || '—');
+    setText('profile-university', p.university || '');
+
+    const chips = document.getElementById('profile-chips');
+    chips.innerHTML = '';
+    if (p.year) chips.innerHTML += `<span>${p.year}</span>`;
+    if (p.course) chips.innerHTML += `<span>${p.course}</span>`;
+
+    setText('info-email', p.email || '—');
+    setText('info-phone', p.phone || '—');
+
+    if (p.course) {
+      setText('info-course', p.course);
+      show('info-course-row');
     }
-  </script>
+
+    setText('stat-rooms', rooms.length);
+    setText('stat-favs', favs.length);
+
+    setText('stat-joined',
+      p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'
+    );
+
+    const container = document.getElementById('my-rooms-container');
+    const empty = document.getElementById('my-rooms-empty');
+
+    if (!rooms.length) {
+      empty.style.display = 'block';
+    } else {
+      container.innerHTML = rooms.map(r =>
+        `<div>${r.title} - ₦${r.price}</div>`
+      ).join('');
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+  }
+
+  function setAvatar(photoURL, name) {
+    const el = document.getElementById('avatar-container');
+    if (photoURL) {
+      el.innerHTML = `<img src="${photoURL}" class="profile-photo"/>`;
+    } else {
+      el.innerHTML = `<div class="avatar-xl">${(name || '?')[0].toUpperCase()}</div>`;
+    }
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function show(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+  }
+
+  window.handleLogout = async () => {
+    await logOut();
+    window.location.href = 'index.html';
+  };
+</script>
 
 </body>
 </html>
