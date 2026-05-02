@@ -1,197 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#ff6b35"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roomie – Profile</title>
-  <link rel="stylesheet" href="style.css"/>
-
-  <style>
-    .avatar-upload-wrap { position: relative; display: inline-block; cursor: pointer; }
-    .avatar-edit-badge {
-      position: absolute; bottom: 2px; right: 2px;
-      width: 28px; height: 28px; border-radius: 50%;
-      background: var(--accent); display:flex; align-items:center; justify-content:center;
-      font-size: 13px;
-    }
-    .profile-photo {
-      width: 88px; height: 88px; border-radius: 50%;
-      object-fit: cover;
-    }
-    .avatar-xl {
-      width: 88px; height: 88px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      display:flex; align-items:center; justify-content:center;
-      font-size: 2rem; font-weight: 800; color:#fff;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div id="loading" style="padding:20px">Loading profile...</div>
+  <!-- Loading -->
+  <div id="loading" style="padding:20px">
+    <div class="skeleton" style="height:180px;border-radius:var(--radius);margin-bottom:16px"></div>
+    <div class="skeleton skeleton-text"></div>
+    <div class="skeleton skeleton-text short"></div>
+  </div>
 
-<div id="content" style="display:none">
+  <!-- Content -->
+  <div id="content" style="display:none;padding-bottom:100px">
 
-  <div class="profile-header">
-    <div class="avatar-upload-wrap">
-      <div id="avatar-container">
-        <div class="avatar-xl">?</div>
+    <!-- Profile header -->
+    <div class="profile-header">
+      <div class="avatar avatar-lg" id="profile-avatar">?</div>
+      <div class="profile-name" id="profile-name">—</div>
+      <div class="profile-university" id="profile-university">—</div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center" id="profile-chips"></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="profile-stats" id="profile-stats">
+      <div class="profile-stat">
+        <div class="profile-stat-num" id="stat-rooms">0</div>
+        <div class="profile-stat-label">Rooms Posted</div>
+      </div>
+      <div class="profile-stat">
+        <div class="profile-stat-num" id="stat-listings">0</div>
+        <div class="profile-stat-label">RM Listings</div>
+      </div>
+      <div class="profile-stat">
+        <div class="profile-stat-num" id="stat-joined">—</div>
+        <div class="profile-stat-label">Member Since</div>
       </div>
     </div>
 
-    <div id="profile-name">—</div>
-    <div id="profile-university">—</div>
-    <div id="profile-chips"></div>
-  </div>
-
-  <div>
-    <div>Rooms: <span id="stat-rooms">0</span></div>
-    <div>Saved: <span id="stat-favs">0</span></div>
-    <div>Joined: <span id="stat-joined">—</span></div>
-  </div>
-
-  <div>
-    <h3>Contact</h3>
-    <div>Email: <span id="info-email">—</span></div>
-    <div>Phone: <span id="info-phone">—</span></div>
-    <div id="info-course-row" style="display:none">Course: <span id="info-course"></span></div>
-  </div>
-
-  <div>
-    <h3>My Rooms</h3>
-    <div id="my-rooms-container"></div>
-    <div id="my-rooms-empty" style="display:none">No rooms yet</div>
-  </div>
-
-  <button onclick="handleLogout()">Logout</button>
-
-</div>
-
-<script type="module">
-import { onAuth, getProfile, getUserRooms, getFavourites, logOut } from './firebase.js';
-
-let user = null;
-
-// ✅ Show UI immediately (like homepage)
-document.getElementById('loading').style.display = 'none';
-document.getElementById('content').style.display = 'block';
-
-// 🔐 Listen for auth (no blocking)
-onAuth(async (u) => {
-  if (!u) {
-    window.location.href = 'login.html';
-    return;
-  }
-
-  user = u;
-
-  // Load data separately (smooth UI)
-  loadProfile(u.uid);
-  loadRooms(u.uid);
-  loadFavs(u.uid);
-});
-
-// ─────────────────────────────
-// PROFILE
-async function loadProfile(uid) {
-  try {
-    const p = await getProfile(uid);
-    if (!p) return;
-
-    setText('profile-name', p.name || '—');
-    setText('profile-university', p.university || '');
-
-    setText('info-email', p.email || '—');
-    setText('info-phone', p.phone || '—');
-
-    if (p.course) {
-      setText('info-course', p.course);
-      show('info-course-row');
-    }
-
-    setText('stat-joined',
-      p.createdAt
-        ? new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })
-        : '—'
-    );
-
-    setAvatar(p.photoURL, p.name);
-
-  } catch (e) {
-    console.error("Profile load error:", e);
-  }
-}
-
-// ─────────────────────────────
-// ROOMS
-async function loadRooms(uid) {
-  try {
-    const rooms = await getUserRooms(uid) || [];
-
-    setText('stat-rooms', rooms.length);
-
-    const container = document.getElementById('my-rooms-container');
-    const empty = document.getElementById('my-rooms-empty');
-
-    if (!rooms.length) {
-      empty.style.display = 'block';
-      return;
-    }
-
-    container.innerHTML = rooms.map(r => `
+    <!-- Info section -->
+    <div style="padding:20px">
+      <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px">Contact Info</h3>
       <div class="card">
-        ${r.title} - ₦${r.price}
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div class="flex-gap">
+            <span style="font-size:1.1rem">📧</span>
+            <div>
+              <div style="font-size:12px;color:var(--muted)">Email</div>
+              <div style="font-size:14px" id="info-email">—</div>
+            </div>
+          </div>
+          <div class="flex-gap">
+            <span style="font-size:1.1rem">📞</span>
+            <div>
+              <div style="font-size:12px;color:var(--muted)">Phone</div>
+              <div style="font-size:14px" id="info-phone">—</div>
+            </div>
+          </div>
+          <div class="flex-gap" id="info-course-row">
+            <span style="font-size:1.1rem">🎓</span>
+            <div>
+              <div style="font-size:12px;color:var(--muted)">Course</div>
+              <div style="font-size:14px" id="info-course">—</div>
+            </div>
+          </div>
+        </div>
       </div>
-    `).join('');
 
-  } catch (e) {
-    console.error("Rooms error:", e);
-  }
-}
+      <!-- My rooms -->
+      <h3 style="font-family:'Syne',sans-serif;margin:24px 0 12px">My Listings</h3>
+      <div id="my-rooms-container" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div id="my-rooms-empty" style="display:none;color:var(--muted);font-size:14px;text-align:center;padding:20px 0">
+        You haven't posted any rooms yet.<br>
+        <a href="list-room.html" style="color:var(--accent);font-weight:600">Post your first room →</a>
+      </div>
 
-// ─────────────────────────────
-// FAVOURITES
-async function loadFavs(uid) {
-  try {
-    const favs = await getFavourites(uid) || [];
-    setText('stat-favs', favs.length);
-  } catch (e) {
-    console.error("Favs error:", e);
-  }
-}
+      <!-- Edit profile button -->
+      <div style="margin-top:24px">
+        <button class="btn btn-secondary" onclick="window.location.href='setup.html'">✏️ Edit Profile</button>
+      </div>
 
-// ─────────────────────────────
-// HELPERS
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value;
-}
+      <!-- Logout -->
+      <div style="margin-top:12px">
+        <button class="btn btn-danger" onclick="handleLogout()">🚪 Log Out</button>
+      </div>
+    </div>
+  </div>
 
-function show(id) {
-  const el = document.getElementById(id);
-  if (el) el.style.display = 'block';
-}
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="home.html" class="nav-item">Home</a>
+    <a href="roommate.html" class="nav-item">Roommates</a>
+    <a href="list-room.html" class="nav-item">Post</a>
+    <a href="profile.html" class="nav-item active">Profile</a>
+  </nav>
 
-function setAvatar(photoURL, name) {
-  const el = document.getElementById('avatar-container');
-  if (!el) return;
+  <div id="toast" class="toast"></div>
 
-  if (photoURL) {
-    el.innerHTML = `<img src="${photoURL}" class="profile-photo"/>`;
-  } else {
-    el.innerHTML = `<div class="avatar-xl">${(name || '?')[0].toUpperCase()}</div>`;
-  }
-}
+  <!-- ✅ FIXED SCRIPT -->
+  <script type="module">
+    import { onAuth, getProfile, getUserRooms, logOut } from './firebase.js';
 
-// ─────────────────────────────
-// LOGOUT
-window.handleLogout = async () => {
-  await logOut();
-  window.location.href = 'index.html';
-};
-</script>
+    // ✅ Show UI immediately (no blank screen)
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+    onAuth(async (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Load independently (no blocking)
+      loadProfile(user.uid);
+      loadRooms(user.uid);
+    });
+
+    async function loadProfile(uid) {
+      try {
+        const p = await getProfile(uid);
+        if (!p) return;
+
+        document.getElementById('profile-avatar').textContent =
+          p.name ? p.name[0].toUpperCase() : '?';
+
+        document.getElementById('profile-name').textContent = p.name || '—';
+        document.getElementById('profile-university').textContent = p.university || '—';
+
+        const chipsEl = document.getElementById('profile-chips');
+        chipsEl.innerHTML = '';
+        if (p.year) chipsEl.innerHTML += `<span class="badge">🎓 ${p.year}</span>`;
+        if (p.course) chipsEl.innerHTML += `<span class="badge">📚 ${p.course}</span>`;
+
+        document.getElementById('info-email').textContent = p.email || '—';
+        document.getElementById('info-phone').textContent = p.phone || '—';
+
+        if (p.course) {
+          document.getElementById('info-course').textContent = p.course;
+        } else {
+          document.getElementById('info-course-row').style.display = 'none';
+        }
+
+        document.getElementById('stat-joined').textContent = p.createdAt
+          ? new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })
+          : '—';
+
+      } catch (e) {
+        console.error('Profile error:', e);
+      }
+    }
+
+    async function loadRooms(uid) {
+      try {
+        const rooms = await getUserRooms(uid) || [];
+
+        document.getElementById('stat-rooms').textContent = rooms.length;
+
+        const container = document.getElementById('my-rooms-container');
+        const emptyEl   = document.getElementById('my-rooms-empty');
+
+        if (!rooms.length) {
+          emptyEl.style.display = 'block';
+          return;
+        }
+
+        container.innerHTML = rooms.map(r => `
+          <div class="card" onclick="window.location.href='room.html?id=${r.id}'" style="cursor:pointer">
+            <div class="card-body" style="display:flex;align-items:center;gap:12px">
+              <div style="font-size:1.5rem">🏠</div>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:14px">${escHtml(r.title)}</div>
+                <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location || '—')}</div>
+              </div>
+              <span class="card-price">₦${Number(r.price).toLocaleString()}</span>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (e) {
+        console.error('Rooms error:', e);
+      }
+    }
+
+    window.handleLogout = async () => {
+      if (!confirm('Are you sure you want to log out?')) return;
+      await logOut();
+      window.location.href = 'index.html';
+    };
+
+    function escHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+  </script>
 
 </body>
 </html>
