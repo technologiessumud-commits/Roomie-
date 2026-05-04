@@ -77,6 +77,7 @@
   </div>
 
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged }
@@ -97,148 +98,113 @@ const app  = initializeApp({
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-const params = new URLSearchParams(location.search);
-const theirUid = params.get('uid');
+const params       = new URLSearchParams(location.search);
+const theirUid     = params.get('uid');
 const theirNameParam = decodeURIComponent(params.get('name')||'User');
-
-if (!theirUid) location.href='messages.html';
+if (!theirUid) { location.href='messages.html'; }
 
 let myUid, chatDocId;
 
 onAuthStateChanged(auth, async user => {
   if (!user) { location.href='login.html'; return; }
   if (user.uid === theirUid) { location.href='messages.html'; return; }
-
   myUid = user.uid;
 
   const [mySnap, theirSnap] = await Promise.all([
     getDoc(doc(db,'users',myUid)),
     getDoc(doc(db,'users',theirUid))
   ]);
+  const me    = mySnap.exists()    ? mySnap.data()    : {name:user.email,photoURL:''};
+  const them  = theirSnap.exists() ? theirSnap.data() : {name:theirNameParam,photoURL:''};
 
-  const me   = mySnap.exists()? mySnap.data():{};
-  const them = theirSnap.exists()? theirSnap.data():{};
-
-  const theirName  = them.name || theirNameParam;
+  const theirName  = them.name  || theirNameParam;
   const theirPhoto = them.photoURL || '';
   const theirUni   = them.university || '';
 
-  // HEADER
+  // Header
   document.getElementById('their-name').textContent = theirName;
   document.getElementById('their-uni').textContent  = theirUni;
   document.getElementById('profile-link').href = `user-profile.html?uid=${theirUid}`;
 
   const avWrap = document.getElementById('av-wrap');
   avWrap.innerHTML = theirPhoto
-    ? `<img src="${theirPhoto}" class="chat-av"/>`
+    ? `<img src="${theirPhoto}" class="chat-av" onerror="this.outerHTML='<div class=chat-av-init>${theirName[0].toUpperCase()}</div>'"/>`
     : `<div class="chat-av-init">${theirName[0].toUpperCase()}</div>`;
 
-  // CHAT ID
+  // Chat doc
   chatDocId = [myUid,theirUid].sort().join('_');
   const chatRef = doc(db,'chats',chatDocId);
-
-  if (!(await getDoc(chatRef)).exists()) {
-    await setDoc(chatRef,{
-      participants:[myUid,theirUid],
-      lastMessage:'',
-      lastMessageTime:serverTimestamp(),
-      createdAt:serverTimestamp()
+  const chatSnap = await getDoc(chatRef);
+  if (!chatSnap.exists()) {
+    await setDoc(chatRef, {
+      participants:      [myUid, theirUid],
+      participantNames:  {[myUid]:me.name,    [theirUid]:theirName},
+      participantPhotos: {[myUid]:me.photoURL||'', [theirUid]:theirPhoto},
+      participantUnis:   {[myUid]:me.university||'', [theirUid]:theirUni},
+      lastMessage:'', lastMessageTime:serverTimestamp(), createdAt:serverTimestamp()
     });
   }
 
-  // LISTEN MESSAGES
+  // Listen for messages
   const q = query(collection(db,'chats',chatDocId,'messages'), orderBy('timestamp','asc'));
-
-  onSnapshot(q, snap => {
-    const msgs = snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderMessages(msgs);
-    markAsRead(msgs);
-  });
+  onSnapshot(q, snap => renderMessages(snap.docs.map(d=>({id:d.id,...d.data()})), myUid, theirName));
 });
 
-
-// ───── RENDER ─────
-function renderMessages(msgs){
+function renderMessages(msgs, myUid, theirName) {
   const area = document.getElementById('msg-area');
-
-  if(!msgs.length){
-    area.innerHTML = `<div style="text-align:center;padding:40px">Start chatting 👋</div>`;
+  if (!msgs.length) {
+    area.innerHTML = `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;gap:10px">
+        <div style="font-size:2.5rem">👋</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem">Say hello!</div>
+        <div style="color:var(--muted);font-size:13px">Start your conversation with ${esc(theirName)}</div>
+      </div>`;
     return;
   }
-
-  area.innerHTML = msgs.map(msg=>{
-    const mine = msg.senderUid === myUid;
-    const time = msg.timestamp?.seconds
-      ? new Date(msg.timestamp.seconds*1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
-      : '';
-
-    return `
-      <div class="${mine?'msg-sent':'msg-received'}">
-        <div class="bubble">
-          ${esc(msg.text)}
-          ${mine ? `<span style="font-size:10px;margin-left:6px">
-            ${msg.read ? '✔✔' : '✔'}
-          </span>`:''}
-        </div>
-        <div class="timestamp">${time}</div>
-      </div>
-    `;
+  let prevDate = '';
+  area.innerHTML = msgs.map(msg => {
+    const isMine = msg.senderUid === myUid;
+    const ts     = msg.timestamp?.seconds ? new Date(msg.timestamp.seconds*1000) : null;
+    const timeStr = ts ? ts.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}) : '';
+    const dateStr = ts ? ts.toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'}) : '';
+    let divider = '';
+    if (dateStr && dateStr !== prevDate) {
+      divider  = `<div class="date-div">${dateStr}</div>`;
+      prevDate = dateStr;
+    }
+    return `${divider}
+      <div class="${isMine?'msg-sent':'msg-received'}">
+        <div class="bubble">${esc(msg.text)}</div>
+        <div class="timestamp">${timeStr}</div>
+      </div>`;
   }).join('');
-
-  area.scrollTop = area.scrollHeight;
+  // Scroll to bottom smoothly
+  requestAnimationFrame(() => { area.scrollTop = area.scrollHeight; });
 }
 
-
-// ───── SEND ─────
-window.sendMsg = async ()=>{
+window.sendMsg = async () => {
   const input = document.getElementById('msg-input');
-  const text  = input.value.trim();
-  if(!text) return;
-
-  input.value='';
-
-  try{
+  const text  = (input.value||'').trim();
+  if (!text||!chatDocId) return;
+  const btn = document.getElementById('send-btn');
+  btn.disabled=true; input.value=''; input.style.height='auto';
+  try {
     await addDoc(collection(db,'chats',chatDocId,'messages'),{
-      senderUid:myUid,
-      text,
-      timestamp:serverTimestamp(),
-      read:false
+      senderUid:myUid, text, timestamp:serverTimestamp(), read:false
     });
-
     await updateDoc(doc(db,'chats',chatDocId),{
-      lastMessage:text,
-      lastMessageTime:serverTimestamp()
+      lastMessage:text.slice(0,80), lastMessageTime:serverTimestamp()
     });
-
-  }catch(e){
-    console.log(e);
-  }
+  } catch(e) { input.value=text; }
+  btn.disabled=false; input.focus();
 };
 
-
-// ───── MARK READ ─────
-async function markAsRead(msgs){
-  msgs.forEach(async msg=>{
-    if(msg.senderUid !== myUid && !msg.read){
-      await updateDoc(doc(db,'chats',chatDocId,'messages',msg.id),{
-        read:true
-      });
-    }
-  });
-}
-
-
-// ───── UTIL ─────
-window.autoResize = el=>{
+window.autoResize = el => {
   el.style.height='auto';
   el.style.height=Math.min(el.scrollHeight,120)+'px';
 };
 
-function esc(s){
-  const d=document.createElement('div');
-  d.textContent=s;
-  return d.innerHTML;
-}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 </script>
 </body>
 </html>
