@@ -69,6 +69,8 @@
       font-weight:600;
       margin-top:6px;
     }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 
 </head>
@@ -309,6 +311,7 @@
 
 </div>
 </div>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -333,14 +336,14 @@ import {
 import { uploadImage } from './upload.js';
 
 
-/* FIREBASE */
+/* ── Firebase ───────────────────────────────────────────────── */
 const app = initializeApp({
-  apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
-  authDomain:"roomie-f3103.firebaseapp.com",
-  projectId:"roomie-f3103",
-  storageBucket:"roomie-f3103.firebasestorage.app",
-  messagingSenderId:"896474185176",
-  appId:"1:896474185176:web:0e4543682f594daf0a86ad"
+  apiKey:            "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:        "roomie-f3103.firebaseapp.com",
+  projectId:         "roomie-f3103",
+  storageBucket:     "roomie-f3103.firebasestorage.app",
+  messagingSenderId: "896474185176",
+  appId:             "1:896474185176:web:0e4543682f594daf0a86ad"
 });
 
 const auth = getAuth(app);
@@ -349,160 +352,102 @@ const db   = getFirestore(app);
 let currentUser = null;
 
 
-/* AUTH */
+/* ── Auth ───────────────────────────────────────────────────── */
 onAuthStateChanged(auth, u => {
-
-  if (!u) {
-    location.href = 'login.html';
-    return;
-  }
-
+  if (!u) { location.href = 'login.html'; return; }
   currentUser = u;
-
 });
 
 
-/* AUTO APPLY REFERRAL FROM URL */
+/* ── Auto-fill referral code from URL ?ref= ─────────────────── */
 const urlRef = new URLSearchParams(location.search).get('ref');
-
 if (urlRef) {
-
   const refInput = document.getElementById('referral-code');
-
   if (refInput) {
-
     refInput.value = urlRef.toUpperCase();
-
     const hint = document.getElementById('referral-hint');
-
-    if (hint) {
-      hint.textContent = '🎉 Referral code applied!';
-    }
-
+    if (hint) hint.textContent = '🎉 Referral code applied!';
   }
-
 }
 
 
-/* REFERRAL GENERATOR */
-function generateReferralCode(name='') {
-
-  const clean = name
-    .replace(/\s/g,'')
-    .toUpperCase()
-    .slice(0,4);
-
-  const rand = Math.floor(1000 + Math.random() * 9000);
-
+/* ── Generate referral code ─────────────────────────────────── */
+function generateReferralCode(name = '') {
+  const clean = name.replace(/\s/g, '').toUpperCase().slice(0, 4);
+  const rand  = Math.floor(1000 + Math.random() * 9000);
   return `${clean || 'USER'}${rand}`;
-
 }
 
 
-/* APPLY REFERRAL */
+/* ── Apply referral code ────────────────────────────────────── */
 async function applyReferralCode(code, newUserUid) {
-
-  const usersSnap = await getDocs(collection(db,'users'));
-
+  const usersSnap = await getDocs(collection(db, 'users'));
   let ownerDoc = null;
 
   usersSnap.forEach(d => {
-
     const data = d.data();
-
-    if (data.referralCode === code) {
-      ownerDoc = {
-        uid:d.id,
-        ...data
-      };
-    }
-
+    if (data.referralCode === code) ownerDoc = { uid: d.id, ...data };
   });
 
-  if (!ownerDoc) {
-    throw new Error('Invalid referral code');
-  }
+  if (!ownerDoc)               throw new Error('Invalid referral code');
+  if (ownerDoc.uid === newUserUid) throw new Error('Cannot refer yourself');
 
-  if (ownerDoc.uid === newUserUid) {
-    throw new Error('Cannot refer yourself');
-  }
+  const newCount    = (ownerDoc.referralCount    || 0) + 1;
+  const newEarnings = (ownerDoc.referralEarnings || 0) + 200;
+  const newBalance  = (ownerDoc.referralBalance  || 0) + 200;
 
-  const newCount =
-    (ownerDoc.referralCount || 0) + 1;
-
-  const newEarnings =
-    (ownerDoc.referralEarnings || 0) + 200;
-
-  const newBalance =
-    (ownerDoc.referralBalance || 0) + 200;
-
-
-  await updateDoc(doc(db,'users',ownerDoc.uid), {
-
-    referralCount:newCount,
-    referralEarnings:newEarnings,
-    referralBalance:newBalance
-
+  await updateDoc(doc(db, 'users', ownerDoc.uid), {
+    referralCount:    newCount,
+    referralEarnings: newEarnings,
+    referralBalance:  newBalance,
   });
 
-
-  await addDoc(collection(db,'referrals'), {
-
-    referrerUid:ownerDoc.uid,
-    referrerCode:code,
-    referredUid:newUserUid,
-    createdAt:serverTimestamp()
-
+  await addDoc(collection(db, 'referrals'), {
+    referrerUid:  ownerDoc.uid,
+    referrerCode: code,
+    referredUid:  newUserUid,
+    createdAt:    serverTimestamp(),
   });
 
-
-  await updateDoc(doc(db,'users',newUserUid), {
-
-    referredBy:code
-
-  });
+  await updateDoc(doc(db, 'users', newUserUid), { referredBy: code });
 
   return true;
-
 }
 
 
-/* COUNTRY → CURRENCY MAP */
+/* ── Country → currency map ─────────────────────────────────── */
 const CURRENCIES = {
-
-  'nigeria':              {code:'NGN',symbol:'₦', name:'Nigerian Naira', flag:'🇳🇬'},
-  'ghana':                {code:'GHS',symbol:'₵', name:'Ghanaian Cedi', flag:'🇬🇭'},
-  'kenya':                {code:'KES',symbol:'KSh',name:'Kenyan Shilling', flag:'🇰🇪'},
-  'south africa':         {code:'ZAR',symbol:'R', name:'South African Rand',flag:'🇿🇦'},
-  'united states':        {code:'USD',symbol:'$', name:'US Dollar', flag:'🇺🇸'},
-  'united kingdom':       {code:'GBP',symbol:'£', name:'British Pound', flag:'🇬🇧'},
-  'canada':               {code:'CAD',symbol:'C$',name:'Canadian Dollar', flag:'🇨🇦'},
-  'australia':            {code:'AUD',symbol:'A$',name:'Australian Dollar', flag:'🇦🇺'},
-  'india':                {code:'INR',symbol:'₹', name:'Indian Rupee', flag:'🇮🇳'},
-  'germany':              {code:'EUR',symbol:'€', name:'Euro', flag:'🇩🇪'},
-  'france':               {code:'EUR',symbol:'€', name:'Euro', flag:'🇫🇷'},
-  'cameroon':             {code:'XAF',symbol:'CFA',name:'CFA Franc', flag:'🇨🇲'},
-  'tanzania':             {code:'TZS',symbol:'TSh',name:'Tanzanian Shilling',flag:'🇹🇿'},
-  'uganda':               {code:'UGX',symbol:'USh',name:'Ugandan Shilling', flag:'🇺🇬'},
-  'zambia':               {code:'ZMW',symbol:'ZK',name:'Zambian Kwacha', flag:'🇿🇲'},
-  'zimbabwe':             {code:'USD',symbol:'$', name:'US Dollar', flag:'🇿🇼'},
-  'egypt':                {code:'EGP',symbol:'E£',name:'Egyptian Pound', flag:'🇪🇬'},
-  'ethiopia':             {code:'ETB',symbol:'Br',name:'Ethiopian Birr', flag:'🇪🇹'},
-  'rwanda':               {code:'RWF',symbol:'RF',name:'Rwandan Franc', flag:'🇷🇼'},
-  'senegal':              {code:'XOF',symbol:'CFA',name:'West African CFA', flag:'🇸🇳'},
-  'malaysia':             {code:'MYR',symbol:'RM',name:'Malaysian Ringgit', flag:'🇲🇾'},
-  'brazil':               {code:'BRL',symbol:'R$',name:'Brazilian Real', flag:'🇧🇷'},
-  'united arab emirates': {code:'AED',symbol:'AED',name:'UAE Dirham', flag:'🇦🇪'},
-  'japan':                {code:'JPY',symbol:'¥', name:'Japanese Yen', flag:'🇯🇵'},
-  'china':                {code:'CNY',symbol:'¥', name:'Chinese Yuan', flag:'🇨🇳'},
-  'singapore':            {code:'SGD',symbol:'S$',name:'Singapore Dollar', flag:'🇸🇬'}
-
+  'nigeria':              { code:'NGN', symbol:'₦',   name:'Nigerian Naira',      flag:'🇳🇬' },
+  'ghana':                { code:'GHS', symbol:'₵',   name:'Ghanaian Cedi',       flag:'🇬🇭' },
+  'kenya':                { code:'KES', symbol:'KSh', name:'Kenyan Shilling',     flag:'🇰🇪' },
+  'south africa':         { code:'ZAR', symbol:'R',   name:'South African Rand',  flag:'🇿🇦' },
+  'united states':        { code:'USD', symbol:'$',   name:'US Dollar',           flag:'🇺🇸' },
+  'united kingdom':       { code:'GBP', symbol:'£',   name:'British Pound',       flag:'🇬🇧' },
+  'canada':               { code:'CAD', symbol:'C$',  name:'Canadian Dollar',     flag:'🇨🇦' },
+  'australia':            { code:'AUD', symbol:'A$',  name:'Australian Dollar',   flag:'🇦🇺' },
+  'india':                { code:'INR', symbol:'₹',   name:'Indian Rupee',        flag:'🇮🇳' },
+  'germany':              { code:'EUR', symbol:'€',   name:'Euro',                flag:'🇩🇪' },
+  'france':               { code:'EUR', symbol:'€',   name:'Euro',                flag:'🇫🇷' },
+  'cameroon':             { code:'XAF', symbol:'CFA', name:'CFA Franc',           flag:'🇨🇲' },
+  'tanzania':             { code:'TZS', symbol:'TSh', name:'Tanzanian Shilling',  flag:'🇹🇿' },
+  'uganda':               { code:'UGX', symbol:'USh', name:'Ugandan Shilling',    flag:'🇺🇬' },
+  'zambia':               { code:'ZMW', symbol:'ZK',  name:'Zambian Kwacha',      flag:'🇿🇲' },
+  'zimbabwe':             { code:'USD', symbol:'$',   name:'US Dollar',           flag:'🇿🇼' },
+  'egypt':                { code:'EGP', symbol:'E£',  name:'Egyptian Pound',      flag:'🇪🇬' },
+  'ethiopia':             { code:'ETB', symbol:'Br',  name:'Ethiopian Birr',      flag:'🇪🇹' },
+  'rwanda':               { code:'RWF', symbol:'RF',  name:'Rwandan Franc',       flag:'🇷🇼' },
+  'senegal':              { code:'XOF', symbol:'CFA', name:'West African CFA',    flag:'🇸🇳' },
+  'malaysia':             { code:'MYR', symbol:'RM',  name:'Malaysian Ringgit',   flag:'🇲🇾' },
+  'brazil':               { code:'BRL', symbol:'R$',  name:'Brazilian Real',      flag:'🇧🇷' },
+  'united arab emirates': { code:'AED', symbol:'AED', name:'UAE Dirham',          flag:'🇦🇪' },
+  'japan':                { code:'JPY', symbol:'¥',   name:'Japanese Yen',        flag:'🇯🇵' },
+  'china':                { code:'CNY', symbol:'¥',   name:'Chinese Yuan',        flag:'🇨🇳' },
+  'singapore':            { code:'SGD', symbol:'S$',  name:'Singapore Dollar',    flag:'🇸🇬' },
 };
 
 
-/* COUNTRIES */
+/* ── Countries ──────────────────────────────────────────────── */
 const COUNTRIES = [
-
   "Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia","Austria",
   "Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Benin","Bolivia","Botswana",
   "Brazil","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Chad",
@@ -521,14 +466,12 @@ const COUNTRIES = [
   "Tanzania","Thailand","Togo","Tunisia","Turkey","Uganda","Ukraine",
   "United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan",
   "Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
-
 ];
 
 
-/* UNIVERSITIES */
+/* ── Universities ───────────────────────────────────────────── */
 const UNIVERSITIES = {
-
-  "Nigeria":[
+  "Nigeria": [
     "University of Lagos (UNILAG)",
     "University of Ibadan (UI)",
     "Obafemi Awolowo University (OAU)",
@@ -549,423 +492,239 @@ const UNIVERSITIES = {
     "Babcock University",
     "Other (type below)"
   ],
-
-  "Ghana":[
+  "Ghana": [
     "University of Ghana",
     "KNUST",
     "University of Cape Coast",
     "Ashesi University",
     "Other (type below)"
   ],
-
-  "Kenya":[
+  "Kenya": [
     "University of Nairobi",
     "Kenyatta University",
     "Strathmore University",
     "Other (type below)"
   ],
-
-  "United States":[
+  "United States": [
     "Harvard University",
     "MIT",
     "Stanford University",
     "UCLA",
     "Other (type below)"
   ],
-
-  "United Kingdom":[
+  "United Kingdom": [
     "University of Oxford",
     "University of Cambridge",
     "UCL",
     "Other (type below)"
-  ]
-
+  ],
 };
 
 
-/* POPULATE COUNTRIES */
+/* ── Populate countries ─────────────────────────────────────── */
 const countryEl = document.getElementById('country');
-
 COUNTRIES.forEach(c => {
-
   const o = document.createElement('option');
-
   o.value = c.toLowerCase();
   o.textContent = c;
-
   countryEl.appendChild(o);
-
 });
 
 
-/* COUNTRY CHANGE */
-window.onCountryChange = function() {
+/* ── Country change ─────────────────────────────────────────── */
+window.onCountryChange = function () {
+  const countryVal  = countryEl.value;
+  const countryText = countryEl.options[countryEl.selectedIndex].text;
 
-  const countryVal =
-    countryEl.value;
+  const uniGroup  = document.getElementById('uni-group');
+  const uniSelect = document.getElementById('uni-select');
+  const uniOther  = document.getElementById('uni-other');
+  const uniWrap   = document.getElementById('uni-select-wrap');
 
-  const countryText =
-    countryEl.options[countryEl.selectedIndex].text;
-
-  const uniGroup =
-    document.getElementById('uni-group');
-
-  const uniSelect =
-    document.getElementById('uni-select');
-
-  const uniOther =
-    document.getElementById('uni-other');
-
-  const uniWrap =
-    document.getElementById('uni-select-wrap');
-
-
-  uniSelect.innerHTML =
-    '<option value="">— Select your university —</option>';
-
-  uniOther.style.display='none';
-  uniOther.value='';
-
+  uniSelect.innerHTML = '<option value="">— Select your university —</option>';
+  uniOther.style.display = 'none';
+  uniOther.value = '';
 
   if (!countryVal) {
-
-    uniGroup.style.display='none';
-
+    uniGroup.style.display = 'none';
   } else {
-
-    uniGroup.style.display='block';
-
-    const unis =
-      UNIVERSITIES[countryText];
+    uniGroup.style.display = 'block';
+    const unis = UNIVERSITIES[countryText];
 
     if (unis?.length) {
-
       unis.forEach(u => {
-
         const o = document.createElement('option');
-
         o.value = u;
         o.textContent = u;
-
         uniSelect.appendChild(o);
-
       });
-
-      uniWrap.style.display='block';
-      uniSelect.style.display='block';
-
+      uniWrap.style.display   = 'block';
+      uniSelect.style.display = 'block';
     } else {
-
-      uniWrap.style.display='none';
-      uniOther.style.display='block';
-
-      uniOther.placeholder =
-        `Type your university in ${countryText}…`;
-
+      uniWrap.style.display  = 'none';
+      uniOther.style.display = 'block';
+      uniOther.placeholder   = `Type your university in ${countryText}…`;
     }
-
   }
 
-
-  const curr =
-    CURRENCIES[countryVal] || {
-      code:'USD',
-      symbol:'$',
-      name:'US Dollar',
-      flag:'🌍'
-    };
-
-  const preview =
-    document.getElementById('currency-preview');
-
-  document.getElementById('currency-flag').textContent =
-    curr.flag;
-
-  document.getElementById('currency-name').textContent =
-    curr.name;
-
-  document.getElementById('currency-sym').textContent =
-    curr.symbol;
-
-  preview.style.display =
-    countryVal ? 'inline-flex' : 'none';
-
+  const curr = CURRENCIES[countryVal] || { code:'USD', symbol:'$', name:'US Dollar', flag:'🌍' };
+  const preview = document.getElementById('currency-preview');
+  document.getElementById('currency-flag').textContent = curr.flag;
+  document.getElementById('currency-name').textContent = curr.name;
+  document.getElementById('currency-sym').textContent  = curr.symbol;
+  preview.style.display = countryVal ? 'inline-flex' : 'none';
 };
 
 
-/* UNIVERSITY CHANGE */
-window.onUniChange = function() {
-
-  const uniOther =
-    document.getElementById('uni-other');
-
+/* ── University change ──────────────────────────────────────── */
+window.onUniChange = function () {
+  const uniOther = document.getElementById('uni-other');
   uniOther.style.display =
     document.getElementById('uni-select').value === 'Other (type below)'
       ? 'block'
       : 'none';
-
 };
 
 
-/* PHOTO UPLOAD */
+/* ── Photo upload ───────────────────────────────────────────── */
 window.handlePhoto = async (input) => {
-
   const file = input.files[0];
-
   if (!file) return;
 
-  const st =
-    document.getElementById('photo-status');
+  const st     = document.getElementById('photo-status');
+  const circle = document.getElementById('photo-circle');
+  const url    = URL.createObjectURL(file);
 
-  const circle =
-    document.getElementById('photo-circle');
-
-  const url =
-    URL.createObjectURL(file);
-
-  circle.innerHTML =
-    `<img src="${url}"/>`;
-
-  st.textContent =
-    'Uploading…';
+  circle.innerHTML = `<img src="${url}"/>`;
+  st.textContent   = 'Uploading…';
 
   try {
-
-    const finalUrl =
-      await uploadImage(file);
-
-    document.getElementById('photoURL').value =
-      finalUrl;
-
-    st.textContent =
-      '✅ Photo uploaded!';
-
-  } catch(_) {
-
-    st.textContent =
-      '⚠️ Upload failed';
-
-    document.getElementById('photoURL').value =
-      '';
-
+    const finalUrl = await uploadImage(file);
+    document.getElementById('photoURL').value = finalUrl;
+    st.textContent = '✅ Photo uploaded!';
+  } catch (_) {
+    st.textContent = '⚠️ Upload failed';
+    document.getElementById('photoURL').value = '';
   }
-
 };
 
 
-/* SAVE PROFILE */
+/* ── Save profile ───────────────────────────────────────────── */
 window.handleSave = async () => {
-
-  const name =
-    document.getElementById('name').value.trim();
-
-  const countryOpt =
-    countryEl.options[countryEl.selectedIndex];
-
-  const country =
-    countryOpt?.text || '';
-
-  const countryVal =
-    countryOpt?.value || '';
-
-  const uniWrap =
-    document.getElementById('uni-select-wrap');
-
-  const uniSelect =
-    document.getElementById('uni-select');
-
-  const uniOther =
-    document.getElementById('uni-other');
+  const name       = document.getElementById('name').value.trim();
+  const countryOpt = countryEl.options[countryEl.selectedIndex];
+  const country    = countryOpt?.text  || '';
+  const countryVal = countryOpt?.value || '';
+  const uniWrap    = document.getElementById('uni-select-wrap');
+  const uniSelect  = document.getElementById('uni-select');
+  const uniOther   = document.getElementById('uni-other');
 
   let university =
-    uniWrap.style.display !== 'none' &&
-    uniSelect.value &&
+    uniWrap?.style.display !== 'none' &&
+    uniSelect?.value &&
     uniSelect.value !== 'Other (type below)'
       ? uniSelect.value
-      : uniOther.value.trim();
+      : (uniOther?.value.trim() || '');
 
-  const city =
-    document.getElementById('city').value.trim();
+  const city      = document.getElementById('city').value.trim();
+  const phone     = document.getElementById('phone').value.trim();
+  const course    = document.getElementById('course').value.trim();
+  const year      = document.getElementById('year').value;
+  const photoURL  = document.getElementById('photoURL').value.trim();
+  const refCodeRaw = (document.getElementById('referral-code')?.value || '').trim().toUpperCase();
 
-  const phone =
-    document.getElementById('phone').value.trim();
+  const errEl = document.getElementById('error-msg');
+  const btn   = document.getElementById('save-btn');
 
-  const course =
-    document.getElementById('course').value.trim();
+  errEl.style.display = 'none';
 
-  const year =
-    document.getElementById('year').value;
-
-  const photoURL =
-    document.getElementById('photoURL').value.trim();
-
-  const refCodeRaw =
-    (document.getElementById('referral-code')?.value || '')
-      .trim()
-      .toUpperCase();
-
-  const errEl =
-    document.getElementById('error-msg');
-
-  const btn =
-    document.getElementById('save-btn');
-
-
-  errEl.style.display='none';
-
-  if (!name || !country || !university || !city) {
-
-    errEl.textContent =
-      'Please fill in name, country, university and city.';
-
-    errEl.style.display='block';
-
+  if (!name || !country || country.startsWith('—') || !university || !city) {
+    errEl.textContent   = 'Please fill in name, country, university and city.';
+    errEl.style.display = 'block';
     return;
-
   }
 
-
-  btn.textContent='Saving…';
-  btn.disabled=true;
-
-  const curr =
-    CURRENCIES[countryVal] || {
-      code:'USD',
-      symbol:'$',
-      name:'US Dollar'
-    };
-
-  const existing =
-    await getDoc(doc(db,'users',currentUser.uid));
-
-  const existingData =
-    existing.exists()
-      ? existing.data()
-      : {};
-
-  const referralCode =
-    existingData.referralCode ||
-    generateReferralCode(name);
-
+  btn.disabled  = true;
+  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 80 80" fill="none"
+    style="animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle">
+    <path d="M40 5 A35 35 0 1 1 10 60" stroke="white" stroke-width="7" stroke-linecap="round" fill="none"/>
+    </svg> Saving…`;
 
   try {
+    const curr = CURRENCIES[countryVal] || { code:'USD', symbol:'$', name:'US Dollar', flag:'🌍' };
 
-    await setDoc(doc(db,'users',currentUser.uid), {
+    const existing     = await getDoc(doc(db, 'users', currentUser.uid));
+    const existingData = existing.exists() ? existing.data() : {};
 
+    // Preserve existing referral code, or generate a new one
+    const referralCode = existingData.referralCode || generateReferralCode(name);
+
+    await setDoc(doc(db, 'users', currentUser.uid), {
       ...existingData,
 
-      uid:currentUser.uid,
-      email:currentUser.email || '',
+      uid:          currentUser.uid,
+      email:        currentUser.email || '',
 
       name,
       phone,
       university,
 
-      country:countryVal,
-      countryDisplay:country,
+      country:      countryVal,
+      countryDisplay: country,
 
-      city:city.toLowerCase().trim(),
+      city:         city.toLowerCase().trim(),
 
-      currency:curr.code,
-      currencySymbol:curr.symbol,
-      currencyName:curr.name,
+      currency:     curr.code,
+      currencySymbol: curr.symbol,
+      currencyName: curr.name,
 
-      photoURL,
+      photoURL:     photoURL || '',
       course,
       year,
 
       referralCode,
 
-      verification:
-        existingData.verification || {
-          phoneVerified:false,
-          emailVerified:false,
-          idVerified:false,
-          idStatus:'unverified',
-          listingVerified:false
-        },
+      verification: existingData.verification || {
+        phoneVerified:   false,
+        emailVerified:   false,
+        idVerified:      false,
+        idStatus:        'unverified',
+        listingVerified: false,
+      },
 
-      referralCount:
-        existingData.referralCount || 0,
+      referralCount:    existingData.referralCount    || 0,
+      referralEarnings: existingData.referralEarnings || 0,
+      referralBalance:  existingData.referralBalance  || 0,
 
-      referralEarnings:
-        existingData.referralEarnings || 0,
+      profileCompletion: photoURL ? 70 : 50,
 
-      referralBalance:
-        existingData.referralBalance || 0,
+      createdAt: existingData.createdAt || serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
 
-      profileCompletion:
-        photoURL ? 70 : 50,
-
-      createdAt:
-        existingData.createdAt || new Date().toISOString(),
-
-      updatedAt:
-        new Date().toISOString()
-
-    }, {merge:false});
-
-
+    // Apply referral code if provided
     if (refCodeRaw) {
-
       try {
-
-        await applyReferralCode(
-          refCodeRaw,
-          currentUser.uid
-        );
-
-        const hint =
-          document.getElementById('referral-hint');
-
-        if (hint) {
-
-          hint.textContent =
-            '✅ Referral applied! Your friend earned ₦200';
-
-        }
-
-      } catch(refErr) {
-
-        errEl.textContent =
-          '⚠️ Referral code: ' +
-          refErr.message +
-          '. Profile saved without referral.';
-
-        errEl.style.display='block';
-
+        const hint = document.getElementById('referral-hint');
+        await applyReferralCode(refCodeRaw, currentUser.uid);
+        if (hint) hint.textContent = '✅ Referral applied! Your friend earned ₦200';
+      } catch (refErr) {
+        // Non-fatal: show warning but continue
+        errEl.textContent   = '⚠️ Referral code: ' + refErr.message + '. Profile saved without referral.';
+        errEl.style.display = 'block';
       }
-
     }
 
+    location.href = 'home.html';
 
-    location.href='home.html';
-
-  } catch(e) {
-
-    errEl.textContent =
-      'Error saving profile: ' + e.message;
-
-    errEl.style.display='block';
-
-    btn.textContent =
-      'Save & Continue →';
-
-    btn.disabled=false;
-
+  } catch (err) {
+    console.error(err);
+    errEl.textContent   = 'Failed to save profile. Please try again.';
+    errEl.style.display = 'block';
+    btn.textContent     = 'Save & Continue →';
+    btn.disabled        = false;
   }
-
 };
-
-
-/* SERVICE WORKER */
-if ('serviceWorker' in navigator) {
-
-  navigator.serviceWorker
-    .register('/sw.js')
-    .catch(()=>{});
-
-}
 
 </script>
 </body>
