@@ -1,30 +1,32 @@
 {
   "name": "Roomie",
   "short_name": "Roomie",
-  "description": "Student housing platform \u2014 find rooms and roommates near your university",
-  "start_url": "/splash.html",
+  "description": "Student housing platform — find rooms and roommates near your university",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0d0f14",
-  "theme_color": "#ff6b35",
+  "theme_color": "#0d0f14",
   "orientation": "portrait",
+  "lang": "en",
+
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [],
+
   "categories": [
     "lifestyle",
     "social"
-  ],
-  "lang": "en"
+  ]
 }
