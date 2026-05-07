@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roomie – Room Details</title>
   <link rel="stylesheet" href="style.css" />
+
+  <meta name="theme-color" content="#0d0f14"/>
+
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+
+<meta name="apple-mobile-web-app-title" content="Roomie"/>
+  
   <style>
     .carousel-wrap { position: relative; }
     .carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; height: 280px; }
@@ -211,6 +220,11 @@
       t.className = `toast ${type} show`;
       setTimeout(() => t.classList.remove('show'), 3000);
     }
+  </script>
+  <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
   </script>
 </body>
 </html>
