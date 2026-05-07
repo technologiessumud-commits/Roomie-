@@ -5,14 +5,148 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roomie – Profile</title>
   <meta name="theme-color" content="#0d0f14"/>
-
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-
-<meta name="apple-mobile-web-app-title" content="Roomie"/>
-  
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Roomie"/>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Referral card ───────────────────────────── */
+    .referral-card {
+      background: linear-gradient(135deg, rgba(255,107,53,.12) 0%, rgba(255,179,71,.08) 100%);
+      border: 1.5px solid rgba(255,107,53,.3);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .referral-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      color: var(--accent);
+    }
+    .referral-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .referral-code-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+    .referral-code-text {
+      flex: 1;
+      font-family: 'Courier New', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--accent);
+    }
+    .copy-btn {
+      background: rgba(255,107,53,.15);
+      border: none;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .2s;
+      white-space: nowrap;
+    }
+    .copy-btn:hover { background: rgba(255,107,53,.28); }
+
+    /* Progress bar */
+    .referral-progress-wrap {
+      margin-bottom: 14px;
+    }
+    .referral-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .referral-progress-track {
+      height: 8px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .referral-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff6b35, #ffb347);
+      border-radius: 99px;
+      transition: width .6s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* WhatsApp button — locked state */
+    .wa-btn-locked {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 13px 18px;
+      background: var(--card);
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: not-allowed;
+      text-align: left;
+    }
+    /* WhatsApp button — unlocked state */
+    .wa-btn-unlocked {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 13px 18px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(37,211,102,.3);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .wa-btn-unlocked:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(37,211,102,.4);
+    }
+    .wa-icon {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    /* Earnings badge */
+    .earnings-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(255,107,53,.06);
+      border: 1px solid rgba(255,107,53,.15);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+    }
+    .earnings-label { font-size: 12px; color: var(--muted); }
+    .earnings-value { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+  </style>
 </head>
 <body>
 
@@ -41,8 +175,8 @@
         <div class="profile-stat-label">Rooms Posted</div>
       </div>
       <div class="profile-stat">
-        <div class="profile-stat-num" id="stat-listings">0</div>
-        <div class="profile-stat-label">RM Listings</div>
+        <div class="profile-stat-num" id="stat-referrals">0</div>
+        <div class="profile-stat-label">Referrals</div>
       </div>
       <div class="profile-stat">
         <div class="profile-stat-num" id="stat-joined">—</div>
@@ -52,6 +186,49 @@
 
     <!-- Info section -->
     <div style="padding:20px">
+
+      <!-- ── REFERRAL SECTION ───────────────────── -->
+      <h3 style="font-family:'Syne',sans-serif;margin-bottom:12px">💸 Referral Program</h3>
+      <div class="referral-card" id="referral-section" style="display:none">
+
+        <div class="referral-title">Your Referral Code</div>
+        <div class="referral-desc">
+          Share your code with friends. Earn ₦200 per signup.<br>
+          Refer <strong id="wa-remaining">20</strong> people to unlock the exclusive WhatsApp community!
+        </div>
+
+        <!-- Code + copy -->
+        <div class="referral-code-box">
+          <span class="referral-code-text" id="referral-code-display">———</span>
+          <button class="copy-btn" onclick="copyReferralLink()">📋 Copy Link</button>
+        </div>
+
+        <!-- Earnings -->
+        <div class="earnings-row">
+          <span style="font-size:1.2rem">💰</span>
+          <div>
+            <div class="earnings-label">Total Referral Earnings</div>
+            <div class="earnings-value" id="earnings-display">₦0</div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="referral-progress-wrap">
+          <div class="referral-progress-label">
+            <span>WhatsApp unlock progress</span>
+            <span id="progress-text">0 / 20</span>
+          </div>
+          <div class="referral-progress-track">
+            <div class="referral-progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- WhatsApp button -->
+        <div id="wa-btn-container"></div>
+
+      </div>
+
+      <!-- Contact Info -->
       <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px">Contact Info</h3>
       <div class="card">
         <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
@@ -108,8 +285,7 @@
   </nav>
 
   <div id="toast" class="toast"></div>
-
-    <script type="module">
+          <script type="module">
 import {
   onAuth,
   getProfile,
@@ -118,12 +294,18 @@ import {
   logOut,
   deleteRoom,
   markRoomOccupied,
-  deleteAccount
+  deleteAccount,
+  generateReferralCode,
+  REFERRAL_WHATSAPP_THRESHOLD
 } from './firebase.js';
 
 import { uploadImage } from './upload.js';
 
-let currentUser = null;
+const WA_NUMBER  = '+2349047009387';
+const WA_LINK    = `https://wa.me/${WA_NUMBER.replace(/\D/g,'')}`;
+const THRESHOLD  = REFERRAL_WHATSAPP_THRESHOLD; // 20
+
+let currentUser    = null;
 let currentProfile = null;
 
 // ✅ Show UI immediately
@@ -131,15 +313,13 @@ document.getElementById('loading').style.display = 'none';
 document.getElementById('content').style.display = 'block';
 
 // 🔐 Auth
-onAuth((user) => {
+onAuth(async (user) => {
   if (!user) {
     window.location.href = 'login.html';
     return;
   }
-
   currentUser = user;
-
-  loadProfile(user.uid);
+  await loadProfile(user.uid);
   loadRooms(user.uid);
 });
 
@@ -148,77 +328,49 @@ onAuth((user) => {
 
 async function loadProfile(uid) {
   try {
-    const p = await getProfile(uid);
+    let p = await getProfile(uid);
     if (!p) return;
+
+    // Auto-generate referral code if missing
+    if (!p.referralCode) {
+      const code = generateReferralCode(p.name || '');
+      await saveProfile(uid, { referralCode: code });
+      p.referralCode = code;
+    }
 
     currentProfile = p;
 
     setAvatar(p.photoURL, p.name);
+    document.getElementById('profile-name').textContent      = p.name       || '—';
+    document.getElementById('profile-university').textContent = p.university || '—';
 
-    document.getElementById('profile-name').textContent =
-      p.name || '—';
-
-    document.getElementById('profile-university').textContent =
-      p.university || '—';
-
+    // Chips
     const chips = document.getElementById('profile-chips');
-
     chips.innerHTML = '';
+    if (p.year)   chips.innerHTML += `<span class="badge">🎓 ${p.year}</span>`;
+    if (p.course) chips.innerHTML += `<span class="badge">📚 ${p.course}</span>`;
 
-    if (p.year) {
-      chips.innerHTML += `
-        <span class="badge">🎓 ${p.year}</span>
-      `;
-    }
-
+    // Contact
+    document.getElementById('info-email').textContent = p.email || '—';
+    document.getElementById('info-phone').textContent = p.phone || '—';
     if (p.course) {
-      chips.innerHTML += `
-        <span class="badge">📚 ${p.course}</span>
-      `;
-    }
-
-    // ✅ Referral badge
-    if (p.referralCode) {
-      chips.innerHTML += `
-        <span class="badge">
-          💸 ${p.referralCode}
-        </span>
-      `;
-    }
-
-    // ✅ Earnings badge
-    if (p.referralEarnings) {
-      chips.innerHTML += `
-        <span class="badge">
-          ₦${p.referralEarnings}
-        </span>
-      `;
-    }
-
-    document.getElementById('info-email').textContent =
-      p.email || '—';
-
-    document.getElementById('info-phone').textContent =
-      p.phone || '—';
-
-    if (p.course) {
-      document.getElementById('info-course').textContent =
-        p.course;
+      document.getElementById('info-course').textContent = p.course;
     } else {
-      document.getElementById('info-course-row').style.display =
-        'none';
+      document.getElementById('info-course-row').style.display = 'none';
     }
 
-    document.getElementById('stat-joined').textContent =
-      p.createdAt
-        ? new Date(p.createdAt).toLocaleDateString(
-            'en',
-            {
-              month: 'short',
-              year: 'numeric'
-            }
-          )
-        : '—';
+    // Member since
+    document.getElementById('stat-joined').textContent = p.createdAt
+      ? new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })
+      : '—';
+
+    // Referral stats
+    const count    = p.referralCount    || 0;
+    const earnings = p.referralEarnings || 0;
+
+    document.getElementById('stat-referrals').textContent = count;
+
+    renderReferralSection(p.referralCode, count, earnings);
 
   } catch (err) {
     console.error('Profile error:', err);
@@ -226,22 +378,80 @@ async function loadProfile(uid) {
 }
 
 // ─────────────────────────────
+// REFERRAL SECTION
+
+function renderReferralSection(code, count, earnings) {
+  const section = document.getElementById('referral-section');
+  section.style.display = 'block';
+
+  document.getElementById('referral-code-display').textContent = code;
+
+  const remaining = Math.max(0, THRESHOLD - count);
+  document.getElementById('wa-remaining').textContent = remaining;
+
+  // Earnings
+  document.getElementById('earnings-display').textContent = `₦${earnings.toLocaleString()}`;
+
+  // Progress bar
+  const pct = Math.min(100, Math.round((count / THRESHOLD) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent  = `${count} / ${THRESHOLD}`;
+
+  // WhatsApp button
+  const waBtnContainer = document.getElementById('wa-btn-container');
+  const unlocked = count >= THRESHOLD;
+
+  if (unlocked) {
+    waBtnContainer.innerHTML = `
+      <a href="${WA_LINK}" target="_blank" class="wa-btn-unlocked">
+        <svg class="wa-icon" viewBox="0 0 24 24" fill="white">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        🎉 Join WhatsApp Community
+      </a>
+    `;
+  } else {
+    waBtnContainer.innerHTML = `
+      <div class="wa-btn-locked">
+        <svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor" style="opacity:.4">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        🔒 Refer ${remaining} more to unlock WhatsApp community
+      </div>
+    `;
+  }
+}
+
+// ─────────────────────────────
+// COPY REFERRAL LINK
+
+window.copyReferralLink = function() {
+  if (!currentProfile?.referralCode) return;
+  const link = `${location.origin}/signup.html?ref=${currentProfile.referralCode}`;
+  navigator.clipboard.writeText(link).then(() => {
+    showToast('Referral link copied! 🎉', 'success');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = link;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Referral link copied! 🎉', 'success');
+  });
+};
+
+// ─────────────────────────────
 // ROOMS
 
 async function loadRooms(uid) {
-
   try {
-
     const rooms = await getUserRooms(uid) || [];
+    document.getElementById('stat-rooms').textContent = rooms.length;
 
-    document.getElementById('stat-rooms').textContent =
-      rooms.length;
-
-    const container =
-      document.getElementById('my-rooms-container');
-
-    const emptyEl =
-      document.getElementById('my-rooms-empty');
+    const container = document.getElementById('my-rooms-container');
+    const emptyEl   = document.getElementById('my-rooms-empty');
 
     if (!rooms.length) {
       emptyEl.style.display = 'block';
@@ -249,95 +459,29 @@ async function loadRooms(uid) {
     }
 
     container.innerHTML = rooms.map(r => `
-
       <div class="card">
-
-        <div
-          onclick="window.location.href='room.html?id=${r.id}'"
-          style="cursor:pointer"
-        >
-
-          <div
-            class="card-body"
-            style="display:flex;align-items:center;gap:12px"
-          >
-
+        <div onclick="window.location.href='room.html?id=${r.id}'" style="cursor:pointer">
+          <div class="card-body" style="display:flex;align-items:center;gap:12px">
             <div style="font-size:1.5rem">🏠</div>
-
             <div style="flex:1">
-
-              <div style="font-weight:600;font-size:14px">
-                ${escHtml(r.title)}
-              </div>
-
-              <div style="font-size:12px;color:var(--muted)">
-                📍 ${escHtml(r.location || '—')}
-              </div>
-
-              ${
-                r.status === 'occupied'
-                ? `
-                  <div
-                    style="
-                      color:#ff6b35;
-                      font-size:12px;
-                      margin-top:4px;
-                      font-weight:600;
-                    "
-                  >
-                    🔒 Occupied
-                  </div>
-                `
-                : ''
-              }
-
+              <div style="font-weight:600;font-size:14px">${escHtml(r.title)}</div>
+              <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location || '—')}</div>
+              ${r.status === 'occupied'
+                ? `<div style="color:#ff6b35;font-size:12px;margin-top:4px;font-weight:600">🔒 Occupied</div>`
+                : ''}
             </div>
-
-            <span class="card-price">
-              ₦${Number(r.price).toLocaleString()}
-            </span>
-
+            <span class="card-price">₦${Number(r.price).toLocaleString()}</span>
           </div>
-
         </div>
-
-        <!-- ACTIONS -->
-        <div
-          style="
-            display:flex;
-            gap:8px;
-            padding:0 16px 16px;
-          "
-        >
-
-          <button
-            class="btn btn-secondary"
-            style="flex:1"
-            onclick="toggleOccupied(
-              '${r.id}',
-              '${r.status || 'available'}'
-            )"
-          >
-            ${
-              r.status === 'occupied'
-              ? '✅ Available'
-              : '🔒 Occupied'
-            }
+        <div style="display:flex;gap:8px;padding:0 16px 16px">
+          <button class="btn btn-secondary" style="flex:1"
+            onclick="toggleOccupied('${r.id}','${r.status || 'available'}')">
+            ${r.status === 'occupied' ? '✅ Available' : '🔒 Occupied'}
           </button>
-
-          <button
-            class="btn btn-danger"
-            onclick="deleteListing('${r.id}')"
-          >
-            Delete
-          </button>
-
+          <button class="btn btn-danger" onclick="deleteListing('${r.id}')">Delete</button>
         </div>
-
       </div>
-
     `).join('');
-
   } catch (err) {
     console.error('Rooms error:', err);
   }
@@ -347,31 +491,13 @@ async function loadRooms(uid) {
 // AVATAR
 
 function setAvatar(photoURL, name) {
-
-  const avatar =
-    document.getElementById('profile-avatar');
-
+  const avatar = document.getElementById('profile-avatar');
   if (photoURL) {
-
     avatar.innerHTML = `
-      <img
-        src="${photoURL}"
-        style="
-          width:100%;
-          height:100%;
-          border-radius:50%;
-          object-fit:cover
-        "
-        onerror="
-          this.outerHTML='${(name||'?')[0].toUpperCase()}'
-        "
-      />
-    `;
-
+      <img src="${photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover"
+        onerror="this.outerHTML='${(name||'?')[0].toUpperCase()}'"/>`;
   } else {
-
-    avatar.textContent =
-      name ? name[0].toUpperCase() : '?';
+    avatar.textContent = name ? name[0].toUpperCase() : '?';
   }
 }
 
@@ -379,31 +505,17 @@ function setAvatar(photoURL, name) {
 // PHOTO UPLOAD
 
 window.handlePhotoChange = async function(input) {
-
   const file = input.files[0];
-
   if (!file || !currentUser) return;
-
   try {
-
     const preview = URL.createObjectURL(file);
-
     setAvatar(preview, '');
-
     const url = await uploadImage(file);
-
-    await saveProfile(currentUser.uid, {
-      photoURL: url
-    });
-
+    await saveProfile(currentUser.uid, { photoURL: url });
     setAvatar(url, '');
-
     showToast('Photo updated ✅', 'success');
-
   } catch (err) {
-
     console.error(err);
-
     showToast('Upload failed ❌', 'error');
   }
 };
@@ -412,24 +524,13 @@ window.handlePhotoChange = async function(input) {
 // DELETE LISTING
 
 window.deleteListing = async function(roomId) {
-
-  const sure =
-    confirm('Delete this listing permanently?');
-
-  if (!sure) return;
-
+  if (!confirm('Delete this listing permanently?')) return;
   try {
-
     await deleteRoom(roomId);
-
     showToast('Listing deleted', 'success');
-
     loadRooms(currentUser.uid);
-
   } catch (err) {
-
     console.error(err);
-
     showToast('Failed to delete', 'error');
   }
 };
@@ -438,26 +539,13 @@ window.deleteListing = async function(roomId) {
 // OCCUPIED TOGGLE
 
 window.toggleOccupied = async function(roomId, status) {
-
   try {
-
     const occupied = status !== 'occupied';
-
     await markRoomOccupied(roomId, occupied);
-
-    showToast(
-      occupied
-        ? 'Marked as occupied'
-        : 'Marked as available',
-      'success'
-    );
-
+    showToast(occupied ? 'Marked as occupied' : 'Marked as available', 'success');
     loadRooms(currentUser.uid);
-
   } catch (err) {
-
     console.error(err);
-
     showToast('Update failed', 'error');
   }
 };
@@ -466,21 +554,11 @@ window.toggleOccupied = async function(roomId, status) {
 // DELETE ACCOUNT
 
 window.handleDeleteAccount = async function() {
-
-  const sure = confirm(
-    'Delete your account permanently?'
-  );
-
-  if (!sure) return;
-
+  if (!confirm('Delete your account permanently?')) return;
   try {
-
     await deleteAccount();
-
   } catch (err) {
-
     console.error(err);
-
     showToast('Delete failed', 'error');
   }
 };
@@ -489,12 +567,8 @@ window.handleDeleteAccount = async function() {
 // LOGOUT
 
 window.handleLogout = async () => {
-
-  if (!confirm('Are you sure you want to log out?'))
-    return;
-
+  if (!confirm('Are you sure you want to log out?')) return;
   await logOut();
-
   window.location.href = 'index.html';
 };
 
@@ -502,24 +576,16 @@ window.handleLogout = async () => {
 // HELPERS
 
 function escHtml(str) {
-
   const d = document.createElement('div');
-
   d.textContent = str;
-
   return d.innerHTML;
 }
 
-function showToast(msg, type='') {
-
+function showToast(msg, type = '') {
   const t = document.getElementById('toast');
-
   if (!t) return;
-
   t.textContent = msg;
-
   t.className = `toast ${type} show`;
-
   setTimeout(() => t.classList.remove('show'), 3000);
 }
   </script>
