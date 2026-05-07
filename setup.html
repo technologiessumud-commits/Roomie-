@@ -4,34 +4,62 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
   <title>Roomie – Set Up Profile</title>
-  <meta name="theme-color" content="#0d0f14"/>
-
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="apple-mobile-web-app-title" content="Roomie"/>
 
   <link rel="stylesheet" href="style.css"/>
   <link rel="manifest" href="manifest.json"/>
 
+  <meta name="theme-color" content="#0d0f14"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+
   <style>
-    .select-wrap{position:relative;}
-    .select-wrap select{appearance:none;-webkit-appearance:none;padding-right:40px;cursor:pointer;}
+    .select-wrap{
+      position:relative;
+    }
+
+    .select-wrap select{
+      appearance:none;
+      -webkit-appearance:none;
+      padding-right:40px;
+      cursor:pointer;
+    }
+
     .select-wrap::after{
-      content:'';position:absolute;right:14px;top:50%;
+      content:'';
+      position:absolute;
+      right:14px;
+      top:50%;
       transform:translateY(-50%);
       border:5px solid transparent;
       border-top-color:var(--muted);
-      margin-top:3px;pointer-events:none;
+      margin-top:3px;
+      pointer-events:none;
     }
+
     .photo-circle{
-      width:72px;height:72px;border-radius:50%;
-      background:var(--card);border:2px dashed var(--border);
-      display:flex;align-items:center;justify-content:center;
-      font-size:1.8rem;overflow:hidden;flex-shrink:0;cursor:pointer;
+      width:72px;
+      height:72px;
+      border-radius:50%;
+      background:var(--card);
+      border:2px dashed var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.8rem;
+      overflow:hidden;
+      flex-shrink:0;
+      cursor:pointer;
     }
-    .photo-circle img{width:100%;height:100%;object-fit:cover;}
+
+    .photo-circle img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
     .currency-preview{
-      display:inline-flex;align-items:center;gap:6px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
       background:rgba(255,107,53,.1);
       color:var(--accent);
       border:1px solid rgba(255,107,53,.3);
@@ -42,6 +70,7 @@
       margin-top:6px;
     }
   </style>
+
 </head>
 
 <body>
@@ -49,101 +78,246 @@
 <script type="module" src="theme.js"></script>
 
 <div class="page-full">
+
 <div style="max-width:480px;margin:0 auto;width:100%;padding-bottom:40px">
 
   <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px">
     One last step 🎉
   </div>
+
   <p style="color:var(--muted);font-size:14px;margin-bottom:28px">
     Set up your profile so students near you can find you.
   </p>
 
-  <!-- PROFILE PHOTO -->
+  <!-- Profile photo -->
   <div class="form-group">
-    <label>Profile photo <span style="color:var(--muted)">(optional)</span></label>
+
+    <label>
+      Profile photo
+      <span style="color:var(--muted)">(optional)</span>
+    </label>
+
     <div style="display:flex;align-items:center;gap:14px">
-      <div class="photo-circle" id="photo-circle" onclick="document.getElementById('photo-file').click()">👤</div>
+
+      <div class="photo-circle"
+           id="photo-circle"
+           onclick="document.getElementById('photo-file').click()">
+        👤
+      </div>
+
       <div>
-        <label for="photo-file" style="display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:9px 16px;cursor:pointer;font-size:14px;font-weight:500;">
+
+        <label for="photo-file"
+               style="display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:9px 16px;cursor:pointer;font-size:14px;font-weight:500;margin-bottom:0">
           📷 Choose photo
         </label>
-        <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhoto(this)"/>
-        <p class="form-hint" id="photo-status" style="margin-top:6px">Tap to upload</p>
+
+        <input type="file"
+               id="photo-file"
+               accept="image/*"
+               style="display:none"
+               onchange="handlePhoto(this)"/>
+
+        <p class="form-hint"
+           id="photo-status"
+           style="margin-top:6px">
+          Tap to upload
+        </p>
+
       </div>
     </div>
+
     <input type="hidden" id="photoURL"/>
+
   </div>
 
+  <!-- Name -->
   <div class="form-group">
+
     <label>Full name *</label>
-    <input type="text" id="name" placeholder="e.g. Emeka Johnson"/>
+
+    <input type="text"
+           id="name"
+           placeholder="e.g. Emeka Johnson"
+           autocomplete="name"/>
+
   </div>
 
-  <!-- COUNTRY -->
+  <!-- Country -->
   <div class="form-group">
+
     <label>Country *</label>
+
     <div class="select-wrap">
+
       <select id="country" onchange="onCountryChange()">
         <option value="">— Select your country —</option>
       </select>
+
     </div>
+
+    <!-- Currency preview -->
+    <div id="currency-preview"
+         style="display:none"
+         class="currency-preview">
+
+      <span id="currency-flag">🌍</span>
+
+      <span>
+        Listings will show in
+        <strong id="currency-name">USD</strong>
+        (<span id="currency-sym">$</span>)
+      </span>
+
+    </div>
+
   </div>
 
-  <!-- UNIVERSITY -->
-  <div class="form-group" id="uni-group" style="display:none">
+  <!-- University -->
+  <div class="form-group"
+       id="uni-group"
+       style="display:none">
+
     <label>University *</label>
-    <div class="select-wrap" id="uni-select-wrap">
-      <select id="uni-select" onchange="onUniChange()"></select>
+
+    <div class="select-wrap"
+         id="uni-select-wrap">
+
+      <select id="uni-select"
+              onchange="onUniChange()">
+
+        <option value="">
+          — Select your university —
+        </option>
+
+      </select>
+
     </div>
-    <input type="text" id="uni-other" style="display:none;margin-top:8px"/>
+
+    <input type="text"
+           id="uni-other"
+           placeholder="Type your university…"
+           style="display:none;margin-top:8px"/>
+
   </div>
 
+  <!-- City -->
   <div class="form-group">
+
     <label>City / State *</label>
-    <input type="text" id="city"/>
+
+    <input type="text"
+           id="city"
+           placeholder="e.g. Lagos"/>
+
   </div>
 
+  <!-- Phone -->
   <div class="form-group">
-    <label>Phone (optional)</label>
-    <input type="tel" id="phone"/>
+
+    <label>
+      Phone number
+      <span style="color:var(--muted)">
+        (optional — verify later for ✅ badge)
+      </span>
+    </label>
+
+    <input type="tel"
+           id="phone"
+           placeholder="+234 800 000 0000"
+           autocomplete="tel"/>
+
   </div>
 
+  <!-- Course -->
   <div class="form-group">
-    <label>Course (optional)</label>
-    <input type="text" id="course"/>
+
+    <label>
+      Course / Department
+      <span style="color:var(--muted)">
+        (optional)
+      </span>
+    </label>
+
+    <input type="text"
+           id="course"
+           placeholder="e.g. Computer Science"/>
+
   </div>
 
+  <!-- Year -->
   <div class="form-group">
-    <label>Year (optional)</label>
-    <select id="year">
-      <option value="">Select year</option>
-      <option>1st year</option>
-      <option>2nd year</option>
-      <option>3rd year</option>
-      <option>4th year</option>
-      <option>Postgraduate</option>
-    </select>
+
+    <label>
+      Year of study
+      <span style="color:var(--muted)">
+        (optional)
+      </span>
+    </label>
+
+    <div class="select-wrap">
+
+      <select id="year">
+        <option value="">Select year</option>
+        <option>1st year</option>
+        <option>2nd year</option>
+        <option>3rd year</option>
+        <option>4th year</option>
+        <option>Postgraduate</option>
+      </select>
+
+    </div>
+
   </div>
 
-  <!-- ✅ REFERRAL INPUT ADDED HERE -->
+  <!-- REFERRAL -->
   <div class="form-group" id="referral-group">
-    <label>Referral code <span style="color:var(--muted)">(optional)</span></label>
-    <input type="text" id="referral-code" placeholder="e.g. EMEK1234"
-      style="text-transform:uppercase;letter-spacing:2px"/>
-    <p class="form-hint" id="referral-hint" style="margin-top:6px"></p>
+
+    <label>
+      Referral code
+      <span style="color:var(--muted)">
+        (optional)
+      </span>
+    </label>
+
+    <input type="text"
+           id="referral-code"
+           placeholder="e.g. EMEK1234"
+           autocomplete="off"
+           style="text-transform:uppercase;letter-spacing:2px"/>
+
+    <p class="form-hint"
+       id="referral-hint"
+       style="margin-top:6px;color:var(--accent)">
+    </p>
+
   </div>
 
-  <p id="error-msg" style="display:none;color:var(--danger)"></p>
+  <!-- Error -->
+  <p id="error-msg"
+     style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;background:rgba(255,77,109,.08);padding:10px 14px;border-radius:8px">
+  </p>
 
-  <button class="btn btn-primary" id="save-btn" onclick="handleSave()">
+  <!-- Button -->
+  <button class="btn btn-primary"
+          id="save-btn"
+          onclick="handleSave()">
+
     Save & Continue →
+
   </button>
 
 </div>
 </div>
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
 import {
   getFirestore,
   doc,
@@ -158,6 +332,8 @@ import {
 
 import { uploadImage } from './upload.js';
 
+
+/* FIREBASE */
 const app = initializeApp({
   apiKey:"AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
   authDomain:"roomie-f3103.firebaseapp.com",
@@ -168,109 +344,629 @@ const app = initializeApp({
 });
 
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db   = getFirestore(app);
 
+let currentUser = null;
+
+
+/* AUTH */
 onAuthStateChanged(auth, u => {
-  if (!u) location.href = 'login.html';
-});
 
-function generateReferralCode(name='') {
-  const base = name.replace(/\s/g,'').toUpperCase().slice(0,4);
-  return `${base || 'USER'}${Math.floor(1000 + Math.random()*9000)}`;
-}
-
-// apply referral
-async function applyReferral(code, newUid) {
-  const snap = await getDocs(collection(db,'users'));
-
-  let owner = null;
-
-  snap.forEach(d => {
-    const data = d.data();
-    if (data.referralCode === code) owner = { id:d.id, ...data };
-  });
-
-  if (!owner) throw new Error("Invalid referral code");
-  if (owner.id === newUid) throw new Error("Cannot refer yourself");
-
-  await updateDoc(doc(db,'users',owner.id), {
-    referralCount: (owner.referralCount||0)+1,
-    referralEarnings: (owner.referralEarnings||0)+200
-  });
-
-  await addDoc(collection(db,'referrals'), {
-    referrer: owner.id,
-    referred: newUid,
-    code,
-    createdAt: serverTimestamp()
-  });
-}
-
-window.handleSave = async () => {
-  const u = auth.currentUser;
-  if (!u) return;
-
-  const name = document.getElementById('name').value.trim();
-  const country = document.getElementById('country').value;
-  const city = document.getElementById('city').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const course = document.getElementById('course').value.trim();
-  const year = document.getElementById('year').value;
-  const photoURL = document.getElementById('photoURL').value.trim();
-  const refInput = (document.getElementById('referral-code').value||'').trim().toUpperCase();
-
-  if (!name || !country || !city) return;
-
-  const existing = await getDoc(doc(db,'users',u.uid));
-  const old = existing.exists() ? existing.data() : {};
-
-  const myCode = old.referralCode || generateReferralCode(name);
-
-  const data = {
-    ...old,
-    uid: u.uid,
-    email: u.email,
-    name,
-    country,
-    city,
-    phone,
-    course,
-    year,
-    photoURL,
-    referralCode: myCode,
-    referralCount: old.referralCount || 0,
-    referralEarnings: old.referralEarnings || 0,
-    createdAt: old.createdAt || new Date().toISOString()
-  };
-
-  await setDoc(doc(db,'users',u.uid), data);
-
-  // apply referral if entered
-  if (refInput) {
-    try {
-      await applyReferral(refInput, u.uid);
-      document.getElementById('referral-hint').textContent =
-        "Referral applied ✅";
-    } catch (e) {
-      document.getElementById('error-msg').style.display='block';
-      document.getElementById('error-msg').textContent = e.message;
-    }
+  if (!u) {
+    location.href = 'login.html';
+    return;
   }
 
-  location.href = "home.html";
+  currentUser = u;
+
+});
+
+
+/* AUTO APPLY REFERRAL FROM URL */
+const urlRef = new URLSearchParams(location.search).get('ref');
+
+if (urlRef) {
+
+  const refInput = document.getElementById('referral-code');
+
+  if (refInput) {
+
+    refInput.value = urlRef.toUpperCase();
+
+    const hint = document.getElementById('referral-hint');
+
+    if (hint) {
+      hint.textContent = '🎉 Referral code applied!';
+    }
+
+  }
+
+}
+
+
+/* REFERRAL GENERATOR */
+function generateReferralCode(name='') {
+
+  const clean = name
+    .replace(/\s/g,'')
+    .toUpperCase()
+    .slice(0,4);
+
+  const rand = Math.floor(1000 + Math.random() * 9000);
+
+  return `${clean || 'USER'}${rand}`;
+
+}
+
+
+/* APPLY REFERRAL */
+async function applyReferralCode(code, newUserUid) {
+
+  const usersSnap = await getDocs(collection(db,'users'));
+
+  let ownerDoc = null;
+
+  usersSnap.forEach(d => {
+
+    const data = d.data();
+
+    if (data.referralCode === code) {
+      ownerDoc = {
+        uid:d.id,
+        ...data
+      };
+    }
+
+  });
+
+  if (!ownerDoc) {
+    throw new Error('Invalid referral code');
+  }
+
+  if (ownerDoc.uid === newUserUid) {
+    throw new Error('Cannot refer yourself');
+  }
+
+  const newCount =
+    (ownerDoc.referralCount || 0) + 1;
+
+  const newEarnings =
+    (ownerDoc.referralEarnings || 0) + 200;
+
+  const newBalance =
+    (ownerDoc.referralBalance || 0) + 200;
+
+
+  await updateDoc(doc(db,'users',ownerDoc.uid), {
+
+    referralCount:newCount,
+    referralEarnings:newEarnings,
+    referralBalance:newBalance
+
+  });
+
+
+  await addDoc(collection(db,'referrals'), {
+
+    referrerUid:ownerDoc.uid,
+    referrerCode:code,
+    referredUid:newUserUid,
+    createdAt:serverTimestamp()
+
+  });
+
+
+  await updateDoc(doc(db,'users',newUserUid), {
+
+    referredBy:code
+
+  });
+
+  return true;
+
+}
+
+
+/* COUNTRY → CURRENCY MAP */
+const CURRENCIES = {
+
+  'nigeria':              {code:'NGN',symbol:'₦', name:'Nigerian Naira', flag:'🇳🇬'},
+  'ghana':                {code:'GHS',symbol:'₵', name:'Ghanaian Cedi', flag:'🇬🇭'},
+  'kenya':                {code:'KES',symbol:'KSh',name:'Kenyan Shilling', flag:'🇰🇪'},
+  'south africa':         {code:'ZAR',symbol:'R', name:'South African Rand',flag:'🇿🇦'},
+  'united states':        {code:'USD',symbol:'$', name:'US Dollar', flag:'🇺🇸'},
+  'united kingdom':       {code:'GBP',symbol:'£', name:'British Pound', flag:'🇬🇧'},
+  'canada':               {code:'CAD',symbol:'C$',name:'Canadian Dollar', flag:'🇨🇦'},
+  'australia':            {code:'AUD',symbol:'A$',name:'Australian Dollar', flag:'🇦🇺'},
+  'india':                {code:'INR',symbol:'₹', name:'Indian Rupee', flag:'🇮🇳'},
+  'germany':              {code:'EUR',symbol:'€', name:'Euro', flag:'🇩🇪'},
+  'france':               {code:'EUR',symbol:'€', name:'Euro', flag:'🇫🇷'},
+  'cameroon':             {code:'XAF',symbol:'CFA',name:'CFA Franc', flag:'🇨🇲'},
+  'tanzania':             {code:'TZS',symbol:'TSh',name:'Tanzanian Shilling',flag:'🇹🇿'},
+  'uganda':               {code:'UGX',symbol:'USh',name:'Ugandan Shilling', flag:'🇺🇬'},
+  'zambia':               {code:'ZMW',symbol:'ZK',name:'Zambian Kwacha', flag:'🇿🇲'},
+  'zimbabwe':             {code:'USD',symbol:'$', name:'US Dollar', flag:'🇿🇼'},
+  'egypt':                {code:'EGP',symbol:'E£',name:'Egyptian Pound', flag:'🇪🇬'},
+  'ethiopia':             {code:'ETB',symbol:'Br',name:'Ethiopian Birr', flag:'🇪🇹'},
+  'rwanda':               {code:'RWF',symbol:'RF',name:'Rwandan Franc', flag:'🇷🇼'},
+  'senegal':              {code:'XOF',symbol:'CFA',name:'West African CFA', flag:'🇸🇳'},
+  'malaysia':             {code:'MYR',symbol:'RM',name:'Malaysian Ringgit', flag:'🇲🇾'},
+  'brazil':               {code:'BRL',symbol:'R$',name:'Brazilian Real', flag:'🇧🇷'},
+  'united arab emirates': {code:'AED',symbol:'AED',name:'UAE Dirham', flag:'🇦🇪'},
+  'japan':                {code:'JPY',symbol:'¥', name:'Japanese Yen', flag:'🇯🇵'},
+  'china':                {code:'CNY',symbol:'¥', name:'Chinese Yuan', flag:'🇨🇳'},
+  'singapore':            {code:'SGD',symbol:'S$',name:'Singapore Dollar', flag:'🇸🇬'}
+
 };
 
-// photo upload
+
+/* COUNTRIES */
+const COUNTRIES = [
+
+  "Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia","Austria",
+  "Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Benin","Bolivia","Botswana",
+  "Brazil","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Chad",
+  "Chile","China","Colombia","Congo","Croatia","Cuba","Cyprus","Czech Republic","Denmark",
+  "DR Congo","Ecuador","Egypt","Eritrea","Estonia","Ethiopia","Finland","France",
+  "Gabon","Gambia","Georgia","Germany","Ghana","Greece","Guatemala","Guinea","Haiti",
+  "Hungary","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica",
+  "Japan","Jordan","Kazakhstan","Kenya","Kuwait","Laos","Latvia","Lebanon","Lesotho",
+  "Liberia","Libya","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Mali",
+  "Malta","Mauritania","Mauritius","Mexico","Moldova","Mongolia","Morocco","Mozambique",
+  "Myanmar","Namibia","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria",
+  "Norway","Oman","Pakistan","Palestine","Panama","Paraguay","Peru","Philippines",
+  "Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saudi Arabia","Senegal",
+  "Sierra Leone","Singapore","Slovakia","Somalia","South Africa","South Korea",
+  "South Sudan","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan",
+  "Tanzania","Thailand","Togo","Tunisia","Turkey","Uganda","Ukraine",
+  "United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan",
+  "Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
+
+];
+
+
+/* UNIVERSITIES */
+const UNIVERSITIES = {
+
+  "Nigeria":[
+    "University of Lagos (UNILAG)",
+    "University of Ibadan (UI)",
+    "Obafemi Awolowo University (OAU)",
+    "University of Nigeria Nsukka (UNN)",
+    "Ahmadu Bello University (ABU)",
+    "University of Benin (UNIBEN)",
+    "Lagos State University (LASU)",
+    "University of Ilorin (UNILORIN)",
+    "University of Port Harcourt (UNIPORT)",
+    "University of Abuja",
+    "University of Jos (UNIJOS)",
+    "University of Calabar (UNICAL)",
+    "University of Maiduguri (UNIMAID)",
+    "University of Uyo (UNIUYO)",
+    "Nnamdi Azikiwe University (NAU)",
+    "Bayero University Kano (BUK)",
+    "Covenant University",
+    "Babcock University",
+    "Other (type below)"
+  ],
+
+  "Ghana":[
+    "University of Ghana",
+    "KNUST",
+    "University of Cape Coast",
+    "Ashesi University",
+    "Other (type below)"
+  ],
+
+  "Kenya":[
+    "University of Nairobi",
+    "Kenyatta University",
+    "Strathmore University",
+    "Other (type below)"
+  ],
+
+  "United States":[
+    "Harvard University",
+    "MIT",
+    "Stanford University",
+    "UCLA",
+    "Other (type below)"
+  ],
+
+  "United Kingdom":[
+    "University of Oxford",
+    "University of Cambridge",
+    "UCL",
+    "Other (type below)"
+  ]
+
+};
+
+
+/* POPULATE COUNTRIES */
+const countryEl = document.getElementById('country');
+
+COUNTRIES.forEach(c => {
+
+  const o = document.createElement('option');
+
+  o.value = c.toLowerCase();
+  o.textContent = c;
+
+  countryEl.appendChild(o);
+
+});
+
+
+/* COUNTRY CHANGE */
+window.onCountryChange = function() {
+
+  const countryVal =
+    countryEl.value;
+
+  const countryText =
+    countryEl.options[countryEl.selectedIndex].text;
+
+  const uniGroup =
+    document.getElementById('uni-group');
+
+  const uniSelect =
+    document.getElementById('uni-select');
+
+  const uniOther =
+    document.getElementById('uni-other');
+
+  const uniWrap =
+    document.getElementById('uni-select-wrap');
+
+
+  uniSelect.innerHTML =
+    '<option value="">— Select your university —</option>';
+
+  uniOther.style.display='none';
+  uniOther.value='';
+
+
+  if (!countryVal) {
+
+    uniGroup.style.display='none';
+
+  } else {
+
+    uniGroup.style.display='block';
+
+    const unis =
+      UNIVERSITIES[countryText];
+
+    if (unis?.length) {
+
+      unis.forEach(u => {
+
+        const o = document.createElement('option');
+
+        o.value = u;
+        o.textContent = u;
+
+        uniSelect.appendChild(o);
+
+      });
+
+      uniWrap.style.display='block';
+      uniSelect.style.display='block';
+
+    } else {
+
+      uniWrap.style.display='none';
+      uniOther.style.display='block';
+
+      uniOther.placeholder =
+        `Type your university in ${countryText}…`;
+
+    }
+
+  }
+
+
+  const curr =
+    CURRENCIES[countryVal] || {
+      code:'USD',
+      symbol:'$',
+      name:'US Dollar',
+      flag:'🌍'
+    };
+
+  const preview =
+    document.getElementById('currency-preview');
+
+  document.getElementById('currency-flag').textContent =
+    curr.flag;
+
+  document.getElementById('currency-name').textContent =
+    curr.name;
+
+  document.getElementById('currency-sym').textContent =
+    curr.symbol;
+
+  preview.style.display =
+    countryVal ? 'inline-flex' : 'none';
+
+};
+
+
+/* UNIVERSITY CHANGE */
+window.onUniChange = function() {
+
+  const uniOther =
+    document.getElementById('uni-other');
+
+  uniOther.style.display =
+    document.getElementById('uni-select').value === 'Other (type below)'
+      ? 'block'
+      : 'none';
+
+};
+
+
+/* PHOTO UPLOAD */
 window.handlePhoto = async (input) => {
+
   const file = input.files[0];
+
   if (!file) return;
 
-  const url = URL.createObjectURL(file);
-  document.getElementById('photo-circle').innerHTML = `<img src="${url}"/>`;
+  const st =
+    document.getElementById('photo-status');
 
-  const final = await uploadImage(file);
-  document.getElementById('photoURL').value = final;
+  const circle =
+    document.getElementById('photo-circle');
+
+  const url =
+    URL.createObjectURL(file);
+
+  circle.innerHTML =
+    `<img src="${url}"/>`;
+
+  st.textContent =
+    'Uploading…';
+
+  try {
+
+    const finalUrl =
+      await uploadImage(file);
+
+    document.getElementById('photoURL').value =
+      finalUrl;
+
+    st.textContent =
+      '✅ Photo uploaded!';
+
+  } catch(_) {
+
+    st.textContent =
+      '⚠️ Upload failed';
+
+    document.getElementById('photoURL').value =
+      '';
+
+  }
+
 };
+
+
+/* SAVE PROFILE */
+window.handleSave = async () => {
+
+  const name =
+    document.getElementById('name').value.trim();
+
+  const countryOpt =
+    countryEl.options[countryEl.selectedIndex];
+
+  const country =
+    countryOpt?.text || '';
+
+  const countryVal =
+    countryOpt?.value || '';
+
+  const uniWrap =
+    document.getElementById('uni-select-wrap');
+
+  const uniSelect =
+    document.getElementById('uni-select');
+
+  const uniOther =
+    document.getElementById('uni-other');
+
+  let university =
+    uniWrap.style.display !== 'none' &&
+    uniSelect.value &&
+    uniSelect.value !== 'Other (type below)'
+      ? uniSelect.value
+      : uniOther.value.trim();
+
+  const city =
+    document.getElementById('city').value.trim();
+
+  const phone =
+    document.getElementById('phone').value.trim();
+
+  const course =
+    document.getElementById('course').value.trim();
+
+  const year =
+    document.getElementById('year').value;
+
+  const photoURL =
+    document.getElementById('photoURL').value.trim();
+
+  const refCodeRaw =
+    (document.getElementById('referral-code')?.value || '')
+      .trim()
+      .toUpperCase();
+
+  const errEl =
+    document.getElementById('error-msg');
+
+  const btn =
+    document.getElementById('save-btn');
+
+
+  errEl.style.display='none';
+
+  if (!name || !country || !university || !city) {
+
+    errEl.textContent =
+      'Please fill in name, country, university and city.';
+
+    errEl.style.display='block';
+
+    return;
+
+  }
+
+
+  btn.textContent='Saving…';
+  btn.disabled=true;
+
+  const curr =
+    CURRENCIES[countryVal] || {
+      code:'USD',
+      symbol:'$',
+      name:'US Dollar'
+    };
+
+  const existing =
+    await getDoc(doc(db,'users',currentUser.uid));
+
+  const existingData =
+    existing.exists()
+      ? existing.data()
+      : {};
+
+  const referralCode =
+    existingData.referralCode ||
+    generateReferralCode(name);
+
+
+  try {
+
+    await setDoc(doc(db,'users',currentUser.uid), {
+
+      ...existingData,
+
+      uid:currentUser.uid,
+      email:currentUser.email || '',
+
+      name,
+      phone,
+      university,
+
+      country:countryVal,
+      countryDisplay:country,
+
+      city:city.toLowerCase().trim(),
+
+      currency:curr.code,
+      currencySymbol:curr.symbol,
+      currencyName:curr.name,
+
+      photoURL,
+      course,
+      year,
+
+      referralCode,
+
+      verification:
+        existingData.verification || {
+          phoneVerified:false,
+          emailVerified:false,
+          idVerified:false,
+          idStatus:'unverified',
+          listingVerified:false
+        },
+
+      referralCount:
+        existingData.referralCount || 0,
+
+      referralEarnings:
+        existingData.referralEarnings || 0,
+
+      referralBalance:
+        existingData.referralBalance || 0,
+
+      profileCompletion:
+        photoURL ? 70 : 50,
+
+      createdAt:
+        existingData.createdAt || new Date().toISOString(),
+
+      updatedAt:
+        new Date().toISOString()
+
+    }, {merge:false});
+
+
+    if (refCodeRaw) {
+
+      try {
+
+        await applyReferralCode(
+          refCodeRaw,
+          currentUser.uid
+        );
+
+        const hint =
+          document.getElementById('referral-hint');
+
+        if (hint) {
+
+          hint.textContent =
+            '✅ Referral applied! Your friend earned ₦200';
+
+        }
+
+      } catch(refErr) {
+
+        errEl.textContent =
+          '⚠️ Referral code: ' +
+          refErr.message +
+          '. Profile saved without referral.';
+
+        errEl.style.display='block';
+
+      }
+
+    }
+
+
+    location.href='home.html';
+
+  } catch(e) {
+
+    errEl.textContent =
+      'Error saving profile: ' + e.message;
+
+    errEl.style.display='block';
+
+    btn.textContent =
+      'Save & Continue →';
+
+    btn.disabled=false;
+
+  }
+
+};
+
+
+/* SERVICE WORKER */
+if ('serviceWorker' in navigator) {
+
+  navigator.serviceWorker
+    .register('/sw.js')
+    .catch(()=>{});
+
+}
+
 </script>
 </body>
-    </html>
+</html>
