@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Roomie – Admin Panel</title>
+  <meta name="theme-color" content="#0d0f14"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d0f14;
+      --surface:  #13161d;
+      --card:     #1a1e28;
+      --border:   rgba(255,255,255,.08);
+      --text:     #f0f2f7;
+      --muted:    rgba(240,242,247,.45);
+      --accent:   #ff6b35;
+      --accent2:  #ffb347;
+      --green:    #25D366;
+      --red:      #ff4d6d;
+      --blue:     #4da6ff;
+      --radius:   14px;
+      --radius-sm:10px;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; }
+
+    /* ── Gate ── */
+    #gate {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999; flex-direction: column; gap: 12px;
+    }
+    .gate-logo { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+    .gate-logo span { color: var(--accent); }
+    .gate-sub { color: var(--muted); font-size: 13px; }
+    .gate-denied {
+      background: rgba(255,77,109,.1); border: 1px solid rgba(255,77,109,.3);
+      border-radius: var(--radius-sm); padding: 14px 20px;
+      color: var(--red); font-size: 14px; text-align: center; line-height: 1.6;
+    }
+
+    /* ── Layout ── */
+    #app { display: none; min-height: 100vh; }
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 24px 0; z-index: 100;
+    }
+    .sidebar-logo {
+      font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800;
+      padding: 0 24px; margin-bottom: 32px;
+    }
+    .sidebar-logo span { color: var(--accent); }
+    .sidebar-badge {
+      font-size: 10px; background: var(--accent); color: #fff;
+      border-radius: 4px; padding: 2px 5px; font-family: 'DM Mono'; margin-left: 6px;
+      vertical-align: middle;
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 24px; font-size: 13px; font-weight: 500;
+      color: var(--muted); cursor: pointer; transition: all .15s;
+      border: none; background: none; text-align: left; width: 100%;
+    }
+    .nav-link:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .nav-link.active { color: var(--accent); background: rgba(255,107,53,.08); border-right: 3px solid var(--accent); }
+    .nav-link .icon { font-size: 1.1rem; width: 20px; text-align: center; }
+    .sidebar-footer { margin-top: auto; padding: 0 24px; }
+    .logout-btn {
+      width: 100%; padding: 10px; border-radius: var(--radius-sm);
+      background: rgba(255,77,109,.1); border: 1px solid rgba(255,77,109,.2);
+      color: var(--red); font-size: 13px; cursor: pointer; font-family: 'DM Mono';
+      transition: background .15s;
+    }
+    .logout-btn:hover { background: rgba(255,77,109,.18); }
+
+    .main { margin-left: 220px; padding: 32px; min-height: 100vh; }
+    .page-header {
+      margin-bottom: 28px;
+    }
+    .page-title { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; }
+    .page-sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+    /* ── Stat cards ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--c, var(--accent));
+    }
+    .stat-icon { font-size: 1.5rem; margin-bottom: 10px; }
+    .stat-num { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; line-height: 1; }
+    .stat-label { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+    /* ── Section ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .table-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--border); gap: 12px;
+    }
+    .table-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+    .search-input {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 14px; font-size: 13px; color: var(--text); font-family: 'DM Mono';
+      outline: none; transition: border-color .15s; width: 240px;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: rgba(255,255,255,.03); text-align: left;
+      padding: 12px 16px; font-size: 11px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .08em; font-weight: 500;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 13px 16px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.04);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    .badge-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
+    }
+    .badge-green { background: rgba(37,211,102,.12); color: var(--green); }
+    .badge-orange { background: rgba(255,107,53,.12); color: var(--accent); }
+    .badge-red { background: rgba(255,77,109,.12); color: var(--red); }
+    .badge-blue { background: rgba(77,166,255,.12); color: var(--blue); }
+    .badge-grey { background: rgba(255,255,255,.07); color: var(--muted); }
+
+    .action-btn {
+      padding: 5px 12px; border-radius: 7px; font-size: 12px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      font-family: 'DM Mono'; transition: all .15s; margin-right: 4px;
+    }
+    .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .action-btn.danger { border-color: rgba(255,77,109,.3); color: var(--red); }
+    .action-btn.danger:hover { background: rgba(255,77,109,.1); }
+    .action-btn.ban-active { border-color: rgba(255,179,71,.3); color: var(--accent2); }
+
+    /* Progress in table */
+    .mini-progress { height: 5px; background: var(--border); border-radius: 99px; width: 80px; overflow: hidden; }
+    .mini-progress-fill { height: 100%; background: linear-gradient(90deg,#ff6b35,#ffb347); border-radius: 99px; }
+
+    /* Avatar */
+    .table-avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: rgba(255,107,53,.2);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--accent); flex-shrink: 0;
+      object-fit: cover;
+    }
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px 20px; font-size: 13px; z-index: 9999; transition: transform .3s;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: rgba(37,211,102,.3); color: var(--green); }
+    .toast.error { border-color: rgba(255,77,109,.3); color: var(--red); }
+
+    /* Empty state */
+    .empty-state { padding: 48px 20px; text-align: center; color: var(--muted); font-size: 14px; }
+    .empty-state .emoji { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+
+    /* Loader */
+    .spinner {
+      width: 20px; height: 20px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin .7s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Mobile warning */
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .sidebar-logo, .nav-link span:not(.icon), .sidebar-badge, .sidebar-footer { display: none; }
+      .main { margin-left: 60px; padding: 20px 16px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .search-input { width: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Gate (shown while checking auth) -->
+<div id="gate">
+  <div class="gate-logo">Room<span>ie</span></div>
+  <div class="gate-sub">Verifying admin access…</div>
+  <div class="spinner" style="margin-top:8px"></div>
+  <div id="gate-denied" class="gate-denied" style="display:none;margin-top:16px;max-width:320px">
+    🚫 Access denied.<br>
+    This panel is for admins only.<br><br>
+    <a href="login.html" style="color:var(--accent)">← Back to login</a>
+  </div>
+</div>
+
+<!-- Admin App -->
+<div id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Room<span>ie</span> <span class="sidebar-badge">ADMIN</span></div>
+
+    <button class="nav-link active" data-section="overview" onclick="switchSection(this,'overview')">
+      <span class="icon">📊</span><span>Overview</span>
+    </button>
+    <button class="nav-link" data-section="users" onclick="switchSection(this,'users')">
+      <span class="icon">👥</span><span>Users</span>
+    </button>
+    <button class="nav-link" data-section="referrals" onclick="switchSection(this,'referrals')">
+      <span class="icon">💸</span><span>Referrals</span>
+    </button>
+    <button class="nav-link" data-section="rooms" onclick="switchSection(this,'rooms')">
+      <span class="icon">🏠</span><span>Rooms</span>
+    </button>
+
+    <div class="sidebar-footer">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px" id="admin-email-label"></div>
+      <button class="logout-btn" onclick="adminLogout()">🚪 Log Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── OVERVIEW ── -->
+    <section class="section active" id="section-overview">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub" id="last-updated">Loading…</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card" style="--c:#4da6ff">
+          <div class="stat-icon">👥</div>
+          <div class="stat-num" id="stat-total-users">—</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card" style="--c:#ff6b35">
+          <div class="stat-icon">🏠</div>
+          <div class="stat-num" id="stat-total-rooms">—</div>
+          <div class="stat-label">Total Listings</div>
+        </div>
+        <div class="stat-card" style="--c:#25D366">
+          <div class="stat-icon">💸</div>
+          <div class="stat-num" id="stat-total-referrals">—</div>
+          <div class="stat-label">Total Referrals</div>
+        </div>
+        <div class="stat-card" style="--c:#ffb347">
+          <div class="stat-icon">💰</div>
+          <div class="stat-num" id="stat-total-payouts">—</div>
+          <div class="stat-label">Total Payouts</div>
+        </div>
+      </div>
+
+      <!-- Top referrers table -->
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="table-title">🏆 Top Referrers</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>User</th>
+              <th>Code</th>
+              <th>Referrals</th>
+              <th>Earnings</th>
+              <th>WhatsApp</th>
+            </tr>
+          </thead>
+          <tbody id="top-referrers-body">
+            <tr><td colspan="6" class="empty-state"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── USERS ── -->
+    <section class="section" id="section-users">
+      <div class="page-header">
+        <div class="page-title">Users</div>
+        <div class="page-sub">All registered accounts</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="table-title">👥 All Users (<span id="users-count">0</span>)</div>
+          <input class="search-input" id="users-search" placeholder="🔍 Search name or email…"
+            oninput="filterUsers(this.value)"/>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>University</th>
+              <th>Referrals</th>
+              <th>Earnings</th>
+              <th>Joined</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-body">
+            <tr><td colspan="8" class="empty-state"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── REFERRALS ── -->
+    <section class="section" id="section-referrals">
+      <div class="page-header">
+        <div class="page-title">Referrals</div>
+        <div class="page-sub">All referral events — who referred who</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="table-title">💸 Referral Log (<span id="referrals-count">0</span>)</div>
+          <input class="search-input" id="referrals-search" placeholder="🔍 Search code or user…"
+            oninput="filterReferrals(this.value)"/>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Referrer</th>
+              <th>Code Used</th>
+              <th>New User (Referred)</th>
+              <th>Date</th>
+              <th>Progress to WA</th>
+            </tr>
+          </thead>
+          <tbody id="referrals-body">
+            <tr><td colspan="5" class="empty-state"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── ROOMS ── -->
+    <section class="section" id="section-rooms">
+      <div class="page-header">
+        <div class="page-title">Listings</div>
+        <div class="page-sub">All posted rooms</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="table-title">🏠 All Rooms (<span id="rooms-count">0</span>)</div>
+          <input class="search-input" id="rooms-search" placeholder="🔍 Search title or location…"
+            oninput="filterRooms(this.value)"/>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Location</th>
+              <th>Price</th>
+              <th>Owner</th>
+              <th>Status</th>
+              <th>Posted</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rooms-body">
+            <tr><td colspan="7" class="empty-state"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, collection, getDocs, doc,
+  updateDoc, deleteDoc, query, where, getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const ADMIN_EMAILS = ['opemuhammed35@gmail.com', 'sumudinnovation4@gmail.com'];
+const WA_THRESHOLD = 20;
+
+const app  = initializeApp({
+  apiKey:            "AIzaSyDaDEbVpUUyLsmq5ilNp3CVLRs3ZX-ZWUM",
+  authDomain:        "roomie-f3103.firebaseapp.com",
+  projectId:         "roomie-f3103",
+  storageBucket:     "roomie-f3103.firebasestorage.app",
+  messagingSenderId: "896474185176",
+  appId:             "1:896474185176:web:0e4543682f594daf0a86ad"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── State ─────────────────────────────────────────────────────
+let allUsers     = [];
+let allRooms     = [];
+let allReferrals = [];
+let userMap      = {}; // uid → profile
+
+// ── Auth gate ─────────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user || !ADMIN_EMAILS.includes(user.email?.toLowerCase())) {
+    document.querySelector('.gate-sub').style.display    = 'none';
+    document.querySelector('.spinner').style.display     = 'none';
+    document.getElementById('gate-denied').style.display = 'block';
+    return;
+  }
+  // Admitted
+  document.getElementById('gate').style.display     = 'none';
+  document.getElementById('app').style.display      = 'block';
+  document.getElementById('admin-email-label').textContent = user.email;
+
+  await loadAll();
+});
+
+// ── Load everything ───────────────────────────────────────────
+async function loadAll() {
+  document.getElementById('last-updated').textContent = 'Loading data…';
+  try {
+    const [usersSnap, roomsSnap, referralsSnap] = await Promise.all([
+      getDocs(collection(db, 'users')),
+      getDocs(collection(db, 'rooms')),
+      getDocs(collection(db, 'referrals'))
+    ]);
+
+    allUsers     = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    allRooms     = roomsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    allReferrals = referralsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Build uid → user map
+    userMap = {};
+    allUsers.forEach(u => { userMap[u.id] = u; });
+
+    renderOverview();
+    renderUsers(allUsers);
+    renderReferrals(allReferrals);
+    renderRooms(allRooms);
+
+    document.getElementById('last-updated').textContent =
+      'Last updated: ' + new Date().toLocaleTimeString();
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to load data', 'error');
+  }
+}
+
+// ── Overview ──────────────────────────────────────────────────
+function renderOverview() {
+  document.getElementById('stat-total-users').textContent     = allUsers.length;
+  document.getElementById('stat-total-rooms').textContent     = allRooms.length;
+  document.getElementById('stat-total-referrals').textContent = allReferrals.length;
+
+  const totalPayouts = allUsers.reduce((s, u) => s + (u.referralEarnings || 0), 0);
+  document.getElementById('stat-total-payouts').textContent   = '₦' + totalPayouts.toLocaleString();
+
+  // Top referrers
+  const sorted = [...allUsers]
+    .filter(u => u.referralCount > 0)
+    .sort((a, b) => (b.referralCount || 0) - (a.referralCount || 0))
+    .slice(0, 10);
+
+  const tbody = document.getElementById('top-referrers-body');
+  if (!sorted.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span class="emoji">🎯</span>No referrals yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = sorted.map((u, i) => {
+    const count    = u.referralCount    || 0;
+    const earnings = u.referralEarnings || 0;
+    const unlocked = count >= WA_THRESHOLD;
+    return `
+      <tr>
+        <td style="color:var(--muted);font-size:12px">#${i + 1}</td>
+        <td>
+          <div class="user-cell">
+            ${avatarCell(u)}
+            <div>
+              <div style="font-weight:600">${esc(u.name || '—')}</div>
+              <div style="font-size:11px;color:var(--muted)">${esc(u.email || '')}</div>
+            </div>
+          </div>
+        </td>
+        <td><span style="font-family:'DM Mono';color:var(--accent);letter-spacing:1px">${esc(u.referralCode || '—')}</span></td>
+        <td><strong>${count}</strong></td>
+        <td>₦${earnings.toLocaleString()}</td>
+        <td>${unlocked
+          ? `<span class="badge-pill badge-green">✅ Unlocked</span>`
+          : `<span class="badge-pill badge-grey">🔒 ${count}/${WA_THRESHOLD}</span>`}</td>
+      </tr>`;
+  }).join('');
+}
+
+// ── Users ─────────────────────────────────────────────────────
+function renderUsers(users) {
+  document.getElementById('users-count').textContent = users.length;
+  const tbody = document.getElementById('users-body');
+  if (!users.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><span class="emoji">👥</span>No users found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const count    = u.referralCount    || 0;
+    const earnings = u.referralEarnings || 0;
+    const banned   = u.banned === true;
+    const joined   = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+    return `
+      <tr id="user-row-${u.id}">
+        <td>
+          <div class="user-cell">
+            ${avatarCell(u)}
+            <div>
+              <div style="font-weight:600">${esc(u.name || '—')}</div>
+              <div style="font-size:11px;color:var(--muted)">${esc(u.referralCode || '')}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:12px;color:var(--muted)">${esc(u.email || '—')}</td>
+        <td style="font-size:12px">${esc(u.university || '—')}</td>
+        <td>
+          <div>${count}</div>
+          <div class="mini-progress" style="margin-top:4px">
+            <div class="mini-progress-fill" style="width:${Math.min(100, count / WA_THRESHOLD * 100)}%"></div>
+          </div>
+        </td>
+        <td>₦${earnings.toLocaleString()}</td>
+        <td style="font-size:12px;color:var(--muted)">${joined}</td>
+        <td>${banned
+          ? `<span class="badge-pill badge-red">🚫 Banned</span>`
+          : `<span class="badge-pill badge-green">✅ Active</span>`}</td>
+        <td>
+          <button class="action-btn ${banned ? 'ban-active' : ''}"
+            onclick="toggleBan('${u.id}', ${banned})">
+            ${banned ? '✅ Unban' : '🚫 Ban'}
+          </button>
+          <button class="action-btn danger"
+            onclick="deleteUserRow('${u.id}', '${esc(u.name || u.email || '')}')">
+            🗑 Delete
+          </button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+window.filterUsers = function(q) {
+  q = q.toLowerCase();
+  const filtered = allUsers.filter(u =>
+    (u.name  || '').toLowerCase().includes(q) ||
+    (u.email || '').toLowerCase().includes(q) ||
+    (u.university || '').toLowerCase().includes(q)
+  );
+  renderUsers(filtered);
+};
+
+// ── Referrals ─────────────────────────────────────────────────
+function renderReferrals(refs) {
+  document.getElementById('referrals-count').textContent = refs.length;
+  const tbody = document.getElementById('referrals-body');
+  if (!refs.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><span class="emoji">💸</span>No referrals yet</td></tr>`;
+    return;
+  }
+  // Sort newest first (Firestore Timestamp or missing)
+  const sorted = [...refs].sort((a, b) => {
+    const at = a.createdAt?.seconds || 0;
+    const bt = b.createdAt?.seconds || 0;
+    return bt - at;
+  });
+  tbody.innerHTML = sorted.map(r => {
+    const referrer   = userMap[r.referrerUid]  || {};
+    const referred   = userMap[r.referredUid]  || {};
+    const refCount   = referrer.referralCount  || 0;
+    const unlocked   = refCount >= WA_THRESHOLD;
+    const date       = r.createdAt?.seconds
+      ? new Date(r.createdAt.seconds * 1000).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
+      : '—';
+    return `
+      <tr>
+        <td>
+          <div class="user-cell">
+            ${avatarCell(referrer)}
+            <div>
+              <div style="font-weight:600">${esc(referrer.name || r.referrerUid?.slice(0,8) || '—')}</div>
+              <div style="font-size:11px;color:var(--muted)">${esc(referrer.email || '')}</div>
+            </div>
+          </div>
+        </td>
+        <td><span style="font-family:'DM Mono';color:var(--accent);letter-spacing:1px">${esc(r.referrerCode || '—')}</span></td>
+        <td>
+          <div class="user-cell">
+            ${avatarCell(referred)}
+            <div>
+              <div style="font-weight:600">${esc(referred.name || r.referredUid?.slice(0,8) || '—')}</div>
+              <div style="font-size:11px;color:var(--muted)">${esc(referred.email || '')}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:12px;color:var(--muted)">${date}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="mini-progress" style="width:100px">
+              <div class="mini-progress-fill" style="width:${Math.min(100, refCount / WA_THRESHOLD * 100)}%"></div>
+            </div>
+            <span style="font-size:11px;color:var(--muted)">${refCount}/${WA_THRESHOLD}</span>
+            ${unlocked ? `<span class="badge-pill badge-green" style="font-size:10px">✅</span>` : ''}
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+window.filterReferrals = function(q) {
+  q = q.toLowerCase();
+  const filtered = allReferrals.filter(r => {
+    const referrer = userMap[r.referrerUid] || {};
+    const referred = userMap[r.referredUid] || {};
+    return (r.referrerCode || '').toLowerCase().includes(q) ||
+      (referrer.name  || '').toLowerCase().includes(q) ||
+      (referrer.email || '').toLowerCase().includes(q) ||
+      (referred.name  || '').toLowerCase().includes(q) ||
+      (referred.email || '').toLowerCase().includes(q);
+  });
+  renderReferrals(filtered);
+};
+
+// ── Rooms ─────────────────────────────────────────────────────
+function renderRooms(rooms) {
+  document.getElementById('rooms-count').textContent = rooms.length;
+  const tbody = document.getElementById('rooms-body');
+  if (!rooms.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><span class="emoji">🏠</span>No rooms posted yet</td></tr>`;
+    return;
+  }
+  const sorted = [...rooms].sort((a, b) => {
+    const at = a.createdAt?.seconds || 0;
+    const bt = b.createdAt?.seconds || 0;
+    return bt - at;
+  });
+  tbody.innerHTML = sorted.map(r => {
+    const owner  = userMap[r.ownerUid] || {};
+    const status = r.status || (r.occupied ? 'occupied' : 'available');
+    const date   = r.createdAt?.seconds
+      ? new Date(r.createdAt.seconds * 1000).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
+      : '—';
+    return `
+      <tr id="room-row-${r.id}">
+        <td style="font-weight:600;max-width:180px">${esc(r.title || '—')}</td>
+        <td style="font-size:12px;color:var(--muted)">${esc(r.location || '—')}</td>
+        <td>₦${Number(r.price || 0).toLocaleString()}</td>
+        <td>
+          <div class="user-cell">
+            ${avatarCell(owner)}
+            <div style="font-size:12px">
+              <div>${esc(owner.name || r.ownerUid?.slice(0,8) || '—')}</div>
+              <div style="color:var(--muted);font-size:11px">${esc(owner.email || '')}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          ${status === 'occupied'
+            ? `<span class="badge-pill badge-orange">🔒 Occupied</span>`
+            : `<span class="badge-pill badge-green">✅ Available</span>`}
+        </td>
+        <td style="font-size:12px;color:var(--muted)">${date}</td>
+        <td>
+          <button class="action-btn danger" onclick="adminDeleteRoom('${r.id}', '${esc(r.title || '')}')">
+            🗑 Delete
+          </button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+window.filterRooms = function(q) {
+  q = q.toLowerCase();
+  const filtered = allRooms.filter(r =>
+    (r.title    || '').toLowerCase().includes(q) ||
+    (r.location || '').toLowerCase().includes(q)
+  );
+  renderRooms(filtered);
+};
+
+// ── Actions ───────────────────────────────────────────────────
+window.toggleBan = async function(uid, currentlyBanned) {
+  try {
+    await updateDoc(doc(db, 'users', uid), { banned: !currentlyBanned });
+    const idx = allUsers.findIndex(u => u.id === uid);
+    if (idx > -1) allUsers[idx].banned = !currentlyBanned;
+    renderUsers(allUsers);
+    showToast(currentlyBanned ? 'User unbanned ✅' : 'User banned 🚫', 'success');
+  } catch(err) {
+    console.error(err);
+    showToast('Update failed', 'error');
+  }
+};
+
+window.deleteUserRow = async function(uid, name) {
+  if (!confirm(`Delete user "${name}" permanently?\n\nThis removes their Firestore profile. Their auth account will remain until they next sign in.`)) return;
+  try {
+    await deleteDoc(doc(db, 'users', uid));
+    allUsers = allUsers.filter(u => u.id !== uid);
+    renderUsers(allUsers);
+    renderOverview();
+    showToast('User profile deleted', 'success');
+  } catch(err) {
+    console.error(err);
+    showToast('Delete failed', 'error');
+  }
+};
+
+window.adminDeleteRoom = async function(roomId, title) {
+  if (!confirm(`Delete listing "${title}" permanently?`)) return;
+  try {
+    await deleteDoc(doc(db, 'rooms', roomId));
+    allRooms = allRooms.filter(r => r.id !== roomId);
+    renderRooms(allRooms);
+    renderOverview();
+    showToast('Listing deleted', 'success');
+  } catch(err) {
+    console.error(err);
+    showToast('Delete failed', 'error');
+  }
+};
+
+// ── Navigation ────────────────────────────────────────────────
+window.switchSection = function(btn, id) {
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('section-' + id).classList.add('active');
+};
+
+// ── Logout ────────────────────────────────────────────────────
+window.adminLogout = async function() {
+  if (!confirm('Log out of admin panel?')) return;
+  await signOut(auth);
+  location.href = 'login.html';
+};
+
+// ── Helpers ───────────────────────────────────────────────────
+function avatarCell(u) {
+  if (u.photoURL) {
+    return `<img src="${esc(u.photoURL)}" class="table-avatar" onerror="this.outerHTML='<div class=table-avatar>${esc((u.name||'?')[0].toUpperCase())}</div>'"/>`;
+  }
+  return `<div class="table-avatar">${esc((u.name || u.email || '?')[0].toUpperCase())}</div>`;
+}
+
+function esc(str) {
+  const d = document.createElement('div');
+  d.textContent = String(str || '');
+  return d.innerHTML;
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
