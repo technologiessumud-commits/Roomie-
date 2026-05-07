@@ -5,7 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Roomie – Student Housing & Roommate Finder in Nigeria</title>
+<meta name="theme-color" content="#0d0f14"/>
 
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+
+<meta name="apple-mobile-web-app-title" content="Roomie"/>
+  
   <!-- SEO Meta -->
   <meta name="description" content="Roomie helps students in Nigeria find affordable housing and roommates. Discover rooms for rent in Lagos, near universities, and connect with verified roommates بسهولة." />
   <meta name="keywords" content="student housing Nigeria, roommate finder Nigeria, rooms for rent Lagos, student accommodation Lagos, university housing Nigeria, shared apartments Nigeria, find roommates near me, cheap student rooms Nigeria, Roomie app" />
@@ -357,6 +364,10 @@
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
   </script>
-
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
+</script>
 </body>
 </html>
