@@ -189,13 +189,40 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── Top bar ── */
+    .top-bar {
+      position: fixed; top: 0; left: 220px; right: 0; height: 56px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: flex-end;
+      padding: 0 24px; z-index: 99; gap: 12px;
+    }
+    .top-bar-email {
+      font-size: 12px; color: var(--muted); max-width: 200px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .top-bar-logout {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 16px; border-radius: var(--radius-sm);
+      background: rgba(255,77,109,.12); border: 1px solid rgba(255,77,109,.35);
+      color: var(--red); font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: 'DM Mono';
+      transition: background .15s, transform .1s;
+    }
+    .top-bar-logout:hover { background: rgba(255,77,109,.22); transform: translateY(-1px); }
+    .top-bar-logout:active { transform: translateY(0); }
+
     /* Mobile warning */
     @media (max-width: 768px) {
       .sidebar { width: 60px; }
       .sidebar-logo, .nav-link span:not(.icon), .sidebar-badge, .sidebar-footer { display: none; }
-      .main { margin-left: 60px; padding: 20px 16px; }
+      .nav-link-logout-mobile { display: flex !important; }
+      .main { margin-left: 60px; padding: 72px 16px 20px; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .search-input { width: 160px; }
+      .top-bar { left: 60px; padding: 0 16px; }
+      .top-bar-email { display: none; }
+      .top-bar-logout span.logout-label { display: none; }
+      .top-bar-logout { padding: 8px 12px; }
     }
   </style>
 </head>
@@ -238,8 +265,16 @@
     </div>
   </aside>
 
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <span class="top-bar-email" id="top-bar-email"></span>
+    <button class="top-bar-logout" onclick="adminLogout()">
+      🚪 <span class="logout-label">Log Out</span>
+    </button>
+  </div>
+
   <!-- Main -->
-  <main class="main">
+  <main class="main" style="padding-top: 88px;">
 
     <!-- ── OVERVIEW ── -->
     <section class="section active" id="section-overview">
@@ -433,6 +468,7 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById('gate').style.display     = 'none';
   document.getElementById('app').style.display      = 'block';
   document.getElementById('admin-email-label').textContent = user.email;
+  document.getElementById('top-bar-email').textContent = user.email;
 
   await loadAll();
 });
