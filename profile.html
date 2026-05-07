@@ -101,17 +101,28 @@
 
   <div id="toast" class="toast"></div>
 
-<script type="module">
-import { onAuth, getProfile, getUserRooms, saveProfile, logOut } from './firebase.js';
+    <script type="module">
+import {
+  onAuth,
+  getProfile,
+  getUserRooms,
+  saveProfile,
+  logOut,
+  deleteRoom,
+  markRoomOccupied,
+  deleteAccount
+} from './firebase.js';
+
 import { uploadImage } from './upload.js';
 
 let currentUser = null;
+let currentProfile = null;
 
-// ✅ Show UI immediately (no dark loading)
+// ✅ Show UI immediately
 document.getElementById('loading').style.display = 'none';
 document.getElementById('content').style.display = 'block';
 
-// 🔐 Auth (non-blocking)
+// 🔐 Auth
 onAuth((user) => {
   if (!user) {
     window.location.href = 'login.html';
@@ -126,33 +137,80 @@ onAuth((user) => {
 
 // ─────────────────────────────
 // PROFILE
+
 async function loadProfile(uid) {
   try {
     const p = await getProfile(uid);
     if (!p) return;
 
+    currentProfile = p;
+
     setAvatar(p.photoURL, p.name);
 
-    document.getElementById('profile-name').textContent = p.name || '—';
-    document.getElementById('profile-university').textContent = p.university || '—';
+    document.getElementById('profile-name').textContent =
+      p.name || '—';
+
+    document.getElementById('profile-university').textContent =
+      p.university || '—';
 
     const chips = document.getElementById('profile-chips');
+
     chips.innerHTML = '';
-    if (p.year) chips.innerHTML += `<span class="badge">🎓 ${p.year}</span>`;
-    if (p.course) chips.innerHTML += `<span class="badge">📚 ${p.course}</span>`;
 
-    document.getElementById('info-email').textContent = p.email || '—';
-    document.getElementById('info-phone').textContent = p.phone || '—';
-
-    if (p.course) {
-      document.getElementById('info-course').textContent = p.course;
-    } else {
-      document.getElementById('info-course-row').style.display = 'none';
+    if (p.year) {
+      chips.innerHTML += `
+        <span class="badge">🎓 ${p.year}</span>
+      `;
     }
 
-    document.getElementById('stat-joined').textContent = p.createdAt
-      ? new Date(p.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })
-      : '—';
+    if (p.course) {
+      chips.innerHTML += `
+        <span class="badge">📚 ${p.course}</span>
+      `;
+    }
+
+    // ✅ Referral badge
+    if (p.referralCode) {
+      chips.innerHTML += `
+        <span class="badge">
+          💸 ${p.referralCode}
+        </span>
+      `;
+    }
+
+    // ✅ Earnings badge
+    if (p.referralEarnings) {
+      chips.innerHTML += `
+        <span class="badge">
+          ₦${p.referralEarnings}
+        </span>
+      `;
+    }
+
+    document.getElementById('info-email').textContent =
+      p.email || '—';
+
+    document.getElementById('info-phone').textContent =
+      p.phone || '—';
+
+    if (p.course) {
+      document.getElementById('info-course').textContent =
+        p.course;
+    } else {
+      document.getElementById('info-course-row').style.display =
+        'none';
+    }
+
+    document.getElementById('stat-joined').textContent =
+      p.createdAt
+        ? new Date(p.createdAt).toLocaleDateString(
+            'en',
+            {
+              month: 'short',
+              year: 'numeric'
+            }
+          )
+        : '—';
 
   } catch (err) {
     console.error('Profile error:', err);
@@ -161,14 +219,21 @@ async function loadProfile(uid) {
 
 // ─────────────────────────────
 // ROOMS
+
 async function loadRooms(uid) {
+
   try {
+
     const rooms = await getUserRooms(uid) || [];
 
-    document.getElementById('stat-rooms').textContent = rooms.length;
+    document.getElementById('stat-rooms').textContent =
+      rooms.length;
 
-    const container = document.getElementById('my-rooms-container');
-    const emptyEl   = document.getElementById('my-rooms-empty');
+    const container =
+      document.getElementById('my-rooms-container');
+
+    const emptyEl =
+      document.getElementById('my-rooms-empty');
 
     if (!rooms.length) {
       emptyEl.style.display = 'block';
@@ -176,16 +241,93 @@ async function loadRooms(uid) {
     }
 
     container.innerHTML = rooms.map(r => `
-      <div class="card" onclick="window.location.href='room.html?id=${r.id}'" style="cursor:pointer">
-        <div class="card-body" style="display:flex;align-items:center;gap:12px">
-          <div style="font-size:1.5rem">🏠</div>
-          <div style="flex:1">
-            <div style="font-weight:600;font-size:14px">${escHtml(r.title)}</div>
-            <div style="font-size:12px;color:var(--muted)">📍 ${escHtml(r.location || '—')}</div>
+
+      <div class="card">
+
+        <div
+          onclick="window.location.href='room.html?id=${r.id}'"
+          style="cursor:pointer"
+        >
+
+          <div
+            class="card-body"
+            style="display:flex;align-items:center;gap:12px"
+          >
+
+            <div style="font-size:1.5rem">🏠</div>
+
+            <div style="flex:1">
+
+              <div style="font-weight:600;font-size:14px">
+                ${escHtml(r.title)}
+              </div>
+
+              <div style="font-size:12px;color:var(--muted)">
+                📍 ${escHtml(r.location || '—')}
+              </div>
+
+              ${
+                r.status === 'occupied'
+                ? `
+                  <div
+                    style="
+                      color:#ff6b35;
+                      font-size:12px;
+                      margin-top:4px;
+                      font-weight:600;
+                    "
+                  >
+                    🔒 Occupied
+                  </div>
+                `
+                : ''
+              }
+
+            </div>
+
+            <span class="card-price">
+              ₦${Number(r.price).toLocaleString()}
+            </span>
+
           </div>
-          <span class="card-price">₦${Number(r.price).toLocaleString()}</span>
+
         </div>
+
+        <!-- ACTIONS -->
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            padding:0 16px 16px;
+          "
+        >
+
+          <button
+            class="btn btn-secondary"
+            style="flex:1"
+            onclick="toggleOccupied(
+              '${r.id}',
+              '${r.status || 'available'}'
+            )"
+          >
+            ${
+              r.status === 'occupied'
+              ? '✅ Available'
+              : '🔒 Occupied'
+            }
+          </button>
+
+          <button
+            class="btn btn-danger"
+            onclick="deleteListing('${r.id}')"
+          >
+            Delete
+          </button>
+
+        </div>
+
       </div>
+
     `).join('');
 
   } catch (err) {
@@ -194,38 +336,54 @@ async function loadRooms(uid) {
 }
 
 // ─────────────────────────────
-// AVATAR (PHOTO)
+// AVATAR
 
 function setAvatar(photoURL, name) {
-  const avatar = document.getElementById('profile-avatar');
+
+  const avatar =
+    document.getElementById('profile-avatar');
 
   if (photoURL) {
+
     avatar.innerHTML = `
-      <img src="${photoURL}"
-        style="width:100%;height:100%;border-radius:50%;object-fit:cover"
-        onerror="this.outerHTML='${(name||'?')[0].toUpperCase()}'"
-      />`;
+      <img
+        src="${photoURL}"
+        style="
+          width:100%;
+          height:100%;
+          border-radius:50%;
+          object-fit:cover
+        "
+        onerror="
+          this.outerHTML='${(name||'?')[0].toUpperCase()}'
+        "
+      />
+    `;
+
   } else {
-    avatar.textContent = name ? name[0].toUpperCase() : '?';
+
+    avatar.textContent =
+      name ? name[0].toUpperCase() : '?';
   }
 }
 
 // ─────────────────────────────
-// PHOTO UPLOAD (Cloudinary)
+// PHOTO UPLOAD
 
 window.handlePhotoChange = async function(input) {
+
   const file = input.files[0];
+
   if (!file || !currentUser) return;
 
   try {
-    // ⚡ instant preview
+
     const preview = URL.createObjectURL(file);
+
     setAvatar(preview, '');
 
-    // Upload to Cloudinary
     const url = await uploadImage(file);
 
-    // Save to Firebase
     await saveProfile(currentUser.uid, {
       photoURL: url
     });
@@ -235,8 +393,87 @@ window.handlePhotoChange = async function(input) {
     showToast('Photo updated ✅', 'success');
 
   } catch (err) {
+
     console.error(err);
+
     showToast('Upload failed ❌', 'error');
+  }
+};
+
+// ─────────────────────────────
+// DELETE LISTING
+
+window.deleteListing = async function(roomId) {
+
+  const sure =
+    confirm('Delete this listing permanently?');
+
+  if (!sure) return;
+
+  try {
+
+    await deleteRoom(roomId);
+
+    showToast('Listing deleted', 'success');
+
+    loadRooms(currentUser.uid);
+
+  } catch (err) {
+
+    console.error(err);
+
+    showToast('Failed to delete', 'error');
+  }
+};
+
+// ─────────────────────────────
+// OCCUPIED TOGGLE
+
+window.toggleOccupied = async function(roomId, status) {
+
+  try {
+
+    const occupied = status !== 'occupied';
+
+    await markRoomOccupied(roomId, occupied);
+
+    showToast(
+      occupied
+        ? 'Marked as occupied'
+        : 'Marked as available',
+      'success'
+    );
+
+    loadRooms(currentUser.uid);
+
+  } catch (err) {
+
+    console.error(err);
+
+    showToast('Update failed', 'error');
+  }
+};
+
+// ─────────────────────────────
+// DELETE ACCOUNT
+
+window.handleDeleteAccount = async function() {
+
+  const sure = confirm(
+    'Delete your account permanently?'
+  );
+
+  if (!sure) return;
+
+  try {
+
+    await deleteAccount();
+
+  } catch (err) {
+
+    console.error(err);
+
+    showToast('Delete failed', 'error');
   }
 };
 
@@ -244,8 +481,12 @@ window.handlePhotoChange = async function(input) {
 // LOGOUT
 
 window.handleLogout = async () => {
-  if (!confirm('Are you sure you want to log out?')) return;
+
+  if (!confirm('Are you sure you want to log out?'))
+    return;
+
   await logOut();
+
   window.location.href = 'index.html';
 };
 
@@ -253,16 +494,24 @@ window.handleLogout = async () => {
 // HELPERS
 
 function escHtml(str) {
+
   const d = document.createElement('div');
+
   d.textContent = str;
+
   return d.innerHTML;
 }
 
 function showToast(msg, type='') {
+
   const t = document.getElementById('toast');
+
   if (!t) return;
+
   t.textContent = msg;
+
   t.className = `toast ${type} show`;
+
   setTimeout(() => t.classList.remove('show'), 3000);
 }
   </script>
